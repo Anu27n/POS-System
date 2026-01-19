@@ -1,0 +1,131 @@
+@extends('layouts.store-owner')
+
+@section('title', 'Products')
+@section('page-title', 'Products')
+
+@section('content')
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <form class="d-flex gap-2">
+            <input type="search" class="form-control" name="search" 
+                   placeholder="Search products..." value="{{ request('search') }}">
+            <select class="form-select" name="category" style="width: auto;">
+                <option value="">All Categories</option>
+                @foreach($categories as $category)
+                    <option value="{{ $category->id }}" {{ request('category') == $category->id ? 'selected' : '' }}>
+                        {{ $category->name }}
+                    </option>
+                @endforeach
+            </select>
+            <button type="submit" class="btn btn-outline-primary">Filter</button>
+        </form>
+    </div>
+    <a href="{{ route('store-owner.products.create') }}" class="btn btn-primary">
+        <i class="bi bi-plus-lg me-1"></i>Add Product
+    </a>
+</div>
+
+<div class="card">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead>
+                    <tr>
+                        <th width="80">Image</th>
+                        <th>Name</th>
+                        <th>Category</th>
+                        <th>Price</th>
+                        <th>Stock</th>
+                        <th>Status</th>
+                        <th width="150">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @forelse($products as $product)
+                    <tr>
+                        <td>
+                            @if($product->image)
+                                <img src="{{ asset('storage/' . $product->image) }}" 
+                                     alt="{{ $product->name }}" class="rounded" 
+                                     style="width: 50px; height: 50px; object-fit: cover;">
+                            @else
+                                <div class="bg-light rounded d-flex align-items-center justify-content-center"
+                                     style="width: 50px; height: 50px;">
+                                    <i class="bi bi-box text-muted"></i>
+                                </div>
+                            @endif
+                        </td>
+                        <td>
+                            <span class="fw-semibold">{{ $product->name }}</span>
+                            @if($product->sku)
+                                <br><small class="text-muted">SKU: {{ $product->sku }}</small>
+                            @endif
+                        </td>
+                        <td>{{ $product->category->name ?? 'Uncategorized' }}</td>
+                        <td>
+                            @if($product->sale_price)
+                                <span class="text-decoration-line-through text-muted">${{ number_format($product->price, 2) }}</span>
+                                <br>
+                                <span class="text-success fw-semibold">${{ number_format($product->sale_price, 2) }}</span>
+                            @else
+                                <span class="fw-semibold">${{ number_format($product->price, 2) }}</span>
+                            @endif
+                        </td>
+                        <td>
+                            @if(!$product->track_stock)
+                                <span class="badge bg-secondary">Not Tracked</span>
+                            @elseif($product->stock_quantity <= 0)
+                                <span class="badge bg-danger">Out of Stock</span>
+                            @elseif($product->stock_quantity <= $product->low_stock_threshold)
+                                <span class="badge bg-warning">{{ $product->stock_quantity }}</span>
+                            @else
+                                <span class="badge bg-success">{{ $product->stock_quantity }}</span>
+                            @endif
+                        </td>
+                        <td>
+                            @if($product->is_active)
+                                <span class="badge bg-success">Active</span>
+                            @else
+                                <span class="badge bg-secondary">Inactive</span>
+                            @endif
+                        </td>
+                        <td>
+                            <a href="{{ route('store-owner.products.edit', $product) }}" 
+                               class="btn btn-sm btn-outline-primary">
+                                <i class="bi bi-pencil"></i>
+                            </a>
+                            <form action="{{ route('store-owner.products.destroy', $product) }}" 
+                                  method="POST" class="d-inline"
+                                  onsubmit="return confirm('Are you sure you want to delete this product?');">
+                                @csrf
+                                @method('DELETE')
+                                <button type="submit" class="btn btn-sm btn-outline-danger">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                    @empty
+                    <tr>
+                        <td colspan="7" class="text-center py-4">
+                            <div class="text-muted">
+                                <i class="bi bi-box fs-1 d-block mb-2"></i>
+                                No products yet
+                            </div>
+                            <a href="{{ route('store-owner.products.create') }}" class="btn btn-primary btn-sm mt-2">
+                                Add your first product
+                            </a>
+                        </td>
+                    </tr>
+                    @endforelse
+                </tbody>
+            </table>
+        </div>
+    </div>
+    @if($products->hasPages())
+    <div class="card-footer">
+        {{ $products->appends(request()->query())->links() }}
+    </div>
+    @endif
+</div>
+@endsection

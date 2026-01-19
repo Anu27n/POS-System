@@ -1,0 +1,286 @@
+QR Code Based Multi-Store Ordering & POS System
+
+Project Objective
+
+Develop a web-based QR code ordering system that supports multiple stores (grocery, clothing, department stores) to reduce queues and improve checkout efficiency. The system will be installed on a client’s own server and can be used to onboard multiple stores.
+
+User Roles
+
+1. Super Admin (System Owner)
+
+Manage all registered stores
+
+Create and manage store owner accounts
+
+View overall analytics and reports
+
+Configure payment gateways
+
+Enable/disable stores
+
+
+2. Store Owner
+
+Login to a dedicated dashboard
+
+Manage store profile
+
+Add, edit, and delete products
+
+Manage inventory and stock levels
+
+Generate store QR code
+
+View and manage orders
+
+Access POS panel
+
+Verify customer orders using QR scan
+
+View sales and inventory reports
+
+
+3. Customer
+
+Must register and login before placing an order
+
+Can scan store QR code to access store menu
+
+Browse products
+
+Add products to cart
+
+Place orders
+
+Pay online or select pay at counter
+
+Receive digital receipt with verification QR code
+
+
+Core Features
+
+1. Authentication System
+
+Mandatory customer login before checkout
+
+Roles: admin, store owner, customer
+
+Secure login and registration system
+
+
+
+2. Multi-Store Management
+
+Support for multiple stores under one system
+
+Each store has a unique public URL and QR code
+
+Store status control (active/inactive)
+
+3. Product & Inventory Management
+
+Store owners can manage products
+
+Product attributes:
+
+Name
+
+Price
+
+SKU
+
+Stock quantity
+
+Status (available/unavailable)
+
+
+Automatic stock deduction on order placement
+
+Stock restoration on failed or cancelled orders
+
+4. QR Code System
+
+Store QR Code
+
+Each store can generate a QR code
+
+QR links to the store’s public ordering page
+
+
+Order Verification QR Code
+
+Generated after order placement
+
+Embedded in receipt
+
+Used by store staff or security for verification
+
+QR contains order ID and verification code
+
+
+5. Cart & Ordering
+
+Session-based cart
+
+Customers must be logged in to place orders
+
+Order details:
+
+Customer information
+
+Store information
+
+Ordered items
+
+Total amount
+
+Payment method
+
+Payment status
+
+
+Unique order number for each order
+
+
+
+6. Payment System
+
+Online payments via payment gateway (Razorpay / Stripe / PayPal)
+
+Pay-at-counter option
+
+Online payment flow:
+
+Redirect to gateway
+
+On success, mark order as paid
+
+
+Counter payment flow:
+
+Order marked as unpaid
+
+Store owner processes payment in POS
+
+7. POS (Point of Sale) System
+
+Accessible only by store owners
+
+QR code scanner to scan order verification QR
+
+Fetch and display order details
+
+Mark order as paid (for counter payments)
+
+Update order status in real time
+
+8. Receipt Generation
+
+Digital receipt generated after order placement
+
+Receipt includes:
+
+Store name
+
+Order number
+
+Product list
+
+Total amount
+
+Payment status
+
+Verification QR code
+
+
+Printable HTML or PDF format
+
+
+
+9. Reports & Analytics
+
+Store-wise sales reports
+
+Order history
+
+Inventory reports
+
+Payment summaries
+
+
+Technical Requirements
+
+Backend
+
+PHP 8+
+
+Laravel framework
+
+REST-based architecture
+
+
+Frontend
+
+Blade templates with Bootstrap
+
+Mobile-friendly design
+
+
+Database
+
+MySQL
+
+
+Hosting Compatibility
+
+Shared hosting compatible
+
+Composer support via SSH
+
+No dependency on Redis, queues, or Node.js
+
+Security Requirements
+
+Role-based access control
+
+Secure payment handling
+
+No hardcoded credentials
+
+Environment-based configuration
+
+Input validation and CSRF protection
+
+
+Installation & Distribution
+
+Web-based installer
+
+Database import during installation
+
+Environment configuration via installer
+
+Admin account creation during setup
+
+Documentation included
+
+
+Deliverables
+
+Complete source code
+
+Database schema
+
+Installer module
+
+Admin and store dashboards
+
+Customer-facing ordering system
+
+Documentation for setup and usage
+
+
+
+
+This is what I am looking for
+If everything goes well with this project, you are looking at a permanent position, as one of the core members for the project. Cause if it goes well, we'll need consistent updates, new features etc in the system.
