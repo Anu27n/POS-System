@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Storage;
 
 class Order extends Model
 {
@@ -24,7 +25,7 @@ class Order extends Model
         'payment_status',
         'order_status',
         'verification_code',
-        'verification_qr',
+        'verification_qr_path',
         'transaction_id',
         'notes',
         'paid_at',
@@ -38,6 +39,38 @@ class Order extends Model
         'paid_at' => 'datetime',
     ];
 
+    /**
+     * Accessor for total_amount (alias for total)
+     */
+    public function getTotalAmountAttribute(): float
+    {
+        return (float) $this->total;
+    }
+
+    /**
+     * Accessor for tax_amount (alias for tax)
+     */
+    public function getTaxAmountAttribute(): float
+    {
+        return (float) $this->tax;
+    }
+
+    /**
+     * Accessor for discount_amount (alias for discount)
+     */
+    public function getDiscountAmountAttribute(): float
+    {
+        return (float) $this->discount;
+    }
+
+    /**
+     * Accessor for status (alias for order_status)
+     */
+    public function getStatusAttribute(): string
+    {
+        return $this->order_status;
+    }
+
     protected static function boot()
     {
         parent::boot();
@@ -47,9 +80,46 @@ class Order extends Model
                 $order->order_number = 'ORD-' . strtoupper(Str::random(8));
             }
             if (empty($order->verification_code)) {
-                $order->verification_code = strtoupper(Str::random(12));
+                // Generate a secure cryptographic token that cannot be guessed
+                $order->verification_code = hash('sha256', Str::uuid() . microtime(true) . random_bytes(32));
             }
         });
+    }
+
+    /**
+     * Get the QR code image URL
+     */
+    public function getQrCodeUrlAttribute(): ?string
+    {
+        if (!$this->verification_qr_path) {
+            return null;
+        }
+        return Storage::disk('public')->url($this->verification_qr_path);
+    }
+
+    /**
+     * Get the QR code as a data URI for inline display
+     */
+    public function getQrCodeDataUriAttribute(): ?string
+    {
+        if (!$this->verification_qr_path || !Storage::disk('public')->exists($this->verification_qr_path)) {
+            return null;
+        }
+        // The QR file contains the base64 data URI string directly
+        $content = Storage::disk('public')->get($this->verification_qr_path);
+        // If it's already a data URI, return as-is; otherwise encode it
+        if (str_starts_with($content, 'data:image/')) {
+            return $content;
+        }
+        return 'data:image/png;base64,' . base64_encode($content);
+    }
+
+    /**
+     * Check if QR code exists
+     */
+    public function hasQrCode(): bool
+    {
+        return $this->verification_qr_path && Storage::disk('public')->exists($this->verification_qr_path);
     }
 
     /**
@@ -107,6 +177,14 @@ class Order extends Model
      * Get the customer who placed the order
      */
     public function customer(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'user_id');
+    }
+
+    /**
+     * Alias for customer relationship
+     */
+    public function user(): BelongsTo
     {
         return $this->belongsTo(User::class, 'user_id');
     }

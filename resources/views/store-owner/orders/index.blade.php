@@ -52,7 +52,7 @@
                             <small class="text-muted">{{ $order->created_at->format('H:i') }}</small>
                         </td>
                         <td>{{ $order->items->count() }} items</td>
-                        <td class="fw-semibold">${{ number_format($order->total_amount, 2) }}</td>
+                        <td class="fw-semibold">₹{{ number_format($order->total_amount, 2) }}</td>
                         <td>
                             @if($order->payment_status == 'paid')
                                 <span class="badge bg-success">Paid</span>
@@ -115,3 +115,4 @@
     @endif
 </div>
 @endsection
+

@@ -12,7 +12,7 @@ class HomeController extends Controller
      */
     public function index()
     {
-        $featuredStores = Store::where('is_active', true)
+        $featuredStores = Store::where('status', 'active')
             ->latest()
             ->take(8)
             ->get();

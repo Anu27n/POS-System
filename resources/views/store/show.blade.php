@@ -57,7 +57,7 @@
                         All Products
                     </a>
                     @foreach($categories as $category)
-                    <a href="{{ route('store.show', ['store' => $store->slug, 'category' => $category->id]) }}" 
+                    <a href="{{ route('store.show', $store->slug) }}?category={{ $category->id }}" 
                        class="list-group-item list-group-item-action d-flex justify-content-between align-items-center {{ request('category') == $category->id ? 'active' : '' }}">
                         {{ $category->name }}
                         <span class="badge bg-secondary rounded-pill">{{ $category->products_count }}</span>
@@ -124,10 +124,10 @@
                             </h6>
                             <p class="card-text mb-2">
                                 @if($product->sale_price)
-                                    <span class="text-decoration-line-through text-muted">${{ number_format($product->price, 2) }}</span>
-                                    <span class="text-danger fw-bold">${{ number_format($product->sale_price, 2) }}</span>
+                                    <span class="text-decoration-line-through text-muted">₹{{ number_format($product->price, 2) }}</span>
+                                    <span class="text-danger fw-bold">₹{{ number_format($product->sale_price, 2) }}</span>
                                 @else
-                                    <span class="fw-bold">${{ number_format($product->price, 2) }}</span>
+                                    <span class="fw-bold">₹{{ number_format($product->price, 2) }}</span>
                                 @endif
                             </p>
                             @if($product->track_stock && $product->stock_quantity <= 0)
@@ -183,23 +183,31 @@ document.querySelectorAll('.add-to-cart-form').forEach(form => {
     form.addEventListener('submit', function(e) {
         e.preventDefault();
         
+        const formData = new FormData(this);
+        const btn = this.querySelector('button');
+        const originalText = btn.innerHTML;
+        
+        btn.disabled = true;
+        btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Adding...';
+        
         fetch(this.action, {
             method: 'POST',
-            body: new FormData(this),
+            body: formData,
             headers: {
-                'X-Requested-With': 'XMLHttpRequest'
+                'X-Requested-With': 'XMLHttpRequest',
+                'Accept': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
             }
         })
         .then(response => response.json())
         .then(data => {
             if (data.success) {
+                // Update cart count
                 document.querySelectorAll('.cart-count').forEach(el => {
                     el.textContent = data.cartCount;
                 });
                 
-                // Show toast/notification
-                const btn = this.querySelector('button');
-                const originalText = btn.innerHTML;
+                // Show success state
                 btn.innerHTML = '<i class="bi bi-check me-1"></i>Added!';
                 btn.classList.remove('btn-primary');
                 btn.classList.add('btn-success');
@@ -208,10 +216,22 @@ document.querySelectorAll('.add-to-cart-form').forEach(form => {
                     btn.innerHTML = originalText;
                     btn.classList.remove('btn-success');
                     btn.classList.add('btn-primary');
+                    btn.disabled = false;
                 }, 1500);
+            } else {
+                alert(data.message || 'Failed to add to cart');
+                btn.innerHTML = originalText;
+                btn.disabled = false;
             }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('An error occurred. Please try again.');
+            btn.innerHTML = originalText;
+            btn.disabled = false;
         });
     });
 });
 </script>
 @endsection
+

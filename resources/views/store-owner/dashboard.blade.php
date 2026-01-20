@@ -10,7 +10,7 @@
         <div class="card stat-card">
             <div class="card-body">
                 <div class="stat-label">Today's Sales</div>
-                <div class="stat-value">${{ number_format($todaySales, 2) }}</div>
+                <div class="stat-value">₹{{ number_format($todaySales, 2) }}</div>
                 <small class="text-muted">{{ $todayOrders }} orders</small>
             </div>
         </div>
@@ -19,7 +19,7 @@
         <div class="card stat-card" style="border-left-color: #059669;">
             <div class="card-body">
                 <div class="stat-label">This Month</div>
-                <div class="stat-value">${{ number_format($monthSales, 2) }}</div>
+                <div class="stat-value">₹{{ number_format($monthSales, 2) }}</div>
                 <small class="text-muted">{{ $monthOrders }} orders</small>
             </div>
         </div>
@@ -53,9 +53,8 @@
             </div>
             <div class="card-body text-center">
                 @if($store)
-                    <div class="mb-3">
-                        <img src="data:image/svg+xml;base64,{{ base64_encode($qrCode) }}" 
-                             alt="Store QR Code" class="img-fluid" style="max-width: 200px;">
+                    <div class="mb-3" style="max-width: 200px; margin: 0 auto;">
+                        <img src="{{ $qrCode }}" alt="Store QR Code" class="img-fluid">
                     </div>
                     <p class="text-muted mb-3">Scan to view your store</p>
                     <div class="d-grid gap-2">
@@ -128,7 +127,7 @@
                                 </td>
                                 <td>{{ $order->user->name ?? 'Guest' }}</td>
                                 <td>{{ $order->items->count() }}</td>
-                                <td>${{ number_format($order->total_amount, 2) }}</td>
+                                <td>₹{{ number_format($order->total_amount, 2) }}</td>
                                 <td>
                                     @switch($order->status)
                                         @case('pending')
@@ -222,3 +221,4 @@ function printQR() {
 }
 </script>
 @endsection
+

@@ -109,6 +109,16 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin'])->grou
     // Reports
     Route::get('/reports/sales', [Admin\ReportController::class, 'sales'])->name('reports.sales');
     Route::get('/reports/orders', [Admin\ReportController::class, 'orders'])->name('reports.orders');
+
+    // Order management with QR Scanner
+    Route::get('/orders', [Admin\OrderController::class, 'index'])->name('orders.index');
+    Route::get('/orders/scanner', [Admin\OrderController::class, 'scanner'])->name('orders.scanner');
+    Route::get('/orders/{order}', [Admin\OrderController::class, 'show'])->name('orders.show');
+    Route::post('/orders/scan', [Admin\OrderController::class, 'scan'])->name('orders.scan');
+    Route::post('/orders/{order}/update-status', [Admin\OrderController::class, 'updateStatus'])->name('orders.update-status');
+    Route::post('/orders/{order}/mark-paid', [Admin\OrderController::class, 'markPaid'])->name('orders.mark-paid');
+    Route::post('/orders/{order}/complete', [Admin\OrderController::class, 'completeOrder'])->name('orders.complete');
+    Route::get('/orders/{order}/receipt', [Admin\OrderController::class, 'receipt'])->name('orders.receipt');
 });
 
 /*
@@ -138,6 +148,7 @@ Route::prefix('store-owner')->name('store-owner.')->middleware(['auth', 'role:st
     Route::post('/pos/process', [StoreOwner\POSController::class, 'process'])->name('pos.process');
     Route::post('/pos/scan', [StoreOwner\POSController::class, 'scan'])->name('pos.scan');
     Route::post('/pos/{order}/mark-paid', [StoreOwner\POSController::class, 'markPaid'])->name('pos.mark-paid');
+    Route::post('/pos/{order}/complete', [StoreOwner\POSController::class, 'completeOrder'])->name('pos.complete-order');
 
     // Store settings
     Route::get('/settings', [StoreOwner\StoreSettingController::class, 'index'])->name('settings.index');

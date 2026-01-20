@@ -36,7 +36,7 @@
         <div class="card stat-card" style="border-left-color: #7c3aed;">
             <div class="card-body">
                 <div class="stat-label">Total Revenue</div>
-                <div class="stat-value">${{ number_format($stats['total_revenue'], 2) }}</div>
+                <div class="stat-value">₹{{ number_format($stats['total_revenue'], 2) }}</div>
             </div>
         </div>
     </div>
@@ -69,7 +69,7 @@
                                 <td><code>{{ $order->order_number }}</code></td>
                                 <td>{{ $order->customer->name }}</td>
                                 <td>{{ $order->store->name }}</td>
-                                <td>${{ number_format($order->total, 2) }}</td>
+                                <td>₹{{ number_format($order->total, 2) }}</td>
                                 <td>
                                     <span class="badge bg-{{ $order->payment_status === 'paid' ? 'success' : 'warning' }}">
                                         {{ ucfirst($order->payment_status) }}
@@ -119,3 +119,4 @@
     </div>
 </div>
 @endsection
+

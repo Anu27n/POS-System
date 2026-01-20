@@ -132,6 +132,12 @@
             <a href="{{ route('admin.users.index') }}" class="nav-link {{ request()->routeIs('admin.users.*') ? 'active' : '' }}">
                 <i class="bi bi-people"></i> Users
             </a>
+            <a href="{{ route('admin.orders.index') }}" class="nav-link {{ request()->routeIs('admin.orders.index') || request()->routeIs('admin.orders.show') ? 'active' : '' }}">
+                <i class="bi bi-receipt"></i> Orders
+            </a>
+            <a href="{{ route('admin.orders.scanner') }}" class="nav-link {{ request()->routeIs('admin.orders.scanner') ? 'active' : '' }}">
+                <i class="bi bi-qr-code-scan"></i> QR Scanner
+            </a>
 
             <div class="nav-section">Reports</div>
             <a href="{{ route('admin.reports.sales') }}" class="nav-link {{ request()->routeIs('admin.reports.sales') ? 'active' : '' }}">

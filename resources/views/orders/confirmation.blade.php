@@ -1,3 +1,7 @@
+@php
+use Illuminate\Support\Facades\Storage;
+@endphp
+
 @extends('layouts.app')
 
 @section('title', 'Order Confirmed')
@@ -81,29 +85,29 @@
                                         @endif
                                     </td>
                                     <td class="text-center">{{ $item->quantity }}</td>
-                                    <td class="text-end">${{ number_format($item->price, 2) }}</td>
-                                    <td class="text-end">${{ number_format($item->subtotal, 2) }}</td>
+                                    <td class="text-end">₹{{ number_format($item->price, 2) }}</td>
+                                    <td class="text-end">₹{{ number_format($item->subtotal, 2) }}</td>
                                 </tr>
                                 @endforeach
                             </tbody>
                             <tfoot>
                                 <tr>
                                     <td colspan="3" class="text-end">Subtotal</td>
-                                    <td class="text-end">${{ number_format($order->subtotal, 2) }}</td>
+                                    <td class="text-end">₹{{ number_format($order->subtotal, 2) }}</td>
                                 </tr>
                                 <tr>
                                     <td colspan="3" class="text-end">Tax</td>
-                                    <td class="text-end">${{ number_format($order->tax_amount, 2) }}</td>
+                                    <td class="text-end">₹{{ number_format($order->tax, 2) }}</td>
                                 </tr>
-                                @if($order->discount_amount > 0)
+                                @if($order->discount > 0)
                                 <tr>
                                     <td colspan="3" class="text-end">Discount</td>
-                                    <td class="text-end text-success">-${{ number_format($order->discount_amount, 2) }}</td>
+                                    <td class="text-end text-success">-₹{{ number_format($order->discount, 2) }}</td>
                                 </tr>
                                 @endif
                                 <tr>
                                     <th colspan="3" class="text-end">Total</th>
-                                    <th class="text-end fs-5">${{ number_format($order->total_amount, 2) }}</th>
+                                    <th class="text-end fs-5">₹{{ number_format($order->total, 2) }}</th>
                                 </tr>
                             </tfoot>
                         </table>
@@ -119,16 +123,22 @@
             </div>
             
             <!-- QR Code for Verification -->
-            @if($order->verification_code)
+            @if($order->hasQrCode())
             <div class="card mb-4">
                 <div class="card-body text-center">
-                    <h5 class="mb-3">Order Verification Code</h5>
+                    <h5 class="mb-3">Order Verification QR Code</h5>
                     <div class="mb-3">
-                        <img src="data:image/svg+xml;base64,{{ base64_encode($qrCode) }}" 
-                             alt="Verification QR Code" style="max-width: 200px;">
+                        @if($order->hasQrCode())
+                            <img src="{{ Storage::disk('public')->get($order->verification_qr_path) }}" 
+                                 alt="Order QR Code" 
+                                 class="img-fluid" 
+                                 style="max-width: 300px;">
+                        @else
+                            <div class="alert alert-warning">QR Code not available</div>
+                        @endif
                     </div>
-                    <p class="mb-2">Show this QR code when picking up your order</p>
-                    <h4 class="font-monospace">{{ $order->verification_code }}</h4>
+                    <p class="mb-2 text-muted">Show this QR code when picking up your order</p>
+                    <p class="mb-0 small text-muted">Order verification is secure and store-specific</p>
                 </div>
             </div>
             @endif
@@ -148,3 +158,4 @@
     </div>
 </div>
 @endsection
+

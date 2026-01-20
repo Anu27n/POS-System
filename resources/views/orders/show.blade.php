@@ -66,30 +66,30 @@
                                             -
                                         @endif
                                     </td>
-                                    <td class="text-end">${{ number_format($item->price, 2) }}</td>
+                                    <td class="text-end">₹{{ number_format($item->price, 2) }}</td>
                                     <td class="text-center">{{ $item->quantity }}</td>
-                                    <td class="text-end">${{ number_format($item->subtotal, 2) }}</td>
+                                    <td class="text-end">₹{{ number_format($item->subtotal, 2) }}</td>
                                 </tr>
                                 @endforeach
                             </tbody>
                             <tfoot>
                                 <tr>
                                     <td colspan="4" class="text-end">Subtotal</td>
-                                    <td class="text-end">${{ number_format($order->subtotal, 2) }}</td>
+                                    <td class="text-end">₹{{ number_format($order->subtotal, 2) }}</td>
                                 </tr>
                                 <tr>
                                     <td colspan="4" class="text-end">Tax</td>
-                                    <td class="text-end">${{ number_format($order->tax_amount, 2) }}</td>
+                                    <td class="text-end">₹{{ number_format($order->tax_amount, 2) }}</td>
                                 </tr>
                                 @if($order->discount_amount > 0)
                                 <tr>
                                     <td colspan="4" class="text-end">Discount</td>
-                                    <td class="text-end text-success">-${{ number_format($order->discount_amount, 2) }}</td>
+                                    <td class="text-end text-success">-₹{{ number_format($order->discount_amount, 2) }}</td>
                                 </tr>
                                 @endif
                                 <tr>
                                     <th colspan="4" class="text-end">Total</th>
-                                    <th class="text-end fs-5">${{ number_format($order->total_amount, 2) }}</th>
+                                    <th class="text-end fs-5">₹{{ number_format($order->total_amount, 2) }}</th>
                                 </tr>
                             </tfoot>
                         </table>
@@ -167,18 +167,19 @@
             </div>
             
             <!-- Verification QR -->
-            @if($order->verification_code && in_array($order->status, ['pending', 'confirmed', 'processing']))
+            @if($order->hasQrCode() && in_array($order->order_status, ['pending', 'confirmed', 'processing']))
             <div class="card mb-4">
                 <div class="card-header">
                     <h6 class="mb-0">Pickup Verification</h6>
                 </div>
                 <div class="card-body text-center">
                     <div class="mb-3">
-                        <img src="data:image/svg+xml;base64,{{ base64_encode($qrCode) }}" 
-                             alt="Verification QR Code" style="max-width: 150px;">
+                        <img src="{{ $order->qr_code_data_uri }}" 
+                             alt="Verification QR Code" 
+                             style="max-width: 200px; width: 100%;"
+                             class="border rounded p-2 bg-white">
                     </div>
-                    <p class="mb-1 small text-muted">Show this QR code when picking up</p>
-                    <h5 class="font-monospace mb-0">{{ $order->verification_code }}</h5>
+                    <p class="mb-0 small text-muted">Show this QR code when picking up your order</p>
                 </div>
             </div>
             @endif
@@ -198,3 +199,4 @@
     </div>
 </div>
 @endsection
+

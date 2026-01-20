@@ -22,8 +22,14 @@ class Store extends Model
         'email',
         'logo',
         'type',
+        'tax_rate',
+        'currency',
         'qr_code',
         'status',
+    ];
+
+    protected $casts = [
+        'tax_rate' => 'decimal:2',
     ];
 
     protected static function boot()

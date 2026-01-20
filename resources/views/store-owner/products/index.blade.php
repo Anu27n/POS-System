@@ -64,11 +64,11 @@
                         <td>{{ $product->category->name ?? 'Uncategorized' }}</td>
                         <td>
                             @if($product->sale_price)
-                                <span class="text-decoration-line-through text-muted">${{ number_format($product->price, 2) }}</span>
+                                <span class="text-decoration-line-through text-muted">₹{{ number_format($product->price, 2) }}</span>
                                 <br>
-                                <span class="text-success fw-semibold">${{ number_format($product->sale_price, 2) }}</span>
+                                <span class="text-success fw-semibold">₹{{ number_format($product->sale_price, 2) }}</span>
                             @else
-                                <span class="fw-semibold">${{ number_format($product->price, 2) }}</span>
+                                <span class="fw-semibold">₹{{ number_format($product->price, 2) }}</span>
                             @endif
                         </td>
                         <td>
@@ -129,3 +129,4 @@
     @endif
 </div>
 @endsection
+

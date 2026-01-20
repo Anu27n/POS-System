@@ -34,7 +34,7 @@
                         <small class="text-muted">Orders</small>
                     </div>
                     <div class="col-6">
-                        <div class="h5 mb-0">${{ number_format($user->orders->where('payment_status', 'paid')->sum('total'), 0) }}</div>
+                        <div class="h5 mb-0">₹{{ number_format($user->orders->where('payment_status', 'paid')->sum('total'), 0) }}</div>
                         <small class="text-muted">Spent</small>
                     </div>
                 </div>
@@ -111,7 +111,7 @@
                             <tr>
                                 <td><code>{{ $order->order_number }}</code></td>
                                 <td>{{ $order->store->name ?? 'N/A' }}</td>
-                                <td>${{ number_format($order->total, 2) }}</td>
+                                <td>₹{{ number_format($order->total, 2) }}</td>
                                 <td>
                                     <span class="badge bg-{{ $order->payment_status === 'paid' ? 'success' : 'warning' }}">
                                         {{ ucfirst($order->payment_status) }}
@@ -135,3 +135,4 @@
     </div>
 </div>
 @endsection
+

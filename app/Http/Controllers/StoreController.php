@@ -15,17 +15,16 @@ class StoreController extends Controller
     public function show(string $slug, Request $request)
     {
         $store = Store::where('slug', $slug)
-            ->where('is_active', true)
+            ->where('status', 'active')
             ->firstOrFail();
 
         $categories = $store->categories()
-            ->where('is_active', true)
             ->withCount('products')
             ->orderBy('sort_order')
             ->get();
 
         $query = $store->products()
-            ->where('is_active', true)
+            ->where('status', 'available')
             ->with('category');
         
         // Filter by category
@@ -77,7 +76,7 @@ class StoreController extends Controller
     public function product(string $slug, Product $product)
     {
         $store = Store::where('slug', $slug)
-            ->where('is_active', true)
+            ->where('status', 'active')
             ->firstOrFail();
 
         // Verify product belongs to store
@@ -88,7 +87,7 @@ class StoreController extends Controller
         $relatedProducts = $store->products()
             ->where('id', '!=', $product->id)
             ->where('category_id', $product->category_id)
-            ->where('is_active', true)
+            ->where('status', 'available')
             ->take(4)
             ->get();
 

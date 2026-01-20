@@ -56,10 +56,10 @@
                             </div>
                             <div class="col-md-3 text-md-center my-3 my-md-0">
                                 <div class="text-muted small">Total</div>
-                                <div class="fs-4 fw-bold">${{ number_format($order->total_amount, 2) }}</div>
+                                <div class="fs-4 fw-bold">₹{{ number_format($order->total_amount, 2) }}</div>
                             </div>
                             <div class="col-md-3 text-md-end">
-                                <a href="{{ route('orders.show', $order) }}" class="btn btn-outline-primary">
+                                <a href="{{ route('orders.show', $order->order_number) }}" class="btn btn-outline-primary">
                                     View Details
                                 </a>
                             </div>
@@ -103,3 +103,4 @@
     @endif
 </div>
 @endsection
+

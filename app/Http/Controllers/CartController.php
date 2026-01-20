@@ -44,13 +44,13 @@ class CartController extends Controller
         $store = Store::findOrFail($validated['store_id']);
         $product = Product::where('id', $validated['product_id'])
             ->where('store_id', $store->id)
-            ->where('is_active', true)
+            ->where('status', 'available')
             ->firstOrFail();
 
         $quantity = $validated['quantity'] ?? 1;
         
         // Check stock
-        if ($product->track_stock && $product->stock_quantity < $quantity) {
+        if ($product->track_inventory && $product->stock_quantity < $quantity) {
             if ($request->wantsJson()) {
                 return response()->json(['success' => false, 'message' => 'Not enough stock available.']);
             }

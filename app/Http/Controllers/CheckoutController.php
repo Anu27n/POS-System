@@ -105,16 +105,16 @@ class CheckoutController extends Controller
                     'product_sku' => $item->product->sku ?? '',
                     'price' => $item->product->price,
                     'quantity' => $item->quantity,
-                    'subtotal' => $item->product->price * $item->quantity,
+                    'total' => $item->product->price * $item->quantity,
                 ]);
 
                 // Reduce stock
                 $item->product->reduceStock($item->quantity);
             }
 
-            // Generate verification QR code
-            $qrCode = $this->qrCodeService->generateOrderQR($order);
-            $order->update(['verification_qr' => $qrCode]);
+            // Generate verification QR code image and save to storage
+            $qrPath = $this->qrCodeService->generateAndSaveOrderQR($order);
+            $order->update(['verification_qr_path' => $qrPath]);
 
             // Clear cart
             $cart->items()->delete();

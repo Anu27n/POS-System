@@ -63,30 +63,30 @@
                                         <span class="text-muted">-</span>
                                     @endif
                                 </td>
-                                <td class="text-end">${{ number_format($item->price, 2) }}</td>
+                                <td class="text-end">₹{{ number_format($item->price, 2) }}</td>
                                 <td class="text-center">{{ $item->quantity }}</td>
-                                <td class="text-end">${{ number_format($item->subtotal, 2) }}</td>
+                                <td class="text-end">₹{{ number_format($item->subtotal, 2) }}</td>
                             </tr>
                             @endforeach
                         </tbody>
                         <tfoot>
                             <tr>
                                 <td colspan="4" class="text-end">Subtotal:</td>
-                                <td class="text-end">${{ number_format($order->subtotal, 2) }}</td>
+                                <td class="text-end">₹{{ number_format($order->subtotal, 2) }}</td>
                             </tr>
                             <tr>
                                 <td colspan="4" class="text-end">Tax:</td>
-                                <td class="text-end">${{ number_format($order->tax_amount, 2) }}</td>
+                                <td class="text-end">₹{{ number_format($order->tax_amount, 2) }}</td>
                             </tr>
                             @if($order->discount_amount > 0)
                             <tr>
                                 <td colspan="4" class="text-end">Discount:</td>
-                                <td class="text-end text-success">-${{ number_format($order->discount_amount, 2) }}</td>
+                                <td class="text-end text-success">-₹{{ number_format($order->discount_amount, 2) }}</td>
                             </tr>
                             @endif
                             <tr>
                                 <th colspan="4" class="text-end">Total:</th>
-                                <th class="text-end fs-5">${{ number_format($order->total_amount, 2) }}</th>
+                                <th class="text-end fs-5">₹{{ number_format($order->total_amount, 2) }}</th>
                             </tr>
                         </tfoot>
                     </table>
@@ -162,12 +162,12 @@
                     @csrf
                     @method('PATCH')
                     <div class="mb-3">
-                        <select class="form-select" name="status" required>
-                            <option value="pending" {{ $order->status == 'pending' ? 'selected' : '' }}>Pending</option>
-                            <option value="confirmed" {{ $order->status == 'confirmed' ? 'selected' : '' }}>Confirmed</option>
-                            <option value="processing" {{ $order->status == 'processing' ? 'selected' : '' }}>Processing</option>
-                            <option value="completed" {{ $order->status == 'completed' ? 'selected' : '' }}>Completed</option>
-                            <option value="cancelled" {{ $order->status == 'cancelled' ? 'selected' : '' }}>Cancelled</option>
+                        <select class="form-select" name="order_status" required>
+                            <option value="pending" {{ $order->order_status == 'pending' ? 'selected' : '' }}>Pending</option>
+                            <option value="confirmed" {{ $order->order_status == 'confirmed' ? 'selected' : '' }}>Confirmed</option>
+                            <option value="processing" {{ $order->order_status == 'processing' ? 'selected' : '' }}>Processing</option>
+                            <option value="completed" {{ $order->order_status == 'completed' ? 'selected' : '' }}>Completed</option>
+                            <option value="cancelled" {{ $order->order_status == 'cancelled' ? 'selected' : '' }}>Cancelled</option>
                         </select>
                     </div>
                     <button type="submit" class="btn btn-primary w-100">Update Status</button>
@@ -189,3 +189,4 @@
     </div>
 </div>
 @endsection
+

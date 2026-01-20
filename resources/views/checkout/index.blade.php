@@ -133,9 +133,9 @@
                                     <div>
                                         <span class="fw-semibold">{{ $item->product->name ?? 'Product' }}</span>
                                         <br>
-                                        <small class="text-muted">Qty: {{ $item->quantity }} × ${{ number_format($item->product->price, 2) }}</small>
+                                        <small class="text-muted">Qty: {{ $item->quantity }} × ₹{{ number_format($item->product->price, 2) }}</small>
                                     </div>
-                                    <span>${{ number_format($item->product->price * $item->quantity, 2) }}</span>
+                                    <span>₹{{ number_format($item->product->price * $item->quantity, 2) }}</span>
                                 </div>
                             </li>
                             @endforeach
@@ -144,16 +144,16 @@
                     <div class="card-footer">
                         <div class="d-flex justify-content-between mb-2">
                             <span>Subtotal</span>
-                            <span>${{ number_format($subtotal, 2) }}</span>
+                            <span>₹{{ number_format($subtotal, 2) }}</span>
                         </div>
                         <div class="d-flex justify-content-between mb-2">
                             <span>Tax</span>
-                            <span>${{ number_format($tax, 2) }}</span>
+                            <span>₹{{ number_format($tax, 2) }}</span>
                         </div>
                         <hr>
                         <div class="d-flex justify-content-between mb-3">
                             <strong class="fs-5">Total</strong>
-                            <strong class="fs-5">${{ number_format($total, 2) }}</strong>
+                            <strong class="fs-5">₹{{ number_format($total, 2) }}</strong>
                         </div>
                         
                         <div class="d-grid">
@@ -196,3 +196,4 @@
 }
 </style>
 @endsection
+

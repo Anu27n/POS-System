@@ -29,14 +29,14 @@ class POSController extends Controller
 
         $pendingOrders = $store->orders()
             ->with('customer')
-            ->where('payment_status', 'pending')
-            ->where('payment_method', 'counter')
+            ->whereIn('order_status', ['pending', 'confirmed', 'processing'])
             ->latest()
+            ->take(20)
             ->get();
 
         // Get all active products for quick add
         $products = $store->products()
-            ->where('is_active', true)
+            ->where('status', 'available')
             ->orderBy('name')
             ->get();
 
@@ -142,9 +142,9 @@ class POSController extends Controller
                 $item['product']->reduceStock($item['quantity']);
             }
 
-            // Generate verification QR code
-            $qrCode = $this->qrCodeService->generateOrderQR($order);
-            $order->update(['verification_qr' => $qrCode]);
+            // Generate verification QR code and save to storage
+            $qrPath = $this->qrCodeService->generateAndSaveOrderQR($order);
+            $order->update(['verification_qr_path' => $qrPath]);
 
             DB::commit();
 
@@ -166,6 +166,149 @@ class POSController extends Controller
     }
 
     /**
+     * Scan and verify order QR code with full security validation
+     */
+    public function scan(Request $request)
+    {
+        $validated = $request->validate([
+            'qr_data' => 'required|string',
+        ]);
+
+        $store = auth()->user()->store;
+        
+        // Use QRCodeService to validate the scanned QR data
+        $result = $this->qrCodeService->verifyOrderQR($validated['qr_data'], $store->id);
+
+        if (!$result['valid']) {
+            return response()->json([
+                'success' => false,
+                'message' => $result['error'],
+                'order' => $result['order'] ? [
+                    'order_number' => $result['order']->order_number,
+                    'order_status' => $result['order']->order_status,
+                ] : null,
+            ], $result['order'] ? 200 : 404);
+        }
+
+        $order = $result['order'];
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Order verified successfully',
+            'order' => [
+                'id' => $order->id,
+                'order_number' => $order->order_number,
+                'customer_name' => $order->customer ? $order->customer->name : 'Walk-in Customer',
+                'items' => $order->items->map(fn($item) => [
+                    'name' => $item->product_name,
+                    'quantity' => $item->quantity,
+                    'price' => $item->price,
+                    'subtotal' => $item->subtotal,
+                ]),
+                'subtotal' => $order->subtotal,
+                'tax' => $order->tax,
+                'discount' => $order->discount,
+                'total' => $order->total,
+                'payment_method' => $order->payment_method,
+                'payment_status' => $order->payment_status,
+                'order_status' => $order->order_status,
+                'created_at' => $order->created_at->format('M d, Y H:i'),
+            ],
+        ]);
+    }
+
+    /**
+     * Mark order as paid (for counter payments)
+     */
+    public function markPaid(Request $request, Order $order)
+    {
+        $store = auth()->user()->store;
+
+        // Security: Verify store ownership
+        if ($order->store_id !== $store->id) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Unauthorized: This order belongs to a different store.',
+            ], 403);
+        }
+
+        // Check if already paid
+        if ($order->payment_status === 'paid') {
+            return response()->json([
+                'success' => false,
+                'message' => 'Order is already marked as paid.',
+            ], 400);
+        }
+
+        // Check if order is cancelled
+        if ($order->order_status === 'cancelled') {
+            return response()->json([
+                'success' => false,
+                'message' => 'Cannot mark a cancelled order as paid.',
+            ], 400);
+        }
+
+        $order->markAsPaid('COUNTER-' . now()->format('YmdHis'));
+        $order->update(['order_status' => 'confirmed']);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Order marked as paid successfully.',
+            'order' => [
+                'id' => $order->id,
+                'order_number' => $order->order_number,
+                'payment_status' => $order->payment_status,
+                'order_status' => $order->order_status,
+            ],
+        ]);
+    }
+
+    /**
+     * Complete an order (final step - order cannot be scanned again)
+     */
+    public function completeOrder(Request $request, Order $order)
+    {
+        $store = auth()->user()->store;
+
+        // Security: Verify store ownership
+        if ($order->store_id !== $store->id) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Unauthorized: This order belongs to a different store.',
+            ], 403);
+        }
+
+        // Check if already completed
+        if ($order->order_status === 'completed') {
+            return response()->json([
+                'success' => false,
+                'message' => 'Order is already completed.',
+            ], 400);
+        }
+
+        // Check if cancelled
+        if ($order->order_status === 'cancelled') {
+            return response()->json([
+                'success' => false,
+                'message' => 'Cannot complete a cancelled order.',
+            ], 400);
+        }
+
+        $order->update(['order_status' => 'completed']);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Order completed successfully. This order cannot be scanned again.',
+            'order' => [
+                'id' => $order->id,
+                'order_number' => $order->order_number,
+                'payment_status' => $order->payment_status,
+                'order_status' => $order->order_status,
+            ],
+        ]);
+    }
+
+    /**
      * Generate receipt PDF for an order
      */
     public function receipt(Order $order)
@@ -181,80 +324,5 @@ class POSController extends Controller
         $pdf = Pdf::loadView('orders.receipt', compact('order'));
 
         return $pdf->download("receipt-{$order->order_number}.pdf");
-    }
-
-    /**
-     * Scan and verify order QR code
-     */
-    public function scan(Request $request)
-    {
-        $validated = $request->validate([
-            'verification_code' => 'required|string',
-        ]);
-
-        $store = auth()->user()->store;
-
-        $order = Order::where('verification_code', $validated['verification_code'])
-            ->where('store_id', $store->id)
-            ->with(['customer', 'items.product'])
-            ->first();
-
-        if (!$order) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Order not found or does not belong to this store.',
-            ], 404);
-        }
-
-        return response()->json([
-            'success' => true,
-            'order' => $order,
-        ]);
-    }
-
-    /**
-     * Mark order as paid (for counter payments)
-     */
-    public function markPaid(Request $request, Order $order)
-    {
-        $store = auth()->user()->store;
-
-        if ($order->store_id !== $store->id) {
-            abort(403);
-        }
-
-        if ($order->payment_status === 'paid') {
-            return back()->with('info', 'Order is already paid.');
-        }
-
-        $order->markAsPaid('COUNTER-' . now()->format('YmdHis'));
-        $order->update(['order_status' => 'completed']);
-
-        return back()->with('success', 'Order marked as paid successfully.');
-    }
-
-    /**
-     * Get order details by verification code
-     */
-    public function getOrder(string $verificationCode)
-    {
-        $store = auth()->user()->store;
-
-        $order = Order::where('verification_code', $verificationCode)
-            ->where('store_id', $store->id)
-            ->with(['customer', 'items.product'])
-            ->first();
-
-        if (!$order) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Order not found.',
-            ], 404);
-        }
-
-        return response()->json([
-            'success' => true,
-            'order' => $order,
-        ]);
     }
 }

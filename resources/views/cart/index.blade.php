@@ -49,7 +49,7 @@
                                             @endforeach
                                         </small>
                                     @endif
-                                    <div class="text-primary fw-semibold">${{ number_format($item->price, 2) }}</div>
+                                    <div class="text-primary fw-semibold">₹{{ number_format($item->price, 2) }}</div>
                                 </div>
                                 
                                 <!-- Quantity Controls -->
@@ -74,7 +74,7 @@
                                 
                                 <!-- Subtotal & Remove -->
                                 <div class="text-end ms-4" style="min-width: 100px;">
-                                    <div class="fw-bold">${{ number_format($item->subtotal, 2) }}</div>
+                                    <div class="fw-bold">₹{{ number_format($item->subtotal, 2) }}</div>
                                     <form action="{{ route('cart.remove', $item) }}" method="POST" class="d-inline">
                                         @csrf
                                         @method('DELETE')
@@ -104,16 +104,16 @@
                     <div class="card-body">
                         <div class="d-flex justify-content-between mb-2">
                             <span>Subtotal ({{ $cart->items->sum('quantity') }} items)</span>
-                            <span>${{ number_format($subtotal, 2) }}</span>
+                            <span>₹{{ number_format($subtotal, 2) }}</span>
                         </div>
                         <div class="d-flex justify-content-between mb-2">
                             <span>Tax ({{ $cart->store->tax_rate ?? 0 }}%)</span>
-                            <span>${{ number_format($tax, 2) }}</span>
+                            <span>₹{{ number_format($tax, 2) }}</span>
                         </div>
                         <hr>
                         <div class="d-flex justify-content-between mb-3">
                             <strong class="fs-5">Total</strong>
-                            <strong class="fs-5">${{ number_format($total, 2) }}</strong>
+                            <strong class="fs-5">₹{{ number_format($total, 2) }}</strong>
                         </div>
                         
                         <div class="d-grid">
@@ -164,3 +164,4 @@
     @endif
 </div>
 @endsection
+

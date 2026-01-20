@@ -39,7 +39,7 @@
         <div class="card stat-card">
             <div class="card-body">
                 <div class="stat-label">Total Sales</div>
-                <div class="stat-value">${{ number_format($totalSales, 2) }}</div>
+                <div class="stat-value">₹{{ number_format($totalSales, 2) }}</div>
             </div>
         </div>
     </div>
@@ -55,7 +55,7 @@
         <div class="card stat-card" style="border-left-color: #d97706;">
             <div class="card-body">
                 <div class="stat-label">Average Order Value</div>
-                <div class="stat-value">${{ number_format($averageOrderValue, 2) }}</div>
+                <div class="stat-value">₹{{ number_format($averageOrderValue, 2) }}</div>
             </div>
         </div>
     </div>
@@ -83,7 +83,7 @@
                             <tr>
                                 <td>{{ \Carbon\Carbon::parse($day->date)->format('M d, Y') }}</td>
                                 <td>{{ $day->orders }}</td>
-                                <td>${{ number_format($day->total, 2) }}</td>
+                                <td>₹{{ number_format($day->total, 2) }}</td>
                             </tr>
                             @empty
                             <tr>
@@ -107,7 +107,7 @@
                 @forelse($paymentMethods as $method)
                 <div class="d-flex justify-content-between mb-2">
                     <span>{{ ucfirst($method->payment_method) }}</span>
-                    <span class="fw-semibold">${{ number_format($method->total, 2) }}</span>
+                    <span class="fw-semibold">₹{{ number_format($method->total, 2) }}</span>
                 </div>
                 @empty
                 <p class="text-muted mb-0">No data</p>
@@ -127,7 +127,7 @@
                         <div class="fw-semibold">{{ $storeData->store->name ?? 'Unknown' }}</div>
                         <small class="text-muted">{{ $storeData->orders }} orders</small>
                     </div>
-                    <span class="badge bg-primary">${{ number_format($storeData->total, 2) }}</span>
+                    <span class="badge bg-primary">₹{{ number_format($storeData->total, 2) }}</span>
                 </div>
                 @empty
                 <p class="text-muted mb-0">No data</p>
@@ -137,3 +137,4 @@
     </div>
 </div>
 @endsection
+

@@ -47,13 +47,13 @@
             
             <div class="mb-4">
                 @if($product->sale_price)
-                    <span class="text-decoration-line-through text-muted fs-4">${{ number_format($product->price, 2) }}</span>
-                    <span class="text-danger fs-2 fw-bold ms-2">${{ number_format($product->sale_price, 2) }}</span>
+                    <span class="text-decoration-line-through text-muted fs-4">₹{{ number_format($product->price, 2) }}</span>
+                    <span class="text-danger fs-2 fw-bold ms-2">₹{{ number_format($product->sale_price, 2) }}</span>
                     <span class="badge bg-danger ms-2">
                         {{ round((($product->price - $product->sale_price) / $product->price) * 100) }}% OFF
                     </span>
                 @else
-                    <span class="fs-2 fw-bold">${{ number_format($product->price, 2) }}</span>
+                    <span class="fs-2 fw-bold">₹{{ number_format($product->price, 2) }}</span>
                 @endif
             </div>
             
@@ -191,3 +191,4 @@ function changeQty(delta) {
 }
 </script>
 @endsection
+

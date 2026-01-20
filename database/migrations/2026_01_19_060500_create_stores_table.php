@@ -22,6 +22,8 @@ return new class extends Migration
             $table->string('email')->nullable();
             $table->string('logo')->nullable();
             $table->string('type')->default('general'); // grocery, clothing, department, general
+            $table->decimal('tax_rate', 5, 2)->default(0); // Tax percentage (e.g., 10.00 for 10%)
+            $table->string('currency', 3)->default('USD');
             $table->string('qr_code')->nullable();
             $table->enum('status', ['active', 'inactive'])->default('active');
             $table->timestamps();

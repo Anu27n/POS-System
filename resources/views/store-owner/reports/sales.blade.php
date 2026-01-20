@@ -28,7 +28,7 @@
         <div class="card stat-card">
             <div class="card-body">
                 <div class="stat-label">Total Sales</div>
-                <div class="stat-value">${{ number_format($totalSales, 2) }}</div>
+                <div class="stat-value">₹{{ number_format($totalSales, 2) }}</div>
             </div>
         </div>
     </div>
@@ -44,7 +44,7 @@
         <div class="card stat-card" style="border-left-color: #d97706;">
             <div class="card-body">
                 <div class="stat-label">Average Order</div>
-                <div class="stat-value">${{ number_format($averageOrder, 2) }}</div>
+                <div class="stat-value">₹{{ number_format($averageOrder, 2) }}</div>
             </div>
         </div>
     </div>
@@ -80,7 +80,7 @@
                             <tr>
                                 <td>{{ \Carbon\Carbon::parse($day->date)->format('M d, Y (D)') }}</td>
                                 <td>{{ $day->orders }}</td>
-                                <td>${{ number_format($day->total, 2) }}</td>
+                                <td>₹{{ number_format($day->total, 2) }}</td>
                             </tr>
                             @empty
                             <tr>
@@ -107,7 +107,7 @@
                         <div class="fw-semibold">{{ ucfirst($method->payment_method) }}</div>
                         <small class="text-muted">{{ $method->count }} orders</small>
                     </div>
-                    <span class="badge bg-primary">${{ number_format($method->total, 2) }}</span>
+                    <span class="badge bg-primary">₹{{ number_format($method->total, 2) }}</span>
                 </div>
                 @empty
                 <p class="text-muted mb-0">No data</p>
@@ -128,7 +128,7 @@
                             <div>{{ $product->product_name }}</div>
                             <small class="text-muted">{{ $product->quantity }} sold</small>
                         </div>
-                        <span class="fw-semibold">${{ number_format($product->revenue, 2) }}</span>
+                        <span class="fw-semibold">₹{{ number_format($product->revenue, 2) }}</span>
                     </li>
                     @empty
                     <li class="list-group-item text-muted">No data</li>
@@ -139,3 +139,4 @@
     </div>
 </div>
 @endsection
+

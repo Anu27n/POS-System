@@ -124,7 +124,7 @@
                         <td>{{ $order->user->name ?? 'Guest' }}</td>
                         <td>{{ $order->created_at->format('M d, Y H:i') }}</td>
                         <td>{{ $order->items->count() }}</td>
-                        <td>${{ number_format($order->total_amount, 2) }}</td>
+                        <td>₹{{ number_format($order->total_amount, 2) }}</td>
                         <td>
                             @if($order->payment_status == 'paid')
                                 <span class="badge bg-success">Paid</span>
@@ -215,24 +215,24 @@
                         @foreach($order->items as $item)
                         <tr>
                             <td>{{ $item->product_name }}</td>
-                            <td>${{ number_format($item->price, 2) }}</td>
+                            <td>₹{{ number_format($item->price, 2) }}</td>
                             <td>{{ $item->quantity }}</td>
-                            <td>${{ number_format($item->subtotal, 2) }}</td>
+                            <td>₹{{ number_format($item->subtotal, 2) }}</td>
                         </tr>
                         @endforeach
                     </tbody>
                     <tfoot>
                         <tr>
                             <th colspan="3" class="text-end">Subtotal:</th>
-                            <th>${{ number_format($order->subtotal, 2) }}</th>
+                            <th>₹{{ number_format($order->subtotal, 2) }}</th>
                         </tr>
                         <tr>
                             <th colspan="3" class="text-end">Tax:</th>
-                            <th>${{ number_format($order->tax_amount, 2) }}</th>
+                            <th>₹{{ number_format($order->tax_amount, 2) }}</th>
                         </tr>
                         <tr>
                             <th colspan="3" class="text-end">Total:</th>
-                            <th>${{ number_format($order->total_amount, 2) }}</th>
+                            <th>₹{{ number_format($order->total_amount, 2) }}</th>
                         </tr>
                     </tfoot>
                 </table>
@@ -246,3 +246,4 @@
 </div>
 @endforeach
 @endsection
+

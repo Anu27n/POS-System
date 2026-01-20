@@ -221,10 +221,10 @@
                                 </div>
                             @endif
                             <div class="item-qty">
-                                {{ $item->quantity }} x ${{ number_format($item->price, 2) }}
+                                {{ $item->quantity }} x ₹{{ number_format($item->price, 2) }}
                             </div>
                         </td>
-                        <td>${{ number_format($item->subtotal, 2) }}</td>
+                        <td>₹{{ number_format($item->subtotal, 2) }}</td>
                     </tr>
                     @endforeach
                 </tbody>
@@ -236,21 +236,21 @@
             <table>
                 <tr>
                     <td class="label">Subtotal</td>
-                    <td class="value">${{ number_format($order->subtotal, 2) }}</td>
+                    <td class="value">₹{{ number_format($order->subtotal, 2) }}</td>
                 </tr>
                 <tr>
                     <td class="label">Tax</td>
-                    <td class="value">${{ number_format($order->tax_amount, 2) }}</td>
+                    <td class="value">₹{{ number_format($order->tax, 2) }}</td>
                 </tr>
-                @if($order->discount_amount > 0)
+                @if($order->discount > 0)
                 <tr>
                     <td class="label">Discount</td>
-                    <td class="value">-${{ number_format($order->discount_amount, 2) }}</td>
+                    <td class="value">-₹{{ number_format($order->discount, 2) }}</td>
                 </tr>
                 @endif
                 <tr class="total-row">
                     <td>TOTAL</td>
-                    <td class="value">${{ number_format($order->total_amount, 2) }}</td>
+                    <td class="value">₹{{ number_format($order->total, 2) }}</td>
                 </tr>
             </table>
         </div>
@@ -268,12 +268,12 @@
         </div>
         
         <!-- QR Code -->
-        @if($order->verification_code)
+        @if($order->hasQrCode())
         <div class="qr-section">
             <div class="qr-code">
-                <img src="data:image/svg+xml;base64,{{ base64_encode($qrCode) }}" alt="QR Code">
+                <img src="{{ $order->qr_code_data_uri }}" alt="Verification QR Code" style="width: 150px; height: 150px;">
             </div>
-            <div class="verification-code">{{ $order->verification_code }}</div>
+            <p style="font-size: 10px; margin-top: 5px; color: #666;">Scan for order verification</p>
         </div>
         @endif
         
@@ -286,3 +286,4 @@
     </div>
 </body>
 </html>
+

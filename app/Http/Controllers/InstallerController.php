@@ -146,6 +146,11 @@ class InstallerController extends Controller
         try {
             Artisan::call('migrate', ['--force' => true]);
             
+            // Create storage symlink for public file access (QR codes, images, etc.)
+            if (!file_exists(public_path('storage'))) {
+                Artisan::call('storage:link');
+            }
+            
             return redirect()->route('installer.admin');
 
         } catch (\Exception $e) {
