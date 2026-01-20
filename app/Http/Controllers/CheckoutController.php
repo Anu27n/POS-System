@@ -130,7 +130,6 @@ class CheckoutController extends Controller
             // For counter payment, show order confirmation
             return redirect()->route('order.confirmation', $order)
                 ->with('success', 'Order placed successfully!');
-
         } catch (\Exception $e) {
             DB::rollBack();
             return back()->with('error', 'Failed to process order: ' . $e->getMessage());

@@ -12,6 +12,7 @@
         padding: 24px;
         margin-bottom: 24px;
     }
+
     .status-badge {
         display: inline-block;
         padding: 8px 16px;
@@ -19,23 +20,58 @@
         font-size: 0.9rem;
         font-weight: 500;
     }
-    .status-pending { background: #fef3c7; color: #92400e; }
-    .status-confirmed { background: #dbeafe; color: #1e40af; }
-    .status-processing { background: #e0e7ff; color: #3730a3; }
-    .status-completed { background: #d1fae5; color: #065f46; }
-    .status-cancelled { background: #fee2e2; color: #991b1b; }
-    .payment-paid { background: #d1fae5; color: #065f46; }
-    .payment-pending { background: #fef3c7; color: #92400e; }
-    .payment-failed { background: #fee2e2; color: #991b1b; }
+
+    .status-pending {
+        background: #fef3c7;
+        color: #92400e;
+    }
+
+    .status-confirmed {
+        background: #dbeafe;
+        color: #1e40af;
+    }
+
+    .status-processing {
+        background: #e0e7ff;
+        color: #3730a3;
+    }
+
+    .status-completed {
+        background: #d1fae5;
+        color: #065f46;
+    }
+
+    .status-cancelled {
+        background: #fee2e2;
+        color: #991b1b;
+    }
+
+    .payment-paid {
+        background: #d1fae5;
+        color: #065f46;
+    }
+
+    .payment-pending {
+        background: #fef3c7;
+        color: #92400e;
+    }
+
+    .payment-failed {
+        background: #fee2e2;
+        color: #991b1b;
+    }
+
     .info-card {
         border-radius: 12px;
         border: 1px solid #e5e7eb;
     }
+
     .info-card .card-header {
         background: #f8fafc;
         font-weight: 600;
         border-bottom: 1px solid #e5e7eb;
     }
+
     .qr-code-img {
         max-width: 180px;
         border: 2px solid #e5e7eb;
@@ -131,9 +167,9 @@
                             <label class="text-muted small">Customer Type</label>
                             <p class="mb-0">
                                 @if($order->user_id)
-                                    <span class="badge bg-primary">Registered User</span>
+                                <span class="badge bg-primary">Registered User</span>
                                 @else
-                                    <span class="badge bg-secondary">Walk-in</span>
+                                <span class="badge bg-secondary">Walk-in</span>
                                 @endif
                             </p>
                         </div>
@@ -162,20 +198,20 @@
                                 <td>
                                     <div class="d-flex align-items-center">
                                         @if($item->product && $item->product->image)
-                                            <img src="{{ asset('storage/' . $item->product->image) }}" 
-                                                 alt="{{ $item->product_name }}" 
-                                                 class="rounded me-3"
-                                                 style="width: 50px; height: 50px; object-fit: cover;">
+                                        <img src="{{ asset('storage/' . $item->product->image) }}"
+                                            alt="{{ $item->product_name }}"
+                                            class="rounded me-3"
+                                            style="width: 50px; height: 50px; object-fit: cover;">
                                         @else
-                                            <div class="bg-light rounded d-flex align-items-center justify-content-center me-3"
-                                                 style="width: 50px; height: 50px;">
-                                                <i class="bi bi-image text-muted"></i>
-                                            </div>
+                                        <div class="bg-light rounded d-flex align-items-center justify-content-center me-3"
+                                            style="width: 50px; height: 50px;">
+                                            <i class="bi bi-image text-muted"></i>
+                                        </div>
                                         @endif
                                         <div>
                                             <strong>{{ $item->product_name }}</strong>
                                             @if($item->notes)
-                                                <br><small class="text-muted">{{ $item->notes }}</small>
+                                            <br><small class="text-muted">{{ $item->notes }}</small>
                                             @endif
                                         </div>
                                     </div>
@@ -283,8 +319,8 @@
 
                     <form action="{{ route('admin.orders.complete', $order) }}" method="POST">
                         @csrf
-                        <button type="submit" class="btn btn-primary w-100" 
-                                onclick="return confirm('Complete this order? It will no longer be scannable.')">
+                        <button type="submit" class="btn btn-primary w-100"
+                            onclick="return confirm('Complete this order? It will no longer be scannable.')">
                             <i class="bi bi-check-circle me-2"></i>Complete Order
                         </button>
                     </form>
@@ -315,4 +351,3 @@
     </div>
 </div>
 @endsection
-

@@ -114,15 +114,14 @@ class InstallerController extends Controller
                 'DB_CONNECTION' => $request->db_connection,
                 'DB_HOST' => $request->db_host ?? '127.0.0.1',
                 'DB_PORT' => $request->db_port ?? '3306',
-                'DB_DATABASE' => $request->db_connection === 'sqlite' 
-                    ? database_path('database.sqlite') 
+                'DB_DATABASE' => $request->db_connection === 'sqlite'
+                    ? database_path('database.sqlite')
                     : $request->db_database,
                 'DB_USERNAME' => $request->db_username ?? '',
                 'DB_PASSWORD' => $request->db_password ?? '',
             ]);
 
             return redirect()->route('installer.migrations');
-
         } catch (\Exception $e) {
             return back()->withErrors(['database' => 'Database connection failed: ' . $e->getMessage()]);
         }
@@ -145,14 +144,13 @@ class InstallerController extends Controller
 
         try {
             Artisan::call('migrate', ['--force' => true]);
-            
+
             // Create storage symlink for public file access (QR codes, images, etc.)
             if (!file_exists(public_path('storage'))) {
                 Artisan::call('storage:link');
             }
-            
-            return redirect()->route('installer.admin');
 
+            return redirect()->route('installer.admin');
         } catch (\Exception $e) {
             return back()->withErrors(['migration' => 'Migration failed: ' . $e->getMessage()]);
         }
@@ -210,7 +208,6 @@ class InstallerController extends Controller
             File::put(storage_path('installed'), now()->toIso8601String());
 
             return redirect()->route('installer.complete');
-
         } catch (\Exception $e) {
             return back()->withErrors(['admin' => 'Failed to create admin: ' . $e->getMessage()]);
         }

@@ -30,12 +30,12 @@ class OrderController extends Controller
             $searchTerm = $request->search;
             $query->where(function ($q) use ($searchTerm) {
                 $q->where('order_number', 'like', '%' . $searchTerm . '%')
-                  ->orWhere('customer_name', 'like', '%' . $searchTerm . '%')
-                  ->orWhere('customer_email', 'like', '%' . $searchTerm . '%')
-                  ->orWhereHas('user', function ($uq) use ($searchTerm) {
-                      $uq->where('name', 'like', '%' . $searchTerm . '%')
-                         ->orWhere('email', 'like', '%' . $searchTerm . '%');
-                  });
+                    ->orWhere('customer_name', 'like', '%' . $searchTerm . '%')
+                    ->orWhere('customer_email', 'like', '%' . $searchTerm . '%')
+                    ->orWhereHas('user', function ($uq) use ($searchTerm) {
+                        $uq->where('name', 'like', '%' . $searchTerm . '%')
+                            ->orWhere('email', 'like', '%' . $searchTerm . '%');
+                    });
             });
         }
 
@@ -68,10 +68,10 @@ class OrderController extends Controller
         $completedOrders = Order::where('order_status', 'completed')->count();
 
         return view('admin.orders.index', compact(
-            'orders', 
-            'stores', 
-            'totalOrders', 
-            'pendingOrders', 
+            'orders',
+            'stores',
+            'totalOrders',
+            'pendingOrders',
             'completedOrders'
         ));
     }
@@ -82,7 +82,7 @@ class OrderController extends Controller
     public function scanner()
     {
         $stores = Store::orderBy('name')->get();
-        
+
         return view('admin.orders.scanner', compact('stores'));
     }
 
@@ -160,7 +160,6 @@ class OrderController extends Controller
                 'order' => $this->formatOrderResponse($order),
                 'already_completed' => false,
             ]);
-
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,

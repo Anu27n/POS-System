@@ -11,7 +11,7 @@
             <li class="breadcrumb-item active">Order #{{ $order->order_number }}</li>
         </ol>
     </nav>
-    
+
     <div class="row">
         <!-- Order Details -->
         <div class="col-lg-8">
@@ -22,21 +22,21 @@
                         <small class="text-muted">{{ $order->created_at->format('M d, Y H:i') }}</small>
                     </div>
                     @switch($order->status)
-                        @case('pending')
-                            <span class="badge bg-warning fs-6">Pending</span>
-                            @break
-                        @case('confirmed')
-                            <span class="badge bg-info fs-6">Confirmed</span>
-                            @break
-                        @case('processing')
-                            <span class="badge bg-primary fs-6">Processing</span>
-                            @break
-                        @case('completed')
-                            <span class="badge bg-success fs-6">Completed</span>
-                            @break
-                        @case('cancelled')
-                            <span class="badge bg-danger fs-6">Cancelled</span>
-                            @break
+                    @case('pending')
+                    <span class="badge bg-warning fs-6">Pending</span>
+                    @break
+                    @case('confirmed')
+                    <span class="badge bg-info fs-6">Confirmed</span>
+                    @break
+                    @case('processing')
+                    <span class="badge bg-primary fs-6">Processing</span>
+                    @break
+                    @case('completed')
+                    <span class="badge bg-success fs-6">Completed</span>
+                    @break
+                    @case('cancelled')
+                    <span class="badge bg-danger fs-6">Cancelled</span>
+                    @break
                     @endswitch
                 </div>
                 <div class="card-body p-0">
@@ -57,13 +57,13 @@
                                     <td>{{ $item->product_name }}</td>
                                     <td>
                                         @if($item->options)
-                                            @foreach($item->options as $key => $value)
-                                                <span class="badge bg-light text-dark">
-                                                    {{ ucfirst($key) }}: {{ $value }}
-                                                </span>
-                                            @endforeach
+                                        @foreach($item->options as $key => $value)
+                                        <span class="badge bg-light text-dark">
+                                            {{ ucfirst($key) }}: {{ $value }}
+                                        </span>
+                                        @endforeach
                                         @else
-                                            -
+                                        -
                                         @endif
                                     </td>
                                     <td class="text-end">₹{{ number_format($item->price, 2) }}</td>
@@ -96,7 +96,7 @@
                     </div>
                 </div>
             </div>
-            
+
             @if($order->notes)
             <div class="card mb-4">
                 <div class="card-header">
@@ -108,7 +108,7 @@
             </div>
             @endif
         </div>
-        
+
         <!-- Sidebar -->
         <div class="col-lg-4">
             <!-- Store Info -->
@@ -119,25 +119,25 @@
                 <div class="card-body">
                     <h5>{{ $order->store->name ?? 'Store' }}</h5>
                     @if($order->store)
-                        @if($order->store->address)
-                            <p class="mb-1">
-                                <i class="bi bi-geo-alt me-1"></i>{{ $order->store->address }}
-                            </p>
-                        @endif
-                        @if($order->store->phone)
-                            <p class="mb-1">
-                                <i class="bi bi-telephone me-1"></i>{{ $order->store->phone }}
-                            </p>
-                        @endif
-                        @if($order->store->email)
-                            <p class="mb-0">
-                                <i class="bi bi-envelope me-1"></i>{{ $order->store->email }}
-                            </p>
-                        @endif
+                    @if($order->store->address)
+                    <p class="mb-1">
+                        <i class="bi bi-geo-alt me-1"></i>{{ $order->store->address }}
+                    </p>
+                    @endif
+                    @if($order->store->phone)
+                    <p class="mb-1">
+                        <i class="bi bi-telephone me-1"></i>{{ $order->store->phone }}
+                    </p>
+                    @endif
+                    @if($order->store->email)
+                    <p class="mb-0">
+                        <i class="bi bi-envelope me-1"></i>{{ $order->store->email }}
+                    </p>
+                    @endif
                     @endif
                 </div>
             </div>
-            
+
             <!-- Payment Info -->
             <div class="card mb-4">
                 <div class="card-header">
@@ -150,11 +150,11 @@
                     <p class="mb-0">
                         <strong>Status:</strong>
                         @if($order->payment_status == 'paid')
-                            <span class="badge bg-success">Paid</span>
+                        <span class="badge bg-success">Paid</span>
                         @elseif($order->payment_status == 'pending')
-                            <span class="badge bg-warning">Pending</span>
+                        <span class="badge bg-warning">Pending</span>
                         @else
-                            <span class="badge bg-danger">{{ ucfirst($order->payment_status) }}</span>
+                        <span class="badge bg-danger">{{ ucfirst($order->payment_status) }}</span>
                         @endif
                     </p>
                     @if($order->transaction_id)
@@ -165,7 +165,7 @@
                     @endif
                 </div>
             </div>
-            
+
             <!-- Verification QR -->
             @if($order->hasQrCode() && in_array($order->order_status, ['pending', 'confirmed', 'processing']))
             <div class="card mb-4">
@@ -174,16 +174,16 @@
                 </div>
                 <div class="card-body text-center">
                     <div class="mb-3">
-                        <img src="{{ $order->qr_code_data_uri }}" 
-                             alt="Verification QR Code" 
-                             style="max-width: 200px; width: 100%;"
-                             class="border rounded p-2 bg-white">
+                        <img src="{{ $order->qr_code_data_uri }}"
+                            alt="Verification QR Code"
+                            style="max-width: 200px; width: 100%;"
+                            class="border rounded p-2 bg-white">
                     </div>
                     <p class="mb-0 small text-muted">Show this QR code when picking up your order</p>
                 </div>
             </div>
             @endif
-            
+
             <!-- Actions -->
             <div class="d-grid gap-2">
                 <a href="{{ route('orders.index') }}" class="btn btn-outline-secondary">
@@ -199,4 +199,3 @@
     </div>
 </div>
 @endsection
-

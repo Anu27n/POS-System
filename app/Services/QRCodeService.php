@@ -82,7 +82,7 @@ class QRCodeService
 
         // Create directory path: qr-codes/orders/YYYY/MM/
         $directory = 'qr-codes/orders/' . $order->created_at->format('Y/m');
-        
+
         // Generate unique filename - save as .txt containing the data URI
         $filename = $order->order_number . '_' . substr($order->verification_code, 0, 8) . '.txt';
         $storagePath = $directory . '/' . $filename;
@@ -204,7 +204,6 @@ class QRCodeService
                 'error' => null,
                 'order' => $order,
             ];
-
         } catch (\Exception $e) {
             return [
                 'valid' => false,

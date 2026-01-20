@@ -26,20 +26,20 @@ class StoreController extends Controller
         $query = $store->products()
             ->where('status', 'available')
             ->with('category');
-        
+
         // Filter by category
         if ($request->category) {
             $query->where('category_id', $request->category);
         }
-        
+
         // Search
         if ($request->search) {
-            $query->where(function($q) use ($request) {
+            $query->where(function ($q) use ($request) {
                 $q->where('name', 'like', '%' . $request->search . '%')
-                  ->orWhere('sku', 'like', '%' . $request->search . '%');
+                    ->orWhere('sku', 'like', '%' . $request->search . '%');
             });
         }
-        
+
         // Sort
         switch ($request->sort) {
             case 'name_asc':
@@ -59,7 +59,7 @@ class StoreController extends Controller
         }
 
         $products = $query->paginate(12);
-        
+
         // Get cart count
         $cartCount = 0;
         if (auth()->check()) {

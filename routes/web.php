@@ -158,4 +158,3 @@ Route::prefix('store-owner')->name('store-owner.')->middleware(['auth', 'role:st
     Route::get('/reports/sales', [StoreOwner\ReportController::class, 'sales'])->name('reports.sales');
     Route::get('/reports/inventory', [StoreOwner\ReportController::class, 'inventory'])->name('reports.inventory');
 });
-

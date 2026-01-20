@@ -155,7 +155,6 @@ class POSController extends Controller
                 'receipt_url' => route('store-owner.orders.receipt', $order),
                 'order' => $order->load('items.product'),
             ]);
-
         } catch (\Exception $e) {
             DB::rollBack();
             return response()->json([
@@ -175,7 +174,7 @@ class POSController extends Controller
         ]);
 
         $store = auth()->user()->store;
-        
+
         // Use QRCodeService to validate the scanned QR data
         $result = $this->qrCodeService->verifyOrderQR($validated['qr_data'], $store->id);
 

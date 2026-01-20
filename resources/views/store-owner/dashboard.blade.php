@@ -53,28 +53,28 @@
             </div>
             <div class="card-body text-center">
                 @if($store)
-                    <div class="mb-3" style="max-width: 200px; margin: 0 auto;">
-                        <img src="{{ $qrCode }}" alt="Store QR Code" class="img-fluid">
-                    </div>
-                    <p class="text-muted mb-3">Scan to view your store</p>
-                    <div class="d-grid gap-2">
-                        <a href="{{ route('store.show', $store->slug) }}" 
-                           target="_blank" class="btn btn-outline-primary btn-sm">
-                            <i class="bi bi-eye me-1"></i>View Store
-                        </a>
-                        <button class="btn btn-outline-secondary btn-sm" onclick="printQR()">
-                            <i class="bi bi-printer me-1"></i>Print QR
-                        </button>
-                    </div>
+                <div class="mb-3" style="max-width: 200px; margin: 0 auto;">
+                    <img src="{{ $qrCode }}" alt="Store QR Code" class="img-fluid">
+                </div>
+                <p class="text-muted mb-3">Scan to view your store</p>
+                <div class="d-grid gap-2">
+                    <a href="{{ route('store.show', $store->slug) }}"
+                        target="_blank" class="btn btn-outline-primary btn-sm">
+                        <i class="bi bi-eye me-1"></i>View Store
+                    </a>
+                    <button class="btn btn-outline-secondary btn-sm" onclick="printQR()">
+                        <i class="bi bi-printer me-1"></i>Print QR
+                    </button>
+                </div>
                 @else
-                    <div class="text-muted py-4">
-                        <i class="bi bi-shop fs-1 d-block mb-2"></i>
-                        No store assigned
-                    </div>
+                <div class="text-muted py-4">
+                    <i class="bi bi-shop fs-1 d-block mb-2"></i>
+                    No store assigned
+                </div>
                 @endif
             </div>
         </div>
-        
+
         <!-- Low Stock Alert -->
         @if($lowStockItems->count() > 0)
         <div class="card mt-4">
@@ -94,7 +94,7 @@
         </div>
         @endif
     </div>
-    
+
     <!-- Recent Orders -->
     <div class="col-lg-8">
         <div class="card">
@@ -130,26 +130,26 @@
                                 <td>₹{{ number_format($order->total_amount, 2) }}</td>
                                 <td>
                                     @switch($order->status)
-                                        @case('pending')
-                                            <span class="badge bg-warning">Pending</span>
-                                            @break
-                                        @case('confirmed')
-                                            <span class="badge bg-info">Confirmed</span>
-                                            @break
-                                        @case('processing')
-                                            <span class="badge bg-primary">Processing</span>
-                                            @break
-                                        @case('completed')
-                                            <span class="badge bg-success">Completed</span>
-                                            @break
-                                        @case('cancelled')
-                                            <span class="badge bg-danger">Cancelled</span>
-                                            @break
+                                    @case('pending')
+                                    <span class="badge bg-warning">Pending</span>
+                                    @break
+                                    @case('confirmed')
+                                    <span class="badge bg-info">Confirmed</span>
+                                    @break
+                                    @case('processing')
+                                    <span class="badge bg-primary">Processing</span>
+                                    @break
+                                    @case('completed')
+                                    <span class="badge bg-success">Completed</span>
+                                    @break
+                                    @case('cancelled')
+                                    <span class="badge bg-danger">Cancelled</span>
+                                    @break
                                     @endswitch
                                 </td>
                                 <td>
-                                    <a href="{{ route('store-owner.orders.show', $order) }}" 
-                                       class="btn btn-sm btn-outline-primary">
+                                    <a href="{{ route('store-owner.orders.show', $order) }}"
+                                        class="btn btn-sm btn-outline-primary">
                                         <i class="bi bi-eye"></i>
                                     </a>
                                 </td>
@@ -164,7 +164,7 @@
                 </div>
             </div>
         </div>
-        
+
         <!-- Quick Actions -->
         <div class="row g-3 mt-3">
             <div class="col-md-4">
@@ -196,10 +196,10 @@
 </div>
 
 <script>
-function printQR() {
-    const qrImage = document.querySelector('img[alt="Store QR Code"]');
-    const printWindow = window.open('', '_blank');
-    printWindow.document.write(`
+    function printQR() {
+        const qrImage = document.querySelector('img[alt="Store QR Code"]');
+        const printWindow = window.open('', '_blank');
+        printWindow.document.write(`
         <html>
             <head>
                 <title>Store QR Code</title>
@@ -216,9 +216,8 @@ function printQR() {
             </body>
         </html>
     `);
-    printWindow.document.close();
-    printWindow.print();
-}
+        printWindow.document.close();
+        printWindow.print();
+    }
 </script>
 @endsection
-

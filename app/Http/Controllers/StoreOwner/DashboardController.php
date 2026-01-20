@@ -34,7 +34,7 @@ class DashboardController extends Controller
             ->whereDate('created_at', today())
             ->where('payment_status', 'paid')
             ->sum('total') ?? 0;
-        
+
         $todayOrders = $store->orders()
             ->whereDate('created_at', today())
             ->count();
@@ -45,7 +45,7 @@ class DashboardController extends Controller
             ->whereYear('created_at', now()->year)
             ->where('payment_status', 'paid')
             ->sum('total') ?? 0;
-        
+
         $monthOrders = $store->orders()
             ->whereMonth('created_at', now()->month)
             ->whereYear('created_at', now()->year)

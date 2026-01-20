@@ -13,13 +13,13 @@ use Illuminate\Support\Facades\Storage;
             <!-- Success Message -->
             <div class="text-center mb-5">
                 <div class="bg-success text-white rounded-circle d-inline-flex align-items-center justify-content-center mb-4"
-                     style="width: 100px; height: 100px;">
+                    style="width: 100px; height: 100px;">
                     <i class="bi bi-check-lg" style="font-size: 3rem;"></i>
                 </div>
                 <h1 class="mb-3">Order Confirmed!</h1>
                 <p class="lead text-muted">Thank you for your order. Your order has been received.</p>
             </div>
-            
+
             <!-- Order Details Card -->
             <div class="card mb-4">
                 <div class="card-header d-flex justify-content-between align-items-center">
@@ -38,10 +38,10 @@ use Illuminate\Support\Facades\Storage;
                             <p class="mb-0">
                                 <strong>{{ $order->store->name ?? 'Store' }}</strong><br>
                                 @if($order->store->address)
-                                    {{ $order->store->address }}<br>
+                                {{ $order->store->address }}<br>
                                 @endif
                                 @if($order->store->phone)
-                                    <i class="bi bi-telephone me-1"></i>{{ $order->store->phone }}
+                                <i class="bi bi-telephone me-1"></i>{{ $order->store->phone }}
                                 @endif
                             </p>
                         </div>
@@ -49,16 +49,16 @@ use Illuminate\Support\Facades\Storage;
                             <h6 class="text-muted mb-2">Payment</h6>
                             <p class="mb-0">
                                 <strong>{{ ucfirst($order->payment_method) }}</strong><br>
-                                Status: 
+                                Status:
                                 @if($order->payment_status == 'paid')
-                                    <span class="text-success">Paid</span>
+                                <span class="text-success">Paid</span>
                                 @else
-                                    <span class="text-warning">{{ ucfirst($order->payment_status) }}</span>
+                                <span class="text-warning">{{ ucfirst($order->payment_status) }}</span>
                                 @endif
                             </p>
                         </div>
                     </div>
-                    
+
                     <h6 class="text-muted mb-3">Order Items</h6>
                     <div class="table-responsive">
                         <table class="table">
@@ -76,12 +76,12 @@ use Illuminate\Support\Facades\Storage;
                                     <td>
                                         {{ $item->product_name }}
                                         @if($item->options)
-                                            <br>
-                                            <small class="text-muted">
-                                                @foreach($item->options as $key => $value)
-                                                    {{ ucfirst($key) }}: {{ $value }}@if(!$loop->last), @endif
-                                                @endforeach
-                                            </small>
+                                        <br>
+                                        <small class="text-muted">
+                                            @foreach($item->options as $key => $value)
+                                            {{ ucfirst($key) }}: {{ $value }}@if(!$loop->last), @endif
+                                            @endforeach
+                                        </small>
                                         @endif
                                     </td>
                                     <td class="text-center">{{ $item->quantity }}</td>
@@ -112,7 +112,7 @@ use Illuminate\Support\Facades\Storage;
                             </tfoot>
                         </table>
                     </div>
-                    
+
                     @if($order->notes)
                     <div class="mt-3">
                         <h6 class="text-muted mb-2">Order Notes</h6>
@@ -121,7 +121,7 @@ use Illuminate\Support\Facades\Storage;
                     @endif
                 </div>
             </div>
-            
+
             <!-- QR Code for Verification -->
             @if($order->hasQrCode())
             <div class="card mb-4">
@@ -129,12 +129,12 @@ use Illuminate\Support\Facades\Storage;
                     <h5 class="mb-3">Order Verification QR Code</h5>
                     <div class="mb-3">
                         @if($order->hasQrCode())
-                            <img src="{{ Storage::disk('public')->get($order->verification_qr_path) }}" 
-                                 alt="Order QR Code" 
-                                 class="img-fluid" 
-                                 style="max-width: 300px;">
+                        <img src="{{ Storage::disk('public')->get($order->verification_qr_path) }}"
+                            alt="Order QR Code"
+                            class="img-fluid"
+                            style="max-width: 300px;">
                         @else
-                            <div class="alert alert-warning">QR Code not available</div>
+                        <div class="alert alert-warning">QR Code not available</div>
                         @endif
                     </div>
                     <p class="mb-2 text-muted">Show this QR code when picking up your order</p>
@@ -142,13 +142,13 @@ use Illuminate\Support\Facades\Storage;
                 </div>
             </div>
             @endif
-            
+
             <!-- Actions -->
             <div class="d-flex justify-content-center gap-3">
                 @auth
-                    <a href="{{ route('orders.index') }}" class="btn btn-outline-primary">
-                        <i class="bi bi-list-ul me-1"></i>View All Orders
-                    </a>
+                <a href="{{ route('orders.index') }}" class="btn btn-outline-primary">
+                    <i class="bi bi-list-ul me-1"></i>View All Orders
+                </a>
                 @endauth
                 <a href="{{ route('store.show', $order->store->slug ?? '') }}" class="btn btn-primary">
                     <i class="bi bi-shop me-1"></i>Continue Shopping
@@ -158,4 +158,3 @@ use Illuminate\Support\Facades\Storage;
     </div>
 </div>
 @endsection
-

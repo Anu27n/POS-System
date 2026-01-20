@@ -15,21 +15,21 @@
                 </div>
                 <div>
                     @switch($order->status)
-                        @case('pending')
-                            <span class="badge bg-warning fs-6">Pending</span>
-                            @break
-                        @case('confirmed')
-                            <span class="badge bg-info fs-6">Confirmed</span>
-                            @break
-                        @case('processing')
-                            <span class="badge bg-primary fs-6">Processing</span>
-                            @break
-                        @case('completed')
-                            <span class="badge bg-success fs-6">Completed</span>
-                            @break
-                        @case('cancelled')
-                            <span class="badge bg-danger fs-6">Cancelled</span>
-                            @break
+                    @case('pending')
+                    <span class="badge bg-warning fs-6">Pending</span>
+                    @break
+                    @case('confirmed')
+                    <span class="badge bg-info fs-6">Confirmed</span>
+                    @break
+                    @case('processing')
+                    <span class="badge bg-primary fs-6">Processing</span>
+                    @break
+                    @case('completed')
+                    <span class="badge bg-success fs-6">Completed</span>
+                    @break
+                    @case('cancelled')
+                    <span class="badge bg-danger fs-6">Cancelled</span>
+                    @break
                     @endswitch
                 </div>
             </div>
@@ -51,16 +51,16 @@
                                 <td>
                                     <div class="fw-semibold">{{ $item->product_name }}</div>
                                     @if($item->product)
-                                        <small class="text-muted">SKU: {{ $item->product->sku ?? 'N/A' }}</small>
+                                    <small class="text-muted">SKU: {{ $item->product->sku ?? 'N/A' }}</small>
                                     @endif
                                 </td>
                                 <td>
                                     @if($item->options)
-                                        @foreach($item->options as $key => $value)
-                                            <span class="badge bg-light text-dark">{{ ucfirst($key) }}: {{ $value }}</span>
-                                        @endforeach
+                                    @foreach($item->options as $key => $value)
+                                    <span class="badge bg-light text-dark">{{ ucfirst($key) }}: {{ $value }}</span>
+                                    @endforeach
                                     @else
-                                        <span class="text-muted">-</span>
+                                    <span class="text-muted">-</span>
                                     @endif
                                 </td>
                                 <td class="text-end">₹{{ number_format($item->price, 2) }}</td>
@@ -93,7 +93,7 @@
                 </div>
             </div>
         </div>
-        
+
         @if($order->notes)
         <div class="card mb-4">
             <div class="card-header">
@@ -105,7 +105,7 @@
         </div>
         @endif
     </div>
-    
+
     <!-- Sidebar -->
     <div class="col-lg-4">
         <!-- Customer Info -->
@@ -116,12 +116,12 @@
             <div class="card-body">
                 <p class="mb-2"><strong>Name:</strong> {{ $order->user->name ?? 'Guest' }}</p>
                 @if($order->user)
-                    <p class="mb-2"><strong>Email:</strong> {{ $order->user->email }}</p>
-                    <p class="mb-2"><strong>Phone:</strong> {{ $order->user->phone ?? 'N/A' }}</p>
+                <p class="mb-2"><strong>Email:</strong> {{ $order->user->email }}</p>
+                <p class="mb-2"><strong>Phone:</strong> {{ $order->user->phone ?? 'N/A' }}</p>
                 @endif
             </div>
         </div>
-        
+
         <!-- Payment Info -->
         <div class="card mb-4">
             <div class="card-header">
@@ -129,17 +129,17 @@
             </div>
             <div class="card-body">
                 <p class="mb-2">
-                    <strong>Method:</strong> 
+                    <strong>Method:</strong>
                     {{ ucfirst($order->payment_method) }}
                 </p>
                 <p class="mb-2">
-                    <strong>Status:</strong> 
+                    <strong>Status:</strong>
                     @if($order->payment_status == 'paid')
-                        <span class="badge bg-success">Paid</span>
+                    <span class="badge bg-success">Paid</span>
                     @elseif($order->payment_status == 'pending')
-                        <span class="badge bg-warning">Pending</span>
+                    <span class="badge bg-warning">Pending</span>
                     @else
-                        <span class="badge bg-danger">{{ ucfirst($order->payment_status) }}</span>
+                    <span class="badge bg-danger">{{ ucfirst($order->payment_status) }}</span>
                     @endif
                 </p>
                 @if($order->transaction_id)
@@ -150,7 +150,7 @@
                 @endif
             </div>
         </div>
-        
+
         <!-- Update Status -->
         @if($order->status !== 'completed' && $order->status !== 'cancelled')
         <div class="card mb-4">
@@ -175,11 +175,11 @@
             </div>
         </div>
         @endif
-        
+
         <!-- Actions -->
         <div class="d-grid gap-2">
-            <a href="{{ route('store-owner.orders.receipt', $order) }}" 
-               class="btn btn-outline-primary" target="_blank">
+            <a href="{{ route('store-owner.orders.receipt', $order) }}"
+                class="btn btn-outline-primary" target="_blank">
                 <i class="bi bi-receipt me-1"></i>Print Receipt
             </a>
             <a href="{{ route('store-owner.orders.index') }}" class="btn btn-secondary">
@@ -189,4 +189,3 @@
     </div>
 </div>
 @endsection
-

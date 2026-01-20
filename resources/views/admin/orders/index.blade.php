@@ -74,9 +74,9 @@
                     <select name="store" class="form-select">
                         <option value="">All Stores</option>
                         @foreach($stores ?? [] as $store)
-                            <option value="{{ $store->id }}" {{ request('store') == $store->id ? 'selected' : '' }}>
-                                {{ $store->name }}
-                            </option>
+                        <option value="{{ $store->id }}" {{ request('store') == $store->id ? 'selected' : '' }}>
+                            {{ $store->name }}
+                        </option>
                         @endforeach
                     </select>
                 </div>
@@ -144,7 +144,7 @@
                         <td>
                             {{ $order->user->name ?? $order->customer_name ?? 'Walk-in' }}
                             @if($order->user)
-                                <br><small class="text-muted">{{ $order->user->email }}</small>
+                            <br><small class="text-muted">{{ $order->user->email }}</small>
                             @endif
                         </td>
                         <td>
@@ -155,13 +155,13 @@
                         </td>
                         <td>
                             @php
-                                $statusClasses = [
-                                    'pending' => 'bg-warning text-dark',
-                                    'confirmed' => 'bg-info text-white',
-                                    'processing' => 'bg-primary',
-                                    'completed' => 'bg-success',
-                                    'cancelled' => 'bg-danger'
-                                ];
+                            $statusClasses = [
+                            'pending' => 'bg-warning text-dark',
+                            'confirmed' => 'bg-info text-white',
+                            'processing' => 'bg-primary',
+                            'completed' => 'bg-success',
+                            'cancelled' => 'bg-danger'
+                            ];
                             @endphp
                             <span class="badge {{ $statusClasses[$order->order_status] ?? 'bg-secondary' }}">
                                 {{ ucfirst($order->order_status) }}
@@ -169,11 +169,11 @@
                         </td>
                         <td>
                             @php
-                                $paymentClasses = [
-                                    'pending' => 'text-warning',
-                                    'paid' => 'text-success',
-                                    'failed' => 'text-danger'
-                                ];
+                            $paymentClasses = [
+                            'pending' => 'text-warning',
+                            'paid' => 'text-success',
+                            'failed' => 'text-danger'
+                            ];
                             @endphp
                             <span class="{{ $paymentClasses[$order->payment_status] ?? '' }}">
                                 <i class="bi bi-{{ $order->payment_status == 'paid' ? 'check-circle-fill' : ($order->payment_status == 'failed' ? 'x-circle-fill' : 'clock') }}"></i>
@@ -194,8 +194,8 @@
                                     <i class="bi bi-file-earmark-pdf"></i>
                                 </a>
                                 @if($order->order_status !== 'completed' && $order->order_status !== 'cancelled')
-                                <button type="button" class="btn btn-outline-success" title="Complete Order" 
-                                        onclick="completeOrder({{ $order->id }})">
+                                <button type="button" class="btn btn-outline-success" title="Complete Order"
+                                    onclick="completeOrder({{ $order->id }})">
                                     <i class="bi bi-check-lg"></i>
                                 </button>
                                 @endif
@@ -213,7 +213,7 @@
                 </tbody>
             </table>
         </div>
-        
+
         @if(isset($orders) && $orders->hasPages())
         <div class="card-footer">
             {{ $orders->withQueryString()->links() }}
@@ -223,25 +223,24 @@
 </div>
 
 <script>
-function completeOrder(orderId) {
-    if (!confirm('Are you sure you want to complete this order?')) return;
-    
-    fetch(`/admin/orders/${orderId}/complete`, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'X-CSRF-TOKEN': '{{ csrf_token() }}'
-        }
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            location.reload();
-        } else {
-            alert('Error: ' + data.message);
-        }
-    });
-}
+    function completeOrder(orderId) {
+        if (!confirm('Are you sure you want to complete this order?')) return;
+
+        fetch(`/admin/orders/${orderId}/complete`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    location.reload();
+                } else {
+                    alert('Error: ' + data.message);
+                }
+            });
+    }
 </script>
 @endsection
-

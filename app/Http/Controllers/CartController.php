@@ -16,11 +16,11 @@ class CartController extends Controller
     public function index(Request $request)
     {
         $cart = $this->getCart();
-        
+
         if (!$cart || $cart->items->isEmpty()) {
             return view('cart.index', ['cart' => null, 'subtotal' => 0, 'tax' => 0, 'total' => 0]);
         }
-        
+
         $subtotal = $cart->items->sum('subtotal');
         $taxRate = $cart->store->tax_rate ?? 0;
         $tax = $subtotal * ($taxRate / 100);
@@ -48,7 +48,7 @@ class CartController extends Controller
             ->firstOrFail();
 
         $quantity = $validated['quantity'] ?? 1;
-        
+
         // Check stock
         if ($product->track_inventory && $product->stock_quantity < $quantity) {
             if ($request->wantsJson()) {
@@ -58,13 +58,13 @@ class CartController extends Controller
         }
 
         $cart = $this->getOrCreateCart($store);
-        
+
         // Check if item already exists
         $existingItem = $cart->items()
             ->where('product_id', $product->id)
             ->where('options', json_encode($validated['options'] ?? []))
             ->first();
-        
+
         if ($existingItem) {
             $existingItem->quantity += $quantity;
             $existingItem->subtotal = $existingItem->quantity * $existingItem->price;
@@ -106,7 +106,7 @@ class CartController extends Controller
             if ($cartItem->product && $cartItem->product->track_stock && $validated['quantity'] > $cartItem->product->stock_quantity) {
                 return back()->with('error', 'Not enough stock available.');
             }
-            
+
             $cartItem->quantity = $validated['quantity'];
             $cartItem->subtotal = $cartItem->quantity * $cartItem->price;
             $cartItem->save();
@@ -147,7 +147,7 @@ class CartController extends Controller
 
         return Cart::where('session_id', session()->getId())->with('items.product', 'store')->first();
     }
-    
+
     /**
      * Get or create cart for the current user/session
      */
@@ -159,7 +159,7 @@ class CartController extends Controller
             $existingCart->items()->delete();
             $existingCart->delete();
         }
-        
+
         if (auth()->check()) {
             return Cart::firstOrCreate([
                 'user_id' => auth()->id(),

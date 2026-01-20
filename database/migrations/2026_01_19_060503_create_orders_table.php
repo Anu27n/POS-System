@@ -29,7 +29,7 @@ return new class extends Migration
             $table->text('notes')->nullable();
             $table->timestamp('paid_at')->nullable();
             $table->timestamps();
-            
+
             // Index for faster lookups
             $table->index(['store_id', 'order_status']);
             $table->index(['store_id', 'payment_status']);
