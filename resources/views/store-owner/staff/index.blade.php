@@ -32,8 +32,8 @@
                     <tr>
                         <td class="ps-4">
                             <div class="d-flex align-items-center">
-                                <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center me-3" 
-                                     style="width: 40px; height: 40px;">
+                                <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center me-3"
+                                    style="width: 40px; height: 40px;">
                                     {{ strtoupper(substr($member->name, 0, 1)) }}
                                 </div>
                                 <div>
@@ -43,13 +43,13 @@
                         </td>
                         <td>
                             @if($member->email)
-                                <div><i class="bi bi-envelope me-1 text-muted"></i> {{ $member->email }}</div>
+                            <div><i class="bi bi-envelope me-1 text-muted"></i> {{ $member->email }}</div>
                             @endif
                             @if($member->phone)
-                                <div><i class="bi bi-phone me-1 text-muted"></i> {{ $member->phone }}</div>
+                            <div><i class="bi bi-phone me-1 text-muted"></i> {{ $member->phone }}</div>
                             @endif
                             @if(!$member->email && !$member->phone)
-                                <span class="text-muted">Not provided</span>
+                            <span class="text-muted">Not provided</span>
                             @endif
                         </td>
                         <td>
@@ -57,16 +57,16 @@
                         </td>
                         <td>
                             @if($member->is_active)
-                                <span class="badge bg-success">Active</span>
+                            <span class="badge bg-success">Active</span>
                             @else
-                                <span class="badge bg-secondary">Inactive</span>
+                            <span class="badge bg-secondary">Inactive</span>
                             @endif
                         </td>
                         <td>
                             @if($member->user)
-                                <span class="badge bg-info">Has Login</span>
+                            <span class="badge bg-info">Has Login</span>
                             @else
-                                <span class="text-muted">No account</span>
+                            <span class="text-muted">No account</span>
                             @endif
                         </td>
                         <td class="text-end pe-4">
@@ -77,12 +77,12 @@
                                 <form action="{{ route('store-owner.staff.toggle-status', $member) }}" method="POST" class="d-inline">
                                     @csrf
                                     <button type="submit" class="btn btn-sm btn-outline-{{ $member->is_active ? 'warning' : 'success' }}"
-                                            title="{{ $member->is_active ? 'Deactivate' : 'Activate' }}">
+                                        title="{{ $member->is_active ? 'Deactivate' : 'Activate' }}">
                                         <i class="bi bi-{{ $member->is_active ? 'pause' : 'play' }}"></i>
                                     </button>
                                 </form>
                                 <form action="{{ route('store-owner.staff.destroy', $member) }}" method="POST" class="d-inline"
-                                      onsubmit="return confirm('Are you sure you want to remove this staff member?')">
+                                    onsubmit="return confirm('Are you sure you want to remove this staff member?')">
                                     @csrf
                                     @method('DELETE')
                                     <button type="submit" class="btn btn-sm btn-outline-danger">

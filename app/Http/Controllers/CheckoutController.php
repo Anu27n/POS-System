@@ -80,7 +80,7 @@ class CheckoutController extends Controller
 
         // Validate payment method against store settings
         $availableMethods = array_keys($store->getAvailablePaymentMethods());
-        
+
         $validated = $request->validate([
             'payment_method' => 'required|in:' . implode(',', $availableMethods),
             'notes' => 'nullable|string|max:500',

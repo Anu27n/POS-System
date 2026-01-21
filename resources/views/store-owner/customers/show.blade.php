@@ -8,15 +8,15 @@
     <div class="col-lg-4">
         <div class="card mb-4">
             <div class="card-body text-center">
-                <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center mx-auto mb-3" 
-                     style="width: 80px; height: 80px; font-size: 2rem;">
+                <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center mx-auto mb-3"
+                    style="width: 80px; height: 80px; font-size: 2rem;">
                     {{ strtoupper(substr($customer->name, 0, 1)) }}
                 </div>
                 <h4 class="mb-1">{{ $customer->name }}</h4>
                 @if($customer->is_manually_added)
-                    <span class="badge bg-info">Manually Added</span>
+                <span class="badge bg-info">Manually Added</span>
                 @else
-                    <span class="badge bg-success">From Checkout</span>
+                <span class="badge bg-success">From Checkout</span>
                 @endif
             </div>
             <hr class="my-0">
@@ -89,9 +89,9 @@
                     <div class="card-body">
                         <div class="stat-value">
                             @if($customer->total_orders > 0)
-                                ₹{{ number_format($customer->total_spent / $customer->total_orders, 0) }}
+                            ₹{{ number_format($customer->total_spent / $customer->total_orders, 0) }}
                             @else
-                                ₹0
+                            ₹0
                             @endif
                         </div>
                         <div class="stat-label">Avg. Order Value</div>
@@ -130,9 +130,9 @@
                                 <td class="fw-semibold">₹{{ number_format($order->total, 2) }}</td>
                                 <td>
                                     @if($order->payment_status === 'paid')
-                                        <span class="badge bg-success">Paid</span>
+                                    <span class="badge bg-success">Paid</span>
                                     @else
-                                        <span class="badge bg-warning">{{ ucfirst($order->payment_status) }}</span>
+                                    <span class="badge bg-warning">{{ ucfirst($order->payment_status) }}</span>
                                     @endif
                                 </td>
                                 <td>

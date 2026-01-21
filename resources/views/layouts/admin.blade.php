@@ -42,7 +42,7 @@
 
         .sidebar-header {
             padding: 1.25rem 1.5rem;
-            border-bottom: 1px solid rgba(255,255,255,0.1);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
         }
 
         .sidebar-brand {
@@ -78,13 +78,13 @@
 
         .sidebar-nav .nav-link:hover {
             color: white;
-            background-color: rgba(255,255,255,0.05);
-            border-left-color: rgba(255,255,255,0.3);
+            background-color: rgba(255, 255, 255, 0.05);
+            border-left-color: rgba(255, 255, 255, 0.3);
         }
 
         .sidebar-nav .nav-link.active {
             color: white;
-            background-color: rgba(255,255,255,0.1);
+            background-color: rgba(255, 255, 255, 0.1);
             border-left-color: white;
         }
 
@@ -112,7 +112,7 @@
         .top-navbar {
             background: white;
             padding: 1rem 1.5rem;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
             border-bottom: 1px solid #e5e7eb;
         }
 
@@ -122,7 +122,7 @@
 
         .card {
             border: none;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
             border-radius: 0.5rem;
         }
 
@@ -209,7 +209,7 @@
         }
 
         .sidebar::-webkit-scrollbar-thumb {
-            background: rgba(255,255,255,0.2);
+            background: rgba(255, 255, 255, 0.2);
             border-radius: 3px;
         }
     </style>

@@ -25,10 +25,10 @@ class AuthController extends Controller
     public function login(Request $request)
     {
         $loginField = $request->input('email');
-        
+
         // Check if login field is email or phone
         $fieldType = filter_var($loginField, FILTER_VALIDATE_EMAIL) ? 'email' : 'phone';
-        
+
         $request->validate([
             'email' => 'required|string',
             'password' => 'required',
@@ -52,7 +52,7 @@ class AuthController extends Controller
             }
 
             // Redirect based on role
-            return match($user->role) {
+            return match ($user->role) {
                 'admin' => redirect()->intended(route('admin.dashboard')),
                 'store_owner' => redirect()->intended(route('store-owner.dashboard')),
                 default => redirect()->intended(route('home')),

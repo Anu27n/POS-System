@@ -19,28 +19,28 @@ use Illuminate\Support\Facades\Storage;
                     </div>
                     <h2 class="mb-3">Please Show This QR at the Counter</h2>
                     <p class="mb-4 opacity-75">Present this QR code to the cashier to complete your payment</p>
-                    
+
                     <!-- QR Code -->
                     <div class="bg-white p-4 rounded-3 d-inline-block mb-4">
                         @if($order->hasQrCode())
-                            <img src="data:image/png;base64,{{ base64_encode(Storage::disk('public')->get($order->verification_qr_path)) }}"
-                                alt="Order QR Code"
-                                class="img-fluid"
-                                style="width: 250px; height: 250px;">
+                        <img src="data:image/png;base64,{{ base64_encode(Storage::disk('public')->get($order->verification_qr_path)) }}"
+                            alt="Order QR Code"
+                            class="img-fluid"
+                            style="width: 250px; height: 250px;">
                         @else
-                            @php
-                                $qrService = app(\App\Services\QRCodeService::class);
-                                $qrImage = $qrService->generateOrderQR($order);
-                            @endphp
-                            <img src="{{ $qrImage }}" alt="Order QR Code" style="width: 250px; height: 250px;">
+                        @php
+                        $qrService = app(\App\Services\QRCodeService::class);
+                        $qrImage = $qrService->generateOrderQR($order);
+                        @endphp
+                        <img src="{{ $qrImage }}" alt="Order QR Code" style="width: 250px; height: 250px;">
                         @endif
                     </div>
-                    
+
                     <div class="mb-3">
                         <h3 class="mb-1">Order #{{ $order->order_number }}</h3>
                         <p class="h4 mb-0">Total: ₹{{ number_format($order->total, 2) }}</p>
                     </div>
-                    
+
                     <div class="d-flex justify-content-center gap-3 flex-wrap">
                         <span class="badge bg-warning text-dark fs-6 px-3 py-2">
                             <i class="bi bi-clock me-1"></i>Awaiting Payment
@@ -51,7 +51,7 @@ use Illuminate\Support\Facades\Storage;
                     </div>
                 </div>
             </div>
-            
+
             <!-- Payment Instructions -->
             <div class="card border-0 shadow-sm mb-4">
                 <div class="card-body">

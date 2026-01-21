@@ -14,26 +14,26 @@
                 <form action="{{ route('store-owner.staff.update', $staff) }}" method="POST">
                     @csrf
                     @method('PUT')
-                    
+
                     <!-- Basic Info -->
                     <div class="row mb-4">
                         <div class="col-md-6">
                             <label class="form-label">Name <span class="text-danger">*</span></label>
-                            <input type="text" class="form-control @error('name') is-invalid @enderror" 
-                                   name="name" value="{{ old('name', $staff->name) }}" required>
+                            <input type="text" class="form-control @error('name') is-invalid @enderror"
+                                name="name" value="{{ old('name', $staff->name) }}" required>
                             @error('name')
-                                <div class="invalid-feedback">{{ $message }}</div>
+                            <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
                         </div>
                         <div class="col-md-6">
                             <label class="form-label">Role <span class="text-danger">*</span></label>
                             <select class="form-select @error('role') is-invalid @enderror" name="role" required>
                                 @foreach($roles as $value => $label)
-                                    <option value="{{ $value }}" {{ old('role', $staff->role) === $value ? 'selected' : '' }}>{{ $label }}</option>
+                                <option value="{{ $value }}" {{ old('role', $staff->role) === $value ? 'selected' : '' }}>{{ $label }}</option>
                                 @endforeach
                             </select>
                             @error('role')
-                                <div class="invalid-feedback">{{ $message }}</div>
+                            <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
                         </div>
                     </div>
@@ -41,18 +41,18 @@
                     <div class="row mb-4">
                         <div class="col-md-6">
                             <label class="form-label">Email</label>
-                            <input type="email" class="form-control @error('email') is-invalid @enderror" 
-                                   name="email" value="{{ old('email', $staff->email) }}">
+                            <input type="email" class="form-control @error('email') is-invalid @enderror"
+                                name="email" value="{{ old('email', $staff->email) }}">
                             @error('email')
-                                <div class="invalid-feedback">{{ $message }}</div>
+                            <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
                         </div>
                         <div class="col-md-6">
                             <label class="form-label">Phone</label>
-                            <input type="text" class="form-control @error('phone') is-invalid @enderror" 
-                                   name="phone" value="{{ old('phone', $staff->phone) }}">
+                            <input type="text" class="form-control @error('phone') is-invalid @enderror"
+                                name="phone" value="{{ old('phone', $staff->phone) }}">
                             @error('phone')
-                                <div class="invalid-feedback">{{ $message }}</div>
+                            <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
                         </div>
                     </div>
@@ -60,8 +60,8 @@
                     <!-- Status -->
                     <div class="mb-4">
                         <div class="form-check form-switch">
-                            <input class="form-check-input" type="checkbox" name="is_active" 
-                                   id="isActive" value="1" {{ old('is_active', $staff->is_active) ? 'checked' : '' }}>
+                            <input class="form-check-input" type="checkbox" name="is_active"
+                                id="isActive" value="1" {{ old('is_active', $staff->is_active) ? 'checked' : '' }}>
                             <label class="form-check-label" for="isActive">Active</label>
                         </div>
                     </div>
@@ -87,9 +87,9 @@
                                 @foreach($permissions as $value => $label)
                                 <div class="col-md-6 col-lg-4">
                                     <div class="form-check mb-2">
-                                        <input class="form-check-input permission-checkbox" type="checkbox" 
-                                               name="permissions[]" value="{{ $value }}" id="perm_{{ $value }}"
-                                               {{ in_array($value, $currentPermissions) ? 'checked' : '' }}>
+                                        <input class="form-check-input permission-checkbox" type="checkbox"
+                                            name="permissions[]" value="{{ $value }}" id="perm_{{ $value }}"
+                                            {{ in_array($value, $currentPermissions) ? 'checked' : '' }}>
                                         <label class="form-check-label" for="perm_{{ $value }}">{{ $label }}</label>
                                     </div>
                                 </div>
@@ -114,16 +114,16 @@
 
 @push('scripts')
 <script>
-const rolePermissions = @json(\App\Models\Staff::ROLE_PERMISSIONS);
+    const rolePermissions = @json(\App\ Models\ Staff::ROLE_PERMISSIONS);
 
-function resetToDefaults() {
-    const role = document.querySelector('select[name="role"]').value;
-    const defaults = rolePermissions[role] || [];
-    
-    document.querySelectorAll('.permission-checkbox').forEach(checkbox => {
-        checkbox.checked = defaults.includes(checkbox.value);
-    });
-}
+    function resetToDefaults() {
+        const role = document.querySelector('select[name="role"]').value;
+        const defaults = rolePermissions[role] || [];
+
+        document.querySelectorAll('.permission-checkbox').forEach(checkbox => {
+            checkbox.checked = defaults.includes(checkbox.value);
+        });
+    }
 </script>
 @endpush
 @endsection

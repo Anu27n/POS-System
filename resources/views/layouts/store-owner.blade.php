@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
+
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -11,7 +12,7 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- Bootstrap Icons -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
-    
+
     <style>
         :root {
             --sidebar-width: 260px;
@@ -21,10 +22,12 @@
             --accent-color: #ffffff;
             --text-muted: #94a3b8;
         }
+
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background-color: #f8fafc;
         }
+
         .sidebar {
             position: fixed;
             top: 0;
@@ -36,10 +39,12 @@
             z-index: 1000;
             overflow-y: auto;
         }
+
         .sidebar-header {
             padding: 1.25rem 1.5rem;
-            border-bottom: 1px solid rgba(255,255,255,0.1);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
         }
+
         .sidebar-brand {
             color: white;
             font-size: 1.1rem;
@@ -48,16 +53,20 @@
             display: flex;
             align-items: center;
         }
+
         .sidebar-brand:hover {
             color: white;
         }
+
         .sidebar-brand i {
             font-size: 1.5rem;
             margin-right: 0.75rem;
         }
+
         .sidebar-nav {
             padding: 1rem 0;
         }
+
         .sidebar-nav .nav-link {
             color: var(--text-muted);
             padding: 0.75rem 1.5rem;
@@ -66,22 +75,26 @@
             transition: all 0.2s;
             border-left: 3px solid transparent;
         }
+
         .sidebar-nav .nav-link:hover {
             color: white;
-            background-color: rgba(255,255,255,0.05);
-            border-left-color: rgba(255,255,255,0.3);
+            background-color: rgba(255, 255, 255, 0.05);
+            border-left-color: rgba(255, 255, 255, 0.3);
         }
+
         .sidebar-nav .nav-link.active {
             color: white;
-            background-color: rgba(255,255,255,0.1);
+            background-color: rgba(255, 255, 255, 0.1);
             border-left-color: white;
         }
+
         .sidebar-nav .nav-link i {
             margin-right: 0.75rem;
             font-size: 1.1rem;
             width: 20px;
             text-align: center;
         }
+
         .sidebar-nav .nav-section {
             color: var(--text-muted);
             font-size: 0.7rem;
@@ -90,101 +103,124 @@
             padding: 1.5rem 1.5rem 0.5rem;
             font-weight: 600;
         }
+
         .main-content {
             margin-left: var(--sidebar-width);
             min-height: 100vh;
         }
+
         .top-navbar {
             background: white;
             padding: 1rem 1.5rem;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
             border-bottom: 1px solid #e5e7eb;
         }
+
         .content-wrapper {
             padding: 1.5rem;
         }
+
         .card {
             border: none;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
             border-radius: 0.5rem;
         }
+
         .card-header {
             background-color: white;
             border-bottom: 1px solid #e5e7eb;
             font-weight: 600;
         }
+
         .stat-card {
             border-left: 4px solid var(--primary-color);
         }
+
         .stat-card .stat-value {
             font-size: 1.75rem;
             font-weight: 700;
             color: var(--primary-color);
         }
+
         .stat-card .stat-label {
             color: #64748b;
             font-size: 0.875rem;
         }
+
         .btn-primary {
             background-color: var(--primary-color);
             border-color: var(--primary-color);
         }
+
         .btn-primary:hover {
             background-color: var(--primary-light);
             border-color: var(--primary-light);
         }
+
         .btn-outline-primary {
             color: var(--primary-color);
             border-color: var(--primary-color);
         }
+
         .btn-outline-primary:hover {
             background-color: var(--primary-color);
             border-color: var(--primary-color);
             color: white;
         }
+
         .table th {
             font-weight: 600;
             color: #475569;
             border-bottom-width: 1px;
             background-color: #f8fafc;
         }
+
         .badge-role {
             background-color: var(--primary-color);
             color: white;
         }
+
         .user-dropdown {
             padding: 0.5rem 1rem;
             border-radius: 0.375rem;
             transition: background-color 0.2s;
         }
+
         .user-dropdown:hover {
             background-color: #f1f5f9;
         }
+
         @media (max-width: 768px) {
             .sidebar {
                 transform: translateX(-100%);
                 transition: transform 0.3s;
             }
+
             .sidebar.show {
                 transform: translateX(0);
             }
+
             .main-content {
                 margin-left: 0;
             }
         }
+
         .sidebar::-webkit-scrollbar {
             width: 6px;
         }
+
         .sidebar::-webkit-scrollbar-track {
             background: transparent;
         }
+
         .sidebar::-webkit-scrollbar-thumb {
-            background: rgba(255,255,255,0.2);
+            background: rgba(255, 255, 255, 0.2);
             border-radius: 3px;
         }
     </style>
     @stack('styles')
 </head>
+
 <body>
     <!-- Sidebar -->
     <aside class="sidebar">
@@ -194,7 +230,7 @@
                 <span>{{ auth()->user()->getEffectiveStore()->name ?? 'My Store' }}</span>
             </a>
         </div>
-        
+
         <nav class="sidebar-nav">
             <div class="nav-section">Main</div>
             <a href="{{ route('store-owner.dashboard') }}" class="nav-link {{ request()->routeIs('store-owner.dashboard') ? 'active' : '' }}">
@@ -275,9 +311,9 @@
             <div class="d-flex align-items-center gap-3">
                 @php $effectiveStore = auth()->user()->getEffectiveStore(); @endphp
                 @if($effectiveStore)
-                    <a href="{{ route('store.show', $effectiveStore->slug) }}" class="btn btn-outline-primary btn-sm" target="_blank">
-                        <i class="bi bi-eye me-1"></i>View Store
-                    </a>
+                <a href="{{ route('store.show', $effectiveStore->slug) }}" class="btn btn-outline-primary btn-sm" target="_blank">
+                    <i class="bi bi-eye me-1"></i>View Store
+                </a>
                 @endif
                 <div class="dropdown">
                     <a href="#" class="d-flex align-items-center text-decoration-none dropdown-toggle user-dropdown" data-bs-toggle="dropdown">
@@ -291,7 +327,9 @@
                     </a>
                     <ul class="dropdown-menu dropdown-menu-end">
                         <li><a class="dropdown-item" href="{{ route('home') }}"><i class="bi bi-house me-2"></i>Home</a></li>
-                        <li><hr class="dropdown-divider"></li>
+                        <li>
+                            <hr class="dropdown-divider">
+                        </li>
                         <li>
                             <form action="{{ route('logout') }}" method="POST">
                                 @csrf
@@ -306,22 +344,22 @@
         <!-- Content -->
         <div class="content-wrapper">
             @if(session('success'))
-                <div class="alert alert-success alert-dismissible fade show" role="alert">
-                    <i class="bi bi-check-circle me-2"></i>{{ session('success') }}
-                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                </div>
+            <div class="alert alert-success alert-dismissible fade show" role="alert">
+                <i class="bi bi-check-circle me-2"></i>{{ session('success') }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
             @endif
             @if(session('error'))
-                <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                    <i class="bi bi-exclamation-circle me-2"></i>{{ session('error') }}
-                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                </div>
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                <i class="bi bi-exclamation-circle me-2"></i>{{ session('error') }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
             @endif
             @if(session('info'))
-                <div class="alert alert-info alert-dismissible fade show" role="alert">
-                    <i class="bi bi-info-circle me-2"></i>{{ session('info') }}
-                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                </div>
+            <div class="alert alert-info alert-dismissible fade show" role="alert">
+                <i class="bi bi-info-circle me-2"></i>{{ session('info') }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
             @endif
 
             @yield('content')
@@ -332,4 +370,5 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     @stack('scripts')
 </body>
+
 </html>

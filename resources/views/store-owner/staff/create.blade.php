@@ -13,26 +13,26 @@
             <div class="card-body">
                 <form action="{{ route('store-owner.staff.store') }}" method="POST">
                     @csrf
-                    
+
                     <!-- Basic Info -->
                     <div class="row mb-4">
                         <div class="col-md-6">
                             <label class="form-label">Name <span class="text-danger">*</span></label>
-                            <input type="text" class="form-control @error('name') is-invalid @enderror" 
-                                   name="name" value="{{ old('name') }}" required>
+                            <input type="text" class="form-control @error('name') is-invalid @enderror"
+                                name="name" value="{{ old('name') }}" required>
                             @error('name')
-                                <div class="invalid-feedback">{{ $message }}</div>
+                            <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
                         </div>
                         <div class="col-md-6">
                             <label class="form-label">Role <span class="text-danger">*</span></label>
                             <select class="form-select @error('role') is-invalid @enderror" name="role" required>
                                 @foreach($roles as $value => $label)
-                                    <option value="{{ $value }}" {{ old('role') === $value ? 'selected' : '' }}>{{ $label }}</option>
+                                <option value="{{ $value }}" {{ old('role') === $value ? 'selected' : '' }}>{{ $label }}</option>
                                 @endforeach
                             </select>
                             @error('role')
-                                <div class="invalid-feedback">{{ $message }}</div>
+                            <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
                         </div>
                     </div>
@@ -40,18 +40,18 @@
                     <div class="row mb-4">
                         <div class="col-md-6">
                             <label class="form-label">Email</label>
-                            <input type="email" class="form-control @error('email') is-invalid @enderror" 
-                                   name="email" value="{{ old('email') }}">
+                            <input type="email" class="form-control @error('email') is-invalid @enderror"
+                                name="email" value="{{ old('email') }}">
                             @error('email')
-                                <div class="invalid-feedback">{{ $message }}</div>
+                            <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
                         </div>
                         <div class="col-md-6">
                             <label class="form-label">Phone</label>
-                            <input type="text" class="form-control @error('phone') is-invalid @enderror" 
-                                   name="phone" value="{{ old('phone') }}">
+                            <input type="text" class="form-control @error('phone') is-invalid @enderror"
+                                name="phone" value="{{ old('phone') }}">
                             @error('phone')
-                                <div class="invalid-feedback">{{ $message }}</div>
+                            <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
                         </div>
                     </div>
@@ -60,8 +60,8 @@
                     <div class="card bg-light mb-4">
                         <div class="card-body">
                             <div class="form-check mb-3">
-                                <input class="form-check-input" type="checkbox" name="create_account" 
-                                       id="createAccount" value="1" {{ old('create_account') ? 'checked' : '' }}>
+                                <input class="form-check-input" type="checkbox" name="create_account"
+                                    id="createAccount" value="1" {{ old('create_account') ? 'checked' : '' }}>
                                 <label class="form-check-label fw-semibold" for="createAccount">
                                     Create login account for this staff member
                                 </label>
@@ -74,16 +74,16 @@
                                 <div class="row">
                                     <div class="col-md-6">
                                         <label class="form-label">Password <span class="text-danger">*</span></label>
-                                        <input type="password" class="form-control @error('password') is-invalid @enderror" 
-                                               name="password" minlength="8">
+                                        <input type="password" class="form-control @error('password') is-invalid @enderror"
+                                            name="password" minlength="8">
                                         @error('password')
-                                            <div class="invalid-feedback">{{ $message }}</div>
+                                        <div class="invalid-feedback">{{ $message }}</div>
                                         @enderror
                                     </div>
                                     <div class="col-md-6">
                                         <label class="form-label">Confirm Password <span class="text-danger">*</span></label>
-                                        <input type="password" class="form-control" 
-                                               name="password_confirmation">
+                                        <input type="password" class="form-control"
+                                            name="password_confirmation">
                                     </div>
                                 </div>
                                 <small class="text-muted">Note: Email is required to create a login account.</small>
@@ -102,9 +102,9 @@
                                 @foreach($permissions as $value => $label)
                                 <div class="col-md-6 col-lg-4">
                                     <div class="form-check mb-2">
-                                        <input class="form-check-input" type="checkbox" 
-                                               name="permissions[]" value="{{ $value }}" id="perm_{{ $value }}"
-                                               {{ in_array($value, old('permissions', [])) ? 'checked' : '' }}>
+                                        <input class="form-check-input" type="checkbox"
+                                            name="permissions[]" value="{{ $value }}" id="perm_{{ $value }}"
+                                            {{ in_array($value, old('permissions', [])) ? 'checked' : '' }}>
                                         <label class="form-check-label" for="perm_{{ $value }}">{{ $label }}</label>
                                     </div>
                                 </div>
@@ -129,9 +129,9 @@
 
 @push('scripts')
 <script>
-document.getElementById('createAccount').addEventListener('change', function() {
-    document.getElementById('accountFields').style.display = this.checked ? 'block' : 'none';
-});
+    document.getElementById('createAccount').addEventListener('change', function() {
+        document.getElementById('accountFields').style.display = this.checked ? 'block' : 'none';
+    });
 </script>
 @endpush
 @endsection

@@ -13,49 +13,49 @@
             <div class="card-body">
                 <form action="{{ route('store-owner.customers.store') }}" method="POST">
                     @csrf
-                    
+
                     <div class="mb-3">
                         <label class="form-label">Name <span class="text-danger">*</span></label>
-                        <input type="text" class="form-control @error('name') is-invalid @enderror" 
-                               name="name" value="{{ old('name') }}" required>
+                        <input type="text" class="form-control @error('name') is-invalid @enderror"
+                            name="name" value="{{ old('name') }}" required>
                         @error('name')
-                            <div class="invalid-feedback">{{ $message }}</div>
+                        <div class="invalid-feedback">{{ $message }}</div>
                         @enderror
                     </div>
 
                     <div class="mb-3">
                         <label class="form-label">Phone</label>
-                        <input type="text" class="form-control @error('phone') is-invalid @enderror" 
-                               name="phone" value="{{ old('phone') }}" placeholder="+91 9876543210">
+                        <input type="text" class="form-control @error('phone') is-invalid @enderror"
+                            name="phone" value="{{ old('phone') }}" placeholder="+91 9876543210">
                         @error('phone')
-                            <div class="invalid-feedback">{{ $message }}</div>
+                        <div class="invalid-feedback">{{ $message }}</div>
                         @enderror
                     </div>
 
                     <div class="mb-3">
                         <label class="form-label">Email</label>
-                        <input type="email" class="form-control @error('email') is-invalid @enderror" 
-                               name="email" value="{{ old('email') }}" placeholder="customer@example.com">
+                        <input type="email" class="form-control @error('email') is-invalid @enderror"
+                            name="email" value="{{ old('email') }}" placeholder="customer@example.com">
                         @error('email')
-                            <div class="invalid-feedback">{{ $message }}</div>
+                        <div class="invalid-feedback">{{ $message }}</div>
                         @enderror
                     </div>
 
                     <div class="mb-3">
                         <label class="form-label">Address</label>
-                        <textarea class="form-control @error('address') is-invalid @enderror" 
-                                  name="address" rows="2">{{ old('address') }}</textarea>
+                        <textarea class="form-control @error('address') is-invalid @enderror"
+                            name="address" rows="2">{{ old('address') }}</textarea>
                         @error('address')
-                            <div class="invalid-feedback">{{ $message }}</div>
+                        <div class="invalid-feedback">{{ $message }}</div>
                         @enderror
                     </div>
 
                     <div class="mb-4">
                         <label class="form-label">Notes</label>
-                        <textarea class="form-control @error('notes') is-invalid @enderror" 
-                                  name="notes" rows="2" placeholder="Any additional notes about this customer...">{{ old('notes') }}</textarea>
+                        <textarea class="form-control @error('notes') is-invalid @enderror"
+                            name="notes" rows="2" placeholder="Any additional notes about this customer...">{{ old('notes') }}</textarea>
                         @error('notes')
-                            <div class="invalid-feedback">{{ $message }}</div>
+                        <div class="invalid-feedback">{{ $message }}</div>
                         @enderror
                     </div>
 

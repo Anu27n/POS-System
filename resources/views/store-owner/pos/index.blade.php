@@ -716,10 +716,10 @@
                     currentScannedOrder.payment_status = 'paid';
                     currentScannedOrder.payment_method = paymentMethod;
                     currentScannedOrder.order_status = data.order.order_status;
-                    
+
                     // Show success and refresh display
                     displayScannedOrder(currentScannedOrder);
-                    
+
                     // Ask if they want to print receipt
                     if (confirm('Payment received! Would you like to print the receipt?')) {
                         window.open(data.order.receipt_url, '_blank');

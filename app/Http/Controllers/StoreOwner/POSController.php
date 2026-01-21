@@ -250,13 +250,13 @@ class POSController extends Controller
         // Get payment method from request
         $paymentMethod = $request->input('payment_method', 'cash');
         $validMethods = ['cash', 'card', 'upi'];
-        
+
         if (!in_array($paymentMethod, $validMethods)) {
             $paymentMethod = 'cash';
         }
 
         $transactionId = strtoupper($paymentMethod) . '-COUNTER-' . now()->format('YmdHis');
-        
+
         $order->update([
             'payment_method' => $paymentMethod,
             'payment_status' => 'paid',

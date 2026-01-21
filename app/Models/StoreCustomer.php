@@ -83,7 +83,7 @@ class StoreCustomer extends Model
     {
         // First try to find by email or phone
         $query = self::where('store_id', $store->id);
-        
+
         if (!empty($details['email'])) {
             $existing = $query->where('email', $details['email'])->first();
             if ($existing) {

@@ -131,10 +131,10 @@ class Store extends Model
      */
     public function isRazorpayEnabled(): bool
     {
-        return $this->enable_online_payment && 
-               $this->razorpay_enabled && 
-               !empty($this->razorpay_key_id) && 
-               !empty($this->razorpay_key_secret);
+        return $this->enable_online_payment &&
+            $this->razorpay_enabled &&
+            !empty($this->razorpay_key_id) &&
+            !empty($this->razorpay_key_secret);
     }
 
     /**
@@ -142,10 +142,10 @@ class Store extends Model
      */
     public function isStripeEnabled(): bool
     {
-        return $this->enable_online_payment && 
-               $this->stripe_enabled && 
-               !empty($this->stripe_publishable_key) && 
-               !empty($this->stripe_secret_key);
+        return $this->enable_online_payment &&
+            $this->stripe_enabled &&
+            !empty($this->stripe_publishable_key) &&
+            !empty($this->stripe_secret_key);
     }
 
     /**
@@ -162,19 +162,19 @@ class Store extends Model
     public function getAvailablePaymentMethods(): array
     {
         $methods = [];
-        
+
         if ($this->enable_counter_payment) {
             $methods['counter'] = 'Pay at Counter';
         }
-        
+
         if ($this->isRazorpayEnabled()) {
             $methods['razorpay'] = 'Pay with Razorpay';
         }
-        
+
         if ($this->isStripeEnabled()) {
             $methods['stripe'] = 'Pay with Stripe';
         }
-        
+
         return $methods;
     }
 }

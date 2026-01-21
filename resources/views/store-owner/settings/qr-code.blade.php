@@ -12,38 +12,38 @@
             </div>
             <div class="card-body text-center">
                 @if($store->qr_code && Storage::disk('public')->exists($store->qr_code))
-                    <div class="mb-4">
-                        <img src="{{ Storage::url($store->qr_code) }}" alt="Store QR Code" 
-                             class="img-fluid" style="max-width: 300px;">
-                    </div>
-                    <p class="text-muted mb-4">
-                        Customers can scan this QR code to access your store menu and place orders.
-                    </p>
-                    <div class="d-flex justify-content-center gap-3">
-                        <a href="{{ route('store-owner.qr-code.download') }}" class="btn btn-primary">
-                            <i class="bi bi-download me-1"></i> Download QR Code
-                        </a>
-                        <form action="{{ route('store-owner.qr-code.generate') }}" method="POST" class="d-inline">
-                            @csrf
-                            <button type="submit" class="btn btn-outline-primary">
-                                <i class="bi bi-arrow-clockwise me-1"></i> Regenerate
-                            </button>
-                        </form>
-                    </div>
+                <div class="mb-4">
+                    <img src="{{ Storage::url($store->qr_code) }}" alt="Store QR Code"
+                        class="img-fluid" style="max-width: 300px;">
+                </div>
+                <p class="text-muted mb-4">
+                    Customers can scan this QR code to access your store menu and place orders.
+                </p>
+                <div class="d-flex justify-content-center gap-3">
+                    <a href="{{ route('store-owner.qr-code.download') }}" class="btn btn-primary">
+                        <i class="bi bi-download me-1"></i> Download QR Code
+                    </a>
+                    <form action="{{ route('store-owner.qr-code.generate') }}" method="POST" class="d-inline">
+                        @csrf
+                        <button type="submit" class="btn btn-outline-primary">
+                            <i class="bi bi-arrow-clockwise me-1"></i> Regenerate
+                        </button>
+                    </form>
+                </div>
                 @else
-                    <div class="py-5">
-                        <i class="bi bi-qr-code fs-1 text-muted d-block mb-3"></i>
-                        <h5>No QR Code Generated</h5>
-                        <p class="text-muted mb-4">
-                            Generate a QR code for your store so customers can easily access your menu.
-                        </p>
-                        <form action="{{ route('store-owner.qr-code.generate') }}" method="POST">
-                            @csrf
-                            <button type="submit" class="btn btn-primary btn-lg">
-                                <i class="bi bi-qr-code me-1"></i> Generate QR Code
-                            </button>
-                        </form>
-                    </div>
+                <div class="py-5">
+                    <i class="bi bi-qr-code fs-1 text-muted d-block mb-3"></i>
+                    <h5>No QR Code Generated</h5>
+                    <p class="text-muted mb-4">
+                        Generate a QR code for your store so customers can easily access your menu.
+                    </p>
+                    <form action="{{ route('store-owner.qr-code.generate') }}" method="POST">
+                        @csrf
+                        <button type="submit" class="btn btn-primary btn-lg">
+                            <i class="bi bi-qr-code me-1"></i> Generate QR Code
+                        </button>
+                    </form>
+                </div>
                 @endif
             </div>
         </div>
@@ -56,8 +56,8 @@
             <div class="card-body">
                 <p class="text-muted mb-3">Share this link with your customers:</p>
                 <div class="input-group">
-                    <input type="text" class="form-control" value="{{ route('store.show', $store->slug) }}" 
-                           id="storeUrl" readonly>
+                    <input type="text" class="form-control" value="{{ route('store.show', $store->slug) }}"
+                        id="storeUrl" readonly>
                     <button class="btn btn-outline-primary" type="button" onclick="copyUrl()">
                         <i class="bi bi-clipboard"></i> Copy
                     </button>
@@ -85,19 +85,19 @@
 
 @push('scripts')
 <script>
-function copyUrl() {
-    const input = document.getElementById('storeUrl');
-    input.select();
-    document.execCommand('copy');
-    
-    // Show feedback
-    const btn = event.target.closest('button');
-    const originalHtml = btn.innerHTML;
-    btn.innerHTML = '<i class="bi bi-check"></i> Copied!';
-    setTimeout(() => {
-        btn.innerHTML = originalHtml;
-    }, 2000);
-}
+    function copyUrl() {
+        const input = document.getElementById('storeUrl');
+        input.select();
+        document.execCommand('copy');
+
+        // Show feedback
+        const btn = event.target.closest('button');
+        const originalHtml = btn.innerHTML;
+        btn.innerHTML = '<i class="bi bi-check"></i> Copied!';
+        setTimeout(() => {
+            btn.innerHTML = originalHtml;
+        }, 2000);
+    }
 </script>
 @endpush
 @endsection

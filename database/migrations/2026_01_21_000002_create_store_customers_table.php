@@ -25,7 +25,7 @@ return new class extends Migration
             $table->timestamp('last_order_at')->nullable();
             $table->boolean('is_manually_added')->default(false);
             $table->timestamps();
-            
+
             $table->index(['store_id', 'email']);
             $table->index(['store_id', 'phone']);
         });

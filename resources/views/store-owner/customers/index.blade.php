@@ -19,8 +19,8 @@
         <form method="GET" class="row g-3 align-items-end">
             <div class="col-md-6">
                 <label class="form-label">Search</label>
-                <input type="text" class="form-control" name="search" 
-                       value="{{ request('search') }}" placeholder="Search by name, email or phone...">
+                <input type="text" class="form-control" name="search"
+                    value="{{ request('search') }}" placeholder="Search by name, email or phone...">
             </div>
             <div class="col-md-4">
                 <label class="form-label">Filter</label>
@@ -59,34 +59,34 @@
                     <tr>
                         <td class="ps-4">
                             <div class="d-flex align-items-center">
-                                <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center me-3" 
-                                     style="width: 40px; height: 40px;">
+                                <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center me-3"
+                                    style="width: 40px; height: 40px;">
                                     {{ strtoupper(substr($customer->name, 0, 1)) }}
                                 </div>
                                 <div>
                                     <div class="fw-semibold">{{ $customer->name }}</div>
                                     @if($customer->last_order_at)
-                                        <small class="text-muted">Last order: {{ $customer->last_order_at->diffForHumans() }}</small>
+                                    <small class="text-muted">Last order: {{ $customer->last_order_at->diffForHumans() }}</small>
                                     @endif
                                 </div>
                             </div>
                         </td>
                         <td>
                             @if($customer->phone)
-                                <a href="tel:{{ $customer->phone }}" class="text-decoration-none">
-                                    {{ $customer->phone }}
-                                </a>
+                            <a href="tel:{{ $customer->phone }}" class="text-decoration-none">
+                                {{ $customer->phone }}
+                            </a>
                             @else
-                                <span class="text-muted">-</span>
+                            <span class="text-muted">-</span>
                             @endif
                         </td>
                         <td>
                             @if($customer->email)
-                                <a href="mailto:{{ $customer->email }}" class="text-decoration-none">
-                                    {{ $customer->email }}
-                                </a>
+                            <a href="mailto:{{ $customer->email }}" class="text-decoration-none">
+                                {{ $customer->email }}
+                            </a>
                             @else
-                                <span class="text-muted">-</span>
+                            <span class="text-muted">-</span>
                             @endif
                         </td>
                         <td>
@@ -97,9 +97,9 @@
                         </td>
                         <td>
                             @if($customer->is_manually_added)
-                                <span class="badge bg-info">Manual</span>
+                            <span class="badge bg-info">Manual</span>
                             @else
-                                <span class="badge bg-success">Checkout</span>
+                            <span class="badge bg-success">Checkout</span>
                             @endif
                         </td>
                         <td class="text-end pe-4">
@@ -111,7 +111,7 @@
                                     <i class="bi bi-pencil"></i>
                                 </a>
                                 <form action="{{ route('store-owner.customers.destroy', $customer) }}" method="POST" class="d-inline"
-                                      onsubmit="return confirm('Are you sure you want to remove this customer?')">
+                                    onsubmit="return confirm('Are you sure you want to remove this customer?')">
                                     @csrf
                                     @method('DELETE')
                                     <button type="submit" class="btn btn-sm btn-outline-danger">

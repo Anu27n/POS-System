@@ -22,7 +22,7 @@ return new class extends Migration
             $table->json('permissions')->nullable(); // RBAC permissions
             $table->boolean('is_active')->default(true);
             $table->timestamps();
-            
+
             $table->index(['store_id', 'is_active']);
         });
     }
