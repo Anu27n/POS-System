@@ -118,7 +118,15 @@ class QRCodeService
             return null;
         }
 
+        // The stored file contains the base64 data URI directly
         $content = Storage::disk('public')->get($storagePath);
+        
+        // If it's already a data URI, return as-is
+        if (str_starts_with($content, 'data:image/')) {
+            return $content;
+        }
+        
+        // Otherwise wrap as SVG (legacy support)
         return 'data:image/svg+xml;base64,' . base64_encode($content);
     }
 
@@ -214,16 +222,33 @@ class QRCodeService
     }
 
     /**
-     * Generate QR code as base64 data URI for inline display
+     * Generate QR code as base64 data URI for inline display (PNG format)
      */
     public function generateDataURI(string $data): string
     {
         $options = new QROptions([
-            'outputType' => QRCode::OUTPUT_MARKUP_SVG,
+            'outputType' => QRCode::OUTPUT_IMAGE_PNG,
             'eccLevel' => QRCode::ECC_M,
-            'scale' => 6,
+            'scale' => 8,
+            'imageBase64' => true,
+            'imageTransparent' => false,
         ]);
 
         return (new QRCode($options))->render($data);
+    }
+
+    /**
+     * Generate QR code for order and return as base64 PNG data URI
+     */
+    public function generateOrderQR(Order $order): string
+    {
+        $qrPayload = json_encode([
+            'oid' => $order->id,
+            'sid' => $order->store_id,
+            'token' => $order->verification_code,
+            'ts' => $order->created_at->timestamp,
+        ]);
+
+        return $this->generatePngDataUri($qrPayload);
     }
 }

@@ -205,27 +205,37 @@ class OrderController extends Controller
     public function markPaid(Request $request, Order $order)
     {
         if ($order->payment_status === 'paid') {
-            return response()->json([
-                'success' => false,
-                'message' => 'Order is already marked as paid.',
-            ], 400);
+            if ($request->wantsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Order is already marked as paid.',
+                ], 400);
+            }
+            return back()->with('error', 'Order is already marked as paid.');
         }
 
         if ($order->order_status === 'cancelled') {
-            return response()->json([
-                'success' => false,
-                'message' => 'Cannot mark a cancelled order as paid.',
-            ], 400);
+            if ($request->wantsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Cannot mark a cancelled order as paid.',
+                ], 400);
+            }
+            return back()->with('error', 'Cannot mark a cancelled order as paid.');
         }
 
         $order->markAsPaid('ADMIN-' . now()->format('YmdHis'));
         $order->update(['order_status' => 'confirmed']);
 
-        return response()->json([
-            'success' => true,
-            'message' => 'Order marked as paid successfully.',
-            'order' => $this->formatOrderResponse($order->fresh(['customer', 'items.product', 'store'])),
-        ]);
+        if ($request->wantsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Order marked as paid successfully.',
+                'order' => $this->formatOrderResponse($order->fresh(['customer', 'items.product', 'store'])),
+            ]);
+        }
+
+        return back()->with('success', 'Order marked as paid successfully.');
     }
 
     /**
@@ -234,26 +244,36 @@ class OrderController extends Controller
     public function completeOrder(Request $request, Order $order)
     {
         if ($order->order_status === 'completed') {
-            return response()->json([
-                'success' => false,
-                'message' => 'Order is already completed.',
-            ], 400);
+            if ($request->wantsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Order is already completed.',
+                ], 400);
+            }
+            return back()->with('error', 'Order is already completed.');
         }
 
         if ($order->order_status === 'cancelled') {
-            return response()->json([
-                'success' => false,
-                'message' => 'Cannot complete a cancelled order.',
-            ], 400);
+            if ($request->wantsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Cannot complete a cancelled order.',
+                ], 400);
+            }
+            return back()->with('error', 'Cannot complete a cancelled order.');
         }
 
         $order->update(['order_status' => 'completed']);
 
-        return response()->json([
-            'success' => true,
-            'message' => 'Order completed successfully.',
-            'order' => $this->formatOrderResponse($order->fresh(['customer', 'items.product', 'store'])),
-        ]);
+        if ($request->wantsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Order completed successfully.',
+                'order' => $this->formatOrderResponse($order->fresh(['customer', 'items.product', 'store'])),
+            ]);
+        }
+
+        return back()->with('success', 'Order completed successfully.');
     }
 
     /**

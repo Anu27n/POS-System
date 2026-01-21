@@ -22,18 +22,11 @@ use Illuminate\Support\Facades\Storage;
 
                     <!-- QR Code -->
                     <div class="bg-white p-4 rounded-3 d-inline-block mb-4">
-                        @if($order->hasQrCode())
-                        <img src="data:image/png;base64,{{ base64_encode(Storage::disk('public')->get($order->verification_qr_path)) }}"
-                            alt="Order QR Code"
-                            class="img-fluid"
-                            style="width: 250px; height: 250px;">
-                        @else
                         @php
-                        $qrService = app(\App\Services\QRCodeService::class);
-                        $qrImage = $qrService->generateOrderQR($order);
+                            $qrService = app(\App\Services\QRCodeService::class);
+                            $qrImage = $qrService->generateOrderQR($order);
                         @endphp
                         <img src="{{ $qrImage }}" alt="Order QR Code" style="width: 250px; height: 250px;">
-                        @endif
                     </div>
 
                     <div class="mb-3">
@@ -198,15 +191,16 @@ use Illuminate\Support\Facades\Storage;
             </div>
 
             <!-- QR Code for Verification (for non-counter payments) -->
-            @if($order->payment_method !== 'counter' && $order->hasQrCode())
+            @if($order->payment_method !== 'counter')
             <div class="card mb-4">
                 <div class="card-body text-center">
                     <h5 class="mb-3">Order Verification QR Code</h5>
                     <div class="mb-3">
-                        <img src="data:image/png;base64,{{ base64_encode(Storage::disk('public')->get($order->verification_qr_path)) }}"
-                            alt="Order QR Code"
-                            class="img-fluid"
-                            style="max-width: 200px;">
+                        @php
+                            $qrService = app(\App\Services\QRCodeService::class);
+                            $qrImage = $qrService->generateOrderQR($order);
+                        @endphp
+                        <img src="{{ $qrImage }}" alt="Order QR Code" class="img-fluid" style="max-width: 200px;">
                     </div>
                     <p class="mb-2 text-muted">Show this QR code when picking up your order</p>
                     <p class="mb-0 small text-muted">Order verification is secure and store-specific</p>

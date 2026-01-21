@@ -33,11 +33,17 @@ class QRCodeController extends Controller
         $store = auth()->user()->getEffectiveStore();
 
         $url = route('store.show', $store->slug);
-        $qrCode = $this->qrCodeService->generateStoreQR($store, $url);
+        
+        // Generate PNG QR code as base64 data URI
+        $qrDataUri = $this->qrCodeService->generatePngDataUri($url);
+        
+        // Extract pure base64 data from data URI and decode to binary
+        $base64Data = str_replace('data:image/png;base64,', '', $qrDataUri);
+        $pngBinary = base64_decode($base64Data);
 
         // Save QR code as PNG
         $filename = 'qrcodes/store-' . $store->id . '-' . time() . '.png';
-        Storage::disk('public')->put($filename, $qrCode);
+        Storage::disk('public')->put($filename, $pngBinary);
 
         // Delete old QR code if exists
         if ($store->qr_code && Storage::disk('public')->exists($store->qr_code)) {

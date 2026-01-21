@@ -54,7 +54,7 @@ class AuthController extends Controller
             // Redirect based on role
             return match ($user->role) {
                 'admin' => redirect()->intended(route('admin.dashboard')),
-                'store_owner' => redirect()->intended(route('store-owner.dashboard')),
+                'store_owner', 'staff' => redirect()->intended(route('store-owner.dashboard')),
                 default => redirect()->intended(route('home')),
             };
         }

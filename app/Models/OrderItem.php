@@ -26,6 +26,22 @@ class OrderItem extends Model
     ];
 
     /**
+     * Get the subtotal (alias for total)
+     */
+    public function getSubtotalAttribute()
+    {
+        return $this->total ?? ($this->price * $this->quantity);
+    }
+
+    /**
+     * Get the unit_price (alias for price)
+     */
+    public function getUnitPriceAttribute()
+    {
+        return $this->price;
+    }
+
+    /**
      * Get the order that owns the item
      */
     public function order(): BelongsTo

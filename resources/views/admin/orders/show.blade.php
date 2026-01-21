@@ -252,17 +252,19 @@
         <!-- Right Column -->
         <div class="col-lg-4">
             <!-- QR Code -->
-            @if($order->hasQrCode())
             <div class="card info-card mb-4">
                 <div class="card-header">
                     <i class="bi bi-qr-code me-2"></i>Verification QR Code
                 </div>
                 <div class="card-body text-center">
-                    <img src="{{ $order->qr_code_url }}" alt="Order QR Code" class="qr-code-img mb-3">
+                    @php
+                        $qrService = app(\App\Services\QRCodeService::class);
+                        $qrImage = $qrService->generateOrderQR($order);
+                    @endphp
+                    <img src="{{ $qrImage }}" alt="Order QR Code" class="qr-code-img mb-3">
                     <p class="text-muted small mb-0">Scan this code to verify the order</p>
                 </div>
             </div>
-            @endif
 
             <!-- Payment Info -->
             <div class="card info-card mb-4">

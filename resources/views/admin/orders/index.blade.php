@@ -194,6 +194,12 @@
                                     <i class="bi bi-file-earmark-pdf"></i>
                                 </a>
                                 @if($order->order_status !== 'completed' && $order->order_status !== 'cancelled')
+                                @if($order->payment_status !== 'paid')
+                                <button type="button" class="btn btn-outline-warning" title="Mark as Paid"
+                                    onclick="markAsPaid({{ $order->id }})">
+                                    <i class="bi bi-currency-rupee"></i>
+                                </button>
+                                @endif
                                 <button type="button" class="btn btn-outline-success" title="Complete Order"
                                     onclick="completeOrder({{ $order->id }})">
                                     <i class="bi bi-check-lg"></i>
@@ -223,6 +229,29 @@
 </div>
 
 <script>
+    function markAsPaid(orderId) {
+        if (!confirm('Are you sure you want to mark this order as paid?')) return;
+
+        fetch(`/admin/orders/${orderId}/mark-paid`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    location.reload();
+                } else {
+                    alert('Error: ' + data.message);
+                }
+            })
+            .catch(error => {
+                alert('Error marking order as paid');
+            });
+    }
+
     function completeOrder(orderId) {
         if (!confirm('Are you sure you want to complete this order?')) return;
 
