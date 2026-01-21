@@ -247,8 +247,23 @@ class POSController extends Controller
             ], 400);
         }
 
-        $order->markAsPaid('COUNTER-' . now()->format('YmdHis'));
-        $order->update(['order_status' => 'confirmed']);
+        // Get payment method from request
+        $paymentMethod = $request->input('payment_method', 'cash');
+        $validMethods = ['cash', 'card', 'upi'];
+        
+        if (!in_array($paymentMethod, $validMethods)) {
+            $paymentMethod = 'cash';
+        }
+
+        $transactionId = strtoupper($paymentMethod) . '-COUNTER-' . now()->format('YmdHis');
+        
+        $order->update([
+            'payment_method' => $paymentMethod,
+            'payment_status' => 'paid',
+            'order_status' => 'confirmed',
+            'paid_at' => now(),
+            'transaction_id' => $transactionId,
+        ]);
 
         return response()->json([
             'success' => true,
@@ -256,8 +271,10 @@ class POSController extends Controller
             'order' => [
                 'id' => $order->id,
                 'order_number' => $order->order_number,
+                'payment_method' => $order->payment_method,
                 'payment_status' => $order->payment_status,
                 'order_status' => $order->order_status,
+                'receipt_url' => route('store-owner.orders.receipt', $order),
             ],
         ]);
     }

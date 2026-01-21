@@ -26,10 +26,29 @@ class Store extends Model
         'currency',
         'qr_code',
         'status',
+        'enable_online_payment',
+        'enable_counter_payment',
+        'razorpay_key_id',
+        'razorpay_key_secret',
+        'razorpay_enabled',
+        'stripe_publishable_key',
+        'stripe_secret_key',
+        'stripe_enabled',
+        'is_test_mode',
     ];
 
     protected $casts = [
         'tax_rate' => 'decimal:2',
+        'enable_online_payment' => 'boolean',
+        'enable_counter_payment' => 'boolean',
+        'razorpay_enabled' => 'boolean',
+        'stripe_enabled' => 'boolean',
+        'is_test_mode' => 'boolean',
+    ];
+
+    protected $hidden = [
+        'razorpay_key_secret',
+        'stripe_secret_key',
     ];
 
     protected static function boot()
@@ -84,10 +103,78 @@ class Store extends Model
     }
 
     /**
+     * Get the staff for the store
+     */
+    public function staff(): HasMany
+    {
+        return $this->hasMany(Staff::class);
+    }
+
+    /**
+     * Get the customers for the store
+     */
+    public function customers(): HasMany
+    {
+        return $this->hasMany(StoreCustomer::class);
+    }
+
+    /**
      * Get the public URL for the store
      */
     public function getPublicUrlAttribute(): string
     {
         return route('store.show', $this->slug);
+    }
+
+    /**
+     * Check if Razorpay is enabled
+     */
+    public function isRazorpayEnabled(): bool
+    {
+        return $this->enable_online_payment && 
+               $this->razorpay_enabled && 
+               !empty($this->razorpay_key_id) && 
+               !empty($this->razorpay_key_secret);
+    }
+
+    /**
+     * Check if Stripe is enabled
+     */
+    public function isStripeEnabled(): bool
+    {
+        return $this->enable_online_payment && 
+               $this->stripe_enabled && 
+               !empty($this->stripe_publishable_key) && 
+               !empty($this->stripe_secret_key);
+    }
+
+    /**
+     * Check if any online payment is available
+     */
+    public function hasOnlinePayment(): bool
+    {
+        return $this->isRazorpayEnabled() || $this->isStripeEnabled();
+    }
+
+    /**
+     * Get available payment methods
+     */
+    public function getAvailablePaymentMethods(): array
+    {
+        $methods = [];
+        
+        if ($this->enable_counter_payment) {
+            $methods['counter'] = 'Pay at Counter';
+        }
+        
+        if ($this->isRazorpayEnabled()) {
+            $methods['razorpay'] = 'Pay with Razorpay';
+        }
+        
+        if ($this->isStripeEnabled()) {
+            $methods['stripe'] = 'Pay with Stripe';
+        }
+        
+        return $methods;
     }
 }

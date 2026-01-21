@@ -27,6 +27,8 @@ class User extends Authenticatable
         'phone',
         'address',
         'is_active',
+        'staff_id',
+        'works_at_store_id',
     ];
 
     /**
@@ -99,5 +101,65 @@ class User extends Authenticatable
     public function cart(): HasOne
     {
         return $this->hasOne(Cart::class);
+    }
+
+    /**
+     * Get the staff profile for the user
+     */
+    public function staffProfile(): \Illuminate\Database\Eloquent\Relations\BelongsTo
+    {
+        return $this->belongsTo(Staff::class, 'staff_id');
+    }
+
+    /**
+     * Get the store where the user works as staff
+     */
+    public function worksAtStore(): \Illuminate\Database\Eloquent\Relations\BelongsTo
+    {
+        return $this->belongsTo(Store::class, 'works_at_store_id');
+    }
+
+    /**
+     * Check if user is staff
+     */
+    public function isStaff(): bool
+    {
+        return $this->role === 'staff' && $this->staff_id !== null;
+    }
+
+    /**
+     * Check if staff has a specific permission
+     */
+    public function hasStaffPermission(string $permission): bool
+    {
+        if (!$this->isStaff() || !$this->staffProfile) {
+            return false;
+        }
+        return $this->staffProfile->hasPermission($permission);
+    }
+
+    /**
+     * Check if staff has any of the given permissions
+     */
+    public function hasAnyStaffPermission(array $permissions): bool
+    {
+        if (!$this->isStaff() || !$this->staffProfile) {
+            return false;
+        }
+        return $this->staffProfile->hasAnyPermission($permissions);
+    }
+
+    /**
+     * Get the effective store for this user (owned or works at)
+     */
+    public function getEffectiveStore(): ?Store
+    {
+        if ($this->isStoreOwner()) {
+            return $this->store;
+        }
+        if ($this->isStaff()) {
+            return $this->worksAtStore;
+        }
+        return null;
     }
 }

@@ -24,10 +24,20 @@ class AuthController extends Controller
      */
     public function login(Request $request)
     {
-        $credentials = $request->validate([
-            'email' => 'required|email',
+        $loginField = $request->input('email');
+        
+        // Check if login field is email or phone
+        $fieldType = filter_var($loginField, FILTER_VALIDATE_EMAIL) ? 'email' : 'phone';
+        
+        $request->validate([
+            'email' => 'required|string',
             'password' => 'required',
         ]);
+
+        $credentials = [
+            $fieldType => $loginField,
+            'password' => $request->password
+        ];
 
         if (Auth::attempt($credentials, $request->boolean('remember'))) {
             $request->session()->regenerate();
@@ -69,15 +79,15 @@ class AuthController extends Controller
     {
         $validated = $request->validate([
             'name' => 'required|string|max:255',
-            'email' => 'required|string|email|max:255|unique:users',
-            'phone' => 'nullable|string|max:20',
+            'phone' => 'required|string|max:20|unique:users',
+            'email' => 'nullable|string|email|max:255|unique:users',
             'password' => ['required', 'confirmed', Password::defaults()],
         ]);
 
         $user = User::create([
             'name' => $validated['name'],
-            'email' => $validated['email'],
-            'phone' => $validated['phone'] ?? null,
+            'phone' => $validated['phone'],
+            'email' => $validated['email'] ?? null,
             'password' => Hash::make($validated['password']),
             'role' => 'customer',
         ]);

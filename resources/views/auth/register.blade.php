@@ -18,7 +18,7 @@
                         @csrf
 
                         <div class="mb-3">
-                            <label for="name" class="form-label">Full Name</label>
+                            <label for="name" class="form-label">Full Name <span class="text-danger">*</span></label>
                             <input type="text" class="form-control @error('name') is-invalid @enderror" 
                                    id="name" name="name" value="{{ old('name') }}" required autofocus>
                             @error('name')
@@ -27,19 +27,21 @@
                         </div>
 
                         <div class="mb-3">
-                            <label for="email" class="form-label">Email Address</label>
-                            <input type="email" class="form-control @error('email') is-invalid @enderror" 
-                                   id="email" name="email" value="{{ old('email') }}" required>
-                            @error('email')
+                            <label for="phone" class="form-label">Phone Number <span class="text-danger">*</span></label>
+                            <input type="tel" class="form-control @error('phone') is-invalid @enderror" 
+                                   id="phone" name="phone" value="{{ old('phone') }}" required
+                                   placeholder="e.g., 9876543210">
+                            @error('phone')
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
                         </div>
 
                         <div class="mb-3">
-                            <label for="phone" class="form-label">Phone Number (Optional)</label>
-                            <input type="tel" class="form-control @error('phone') is-invalid @enderror" 
-                                   id="phone" name="phone" value="{{ old('phone') }}">
-                            @error('phone')
+                            <label for="email" class="form-label">Email Address <span class="text-muted">(Optional)</span></label>
+                            <input type="email" class="form-control @error('email') is-invalid @enderror" 
+                                   id="email" name="email" value="{{ old('email') }}"
+                                   placeholder="e.g., john@example.com">
+                            @error('email')
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
                         </div>

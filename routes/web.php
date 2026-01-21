@@ -127,7 +127,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin'])->grou
 |--------------------------------------------------------------------------
 */
 
-Route::prefix('store-owner')->name('store-owner.')->middleware(['auth', 'role:store_owner'])->group(function () {
+Route::prefix('store-owner')->name('store-owner.')->middleware(['auth', 'role:store_owner,staff'])->group(function () {
     Route::get('/dashboard', [StoreOwner\DashboardController::class, 'index'])->name('dashboard');
 
     // Category management
@@ -150,9 +150,25 @@ Route::prefix('store-owner')->name('store-owner.')->middleware(['auth', 'role:st
     Route::post('/pos/{order}/mark-paid', [StoreOwner\POSController::class, 'markPaid'])->name('pos.mark-paid');
     Route::post('/pos/{order}/complete', [StoreOwner\POSController::class, 'completeOrder'])->name('pos.complete-order');
 
+    // Customer management
+    Route::resource('customers', StoreOwner\CustomerController::class);
+
+    // Staff management
+    Route::resource('staff', StoreOwner\StaffController::class);
+    Route::post('/staff/{staff}/toggle-status', [StoreOwner\StaffController::class, 'toggleStatus'])->name('staff.toggle-status');
+
     // Store settings
     Route::get('/settings', [StoreOwner\StoreSettingController::class, 'index'])->name('settings.index');
     Route::put('/settings', [StoreOwner\StoreSettingController::class, 'update'])->name('settings.update');
+
+    // Payment settings
+    Route::get('/payment-settings', [StoreOwner\PaymentSettingsController::class, 'index'])->name('payment-settings.index');
+    Route::put('/payment-settings', [StoreOwner\PaymentSettingsController::class, 'update'])->name('payment-settings.update');
+
+    // QR Code management
+    Route::get('/qr-code', [StoreOwner\QRCodeController::class, 'index'])->name('qr-code.index');
+    Route::post('/qr-code/generate', [StoreOwner\QRCodeController::class, 'generate'])->name('qr-code.generate');
+    Route::get('/qr-code/download', [StoreOwner\QRCodeController::class, 'download'])->name('qr-code.download');
 
     // Reports
     Route::get('/reports/sales', [StoreOwner\ReportController::class, 'sales'])->name('reports.sales');

@@ -10,7 +10,81 @@ use Illuminate\Support\Facades\Storage;
 <div class="container py-5">
     <div class="row justify-content-center">
         <div class="col-lg-8">
-            <!-- Success Message -->
+            @if($order->payment_method === 'counter')
+            <!-- Pay at Counter - QR Code Display -->
+            <div class="card border-0 shadow-lg mb-4" style="background: linear-gradient(135deg, #030a22 0%, #1a2744 100%);">
+                <div class="card-body text-center text-white py-5">
+                    <div class="mb-4">
+                        <i class="bi bi-qr-code-scan" style="font-size: 3rem;"></i>
+                    </div>
+                    <h2 class="mb-3">Please Show This QR at the Counter</h2>
+                    <p class="mb-4 opacity-75">Present this QR code to the cashier to complete your payment</p>
+                    
+                    <!-- QR Code -->
+                    <div class="bg-white p-4 rounded-3 d-inline-block mb-4">
+                        @if($order->hasQrCode())
+                            <img src="data:image/png;base64,{{ base64_encode(Storage::disk('public')->get($order->verification_qr_path)) }}"
+                                alt="Order QR Code"
+                                class="img-fluid"
+                                style="width: 250px; height: 250px;">
+                        @else
+                            @php
+                                $qrService = app(\App\Services\QRCodeService::class);
+                                $qrImage = $qrService->generateOrderQR($order);
+                            @endphp
+                            <img src="{{ $qrImage }}" alt="Order QR Code" style="width: 250px; height: 250px;">
+                        @endif
+                    </div>
+                    
+                    <div class="mb-3">
+                        <h3 class="mb-1">Order #{{ $order->order_number }}</h3>
+                        <p class="h4 mb-0">Total: ₹{{ number_format($order->total, 2) }}</p>
+                    </div>
+                    
+                    <div class="d-flex justify-content-center gap-3 flex-wrap">
+                        <span class="badge bg-warning text-dark fs-6 px-3 py-2">
+                            <i class="bi bi-clock me-1"></i>Awaiting Payment
+                        </span>
+                        <span class="badge bg-light text-dark fs-6 px-3 py-2">
+                            <i class="bi bi-shop me-1"></i>{{ $order->store->name }}
+                        </span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Payment Instructions -->
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-body">
+                    <h5 class="card-title mb-3">
+                        <i class="bi bi-info-circle text-primary me-2"></i>How to Complete Your Payment
+                    </h5>
+                    <div class="row g-4">
+                        <div class="col-md-4 text-center">
+                            <div class="rounded-circle bg-primary text-white d-inline-flex align-items-center justify-content-center mb-3" style="width: 50px; height: 50px;">
+                                <span class="fw-bold">1</span>
+                            </div>
+                            <h6>Go to Counter</h6>
+                            <p class="text-muted small mb-0">Head to the payment counter at the store</p>
+                        </div>
+                        <div class="col-md-4 text-center">
+                            <div class="rounded-circle bg-primary text-white d-inline-flex align-items-center justify-content-center mb-3" style="width: 50px; height: 50px;">
+                                <span class="fw-bold">2</span>
+                            </div>
+                            <h6>Show QR Code</h6>
+                            <p class="text-muted small mb-0">Present this QR code to the cashier</p>
+                        </div>
+                        <div class="col-md-4 text-center">
+                            <div class="rounded-circle bg-primary text-white d-inline-flex align-items-center justify-content-center mb-3" style="width: 50px; height: 50px;">
+                                <span class="fw-bold">3</span>
+                            </div>
+                            <h6>Complete Payment</h6>
+                            <p class="text-muted small mb-0">Pay via Cash, Card, or UPI</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            @else
+            <!-- Success Message for Online/Other Payments -->
             <div class="text-center mb-5">
                 <div class="bg-success text-white rounded-circle d-inline-flex align-items-center justify-content-center mb-4"
                     style="width: 100px; height: 100px;">
@@ -19,6 +93,7 @@ use Illuminate\Support\Facades\Storage;
                 <h1 class="mb-3">Order Confirmed!</h1>
                 <p class="lead text-muted">Thank you for your order. Your order has been received.</p>
             </div>
+            @endif
 
             <!-- Order Details Card -->
             <div class="card mb-4">
@@ -122,20 +197,16 @@ use Illuminate\Support\Facades\Storage;
                 </div>
             </div>
 
-            <!-- QR Code for Verification -->
-            @if($order->hasQrCode())
+            <!-- QR Code for Verification (for non-counter payments) -->
+            @if($order->payment_method !== 'counter' && $order->hasQrCode())
             <div class="card mb-4">
                 <div class="card-body text-center">
                     <h5 class="mb-3">Order Verification QR Code</h5>
                     <div class="mb-3">
-                        @if($order->hasQrCode())
-                        <img src="{{ Storage::disk('public')->get($order->verification_qr_path) }}"
+                        <img src="data:image/png;base64,{{ base64_encode(Storage::disk('public')->get($order->verification_qr_path)) }}"
                             alt="Order QR Code"
                             class="img-fluid"
-                            style="max-width: 300px;">
-                        @else
-                        <div class="alert alert-warning">QR Code not available</div>
-                        @endif
+                            style="max-width: 200px;">
                     </div>
                     <p class="mb-2 text-muted">Show this QR code when picking up your order</p>
                     <p class="mb-0 small text-muted">Order verification is secure and store-specific</p>

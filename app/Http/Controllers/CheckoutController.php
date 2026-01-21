@@ -9,7 +9,9 @@ use App\Models\Store;
 use App\Services\PaymentService;
 use App\Services\QRCodeService;
 use Illuminate\Http\Request;
+use App\Models\StoreCustomer;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
 
 class CheckoutController extends Controller
 {
@@ -43,7 +45,13 @@ class CheckoutController extends Controller
         $tax = $subtotal * ($taxRate / 100);
         $total = $subtotal + $tax;
 
-        return view('checkout.index', compact('cart', 'store', 'subtotal', 'tax', 'total'));
+        // Get available payment methods
+        $paymentMethods = $store->getAvailablePaymentMethods();
+
+        // Check if user is logged in
+        $isLoggedIn = auth()->check();
+
+        return view('checkout.index', compact('cart', 'store', 'subtotal', 'tax', 'total', 'paymentMethods', 'isLoggedIn'));
     }
 
     /**
@@ -51,10 +59,14 @@ class CheckoutController extends Controller
      */
     public function process(Request $request)
     {
-        $validated = $request->validate([
-            'payment_method' => 'required|in:online,counter',
-            'notes' => 'nullable|string|max:500',
-        ]);
+        // Check if user is logged in
+        if (!auth()->check()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Please login to continue with checkout.',
+                'require_login' => true,
+            ], 401);
+        }
 
         $cart = $this->getCart();
 
@@ -65,6 +77,14 @@ class CheckoutController extends Controller
 
         $cart->load(['items.product', 'store']);
         $store = $cart->store;
+
+        // Validate payment method against store settings
+        $availableMethods = array_keys($store->getAvailablePaymentMethods());
+        
+        $validated = $request->validate([
+            'payment_method' => 'required|in:' . implode(',', $availableMethods),
+            'notes' => 'nullable|string|max:500',
+        ]);
 
         // Validate stock availability
         foreach ($cart->items as $item) {
@@ -81,6 +101,9 @@ class CheckoutController extends Controller
             $taxRate = $store->tax_rate ?? 0;
             $tax = $subtotal * ($taxRate / 100);
             $total = $subtotal + $tax;
+
+            // Create or update store customer record
+            $storeCustomer = StoreCustomer::findOrCreateFromUser($store, auth()->user());
 
             // Create order (order_number and verification_code auto-generated in model)
             $order = Order::create([
@@ -115,6 +138,9 @@ class CheckoutController extends Controller
             // Generate verification QR code image and save to storage
             $qrPath = $this->qrCodeService->generateAndSaveOrderQR($order);
             $order->update(['verification_qr_path' => $qrPath]);
+
+            // Update customer stats
+            $storeCustomer->recordOrder($total);
 
             // Clear cart
             $cart->items()->delete();

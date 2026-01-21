@@ -15,13 +15,17 @@
 
     <style>
         :root {
-            --sidebar-width: 250px;
-            --primary-color: #4f46e5;
+            --sidebar-width: 260px;
+            --primary-color: #030a22;
+            --primary-dark: #020818;
+            --primary-light: #0a1940;
+            --accent-color: #ffffff;
+            --text-muted: #94a3b8;
         }
 
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #f1f5f9;
+            background-color: #f8fafc;
         }
 
         .sidebar {
@@ -30,18 +34,33 @@
             left: 0;
             height: 100vh;
             width: var(--sidebar-width);
-            background: linear-gradient(180deg, #1e293b 0%, #0f172a 100%);
-            padding-top: 1rem;
+            background: linear-gradient(180deg, var(--primary-color) 0%, var(--primary-dark) 100%);
+            padding-top: 0;
             z-index: 1000;
+            overflow-y: auto;
+        }
+
+        .sidebar-header {
+            padding: 1.25rem 1.5rem;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
         }
 
         .sidebar-brand {
             color: white;
             font-size: 1.25rem;
             font-weight: 700;
-            padding: 1rem 1.5rem;
             text-decoration: none;
-            display: block;
+            display: flex;
+            align-items: center;
+        }
+
+        .sidebar-brand:hover {
+            color: white;
+        }
+
+        .sidebar-brand i {
+            font-size: 1.5rem;
+            margin-right: 0.75rem;
         }
 
         .sidebar-nav {
@@ -49,30 +68,40 @@
         }
 
         .sidebar-nav .nav-link {
-            color: #94a3b8;
+            color: var(--text-muted);
             padding: 0.75rem 1.5rem;
             display: flex;
             align-items: center;
             transition: all 0.2s;
+            border-left: 3px solid transparent;
         }
 
-        .sidebar-nav .nav-link:hover,
+        .sidebar-nav .nav-link:hover {
+            color: white;
+            background-color: rgba(255,255,255,0.05);
+            border-left-color: rgba(255,255,255,0.3);
+        }
+
         .sidebar-nav .nav-link.active {
             color: white;
-            background-color: rgba(255, 255, 255, 0.1);
+            background-color: rgba(255,255,255,0.1);
+            border-left-color: white;
         }
 
         .sidebar-nav .nav-link i {
             margin-right: 0.75rem;
             font-size: 1.1rem;
+            width: 20px;
+            text-align: center;
         }
 
         .sidebar-nav .nav-section {
-            color: #64748b;
-            font-size: 0.75rem;
+            color: var(--text-muted);
+            font-size: 0.7rem;
             text-transform: uppercase;
-            letter-spacing: 0.05em;
+            letter-spacing: 0.1em;
             padding: 1.5rem 1.5rem 0.5rem;
+            font-weight: 600;
         }
 
         .main-content {
@@ -83,7 +112,8 @@
         .top-navbar {
             background: white;
             padding: 1rem 1.5rem;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+            border-bottom: 1px solid #e5e7eb;
         }
 
         .content-wrapper {
@@ -92,7 +122,14 @@
 
         .card {
             border: none;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+            border-radius: 0.5rem;
+        }
+
+        .card-header {
+            background-color: white;
+            border-bottom: 1px solid #e5e7eb;
+            font-weight: 600;
         }
 
         .stat-card {
@@ -102,7 +139,7 @@
         .stat-card .stat-value {
             font-size: 1.75rem;
             font-weight: 700;
-            color: #1e293b;
+            color: var(--primary-color);
         }
 
         .stat-card .stat-label {
@@ -110,15 +147,48 @@
             font-size: 0.875rem;
         }
 
+        .btn-primary {
+            background-color: var(--primary-color);
+            border-color: var(--primary-color);
+        }
+
+        .btn-primary:hover {
+            background-color: var(--primary-light);
+            border-color: var(--primary-light);
+        }
+
+        .btn-outline-primary {
+            color: var(--primary-color);
+            border-color: var(--primary-color);
+        }
+
+        .btn-outline-primary:hover {
+            background-color: var(--primary-color);
+            border-color: var(--primary-color);
+            color: white;
+        }
+
         .table th {
             font-weight: 600;
             color: #475569;
             border-bottom-width: 1px;
+            background-color: #f8fafc;
+        }
+
+        .user-dropdown {
+            padding: 0.5rem 1rem;
+            border-radius: 0.375rem;
+            transition: background-color 0.2s;
+        }
+
+        .user-dropdown:hover {
+            background-color: #f1f5f9;
         }
 
         @media (max-width: 768px) {
             .sidebar {
                 transform: translateX(-100%);
+                transition: transform 0.3s;
             }
 
             .sidebar.show {
@@ -129,6 +199,19 @@
                 margin-left: 0;
             }
         }
+
+        .sidebar::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .sidebar::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .sidebar::-webkit-scrollbar-thumb {
+            background: rgba(255,255,255,0.2);
+            border-radius: 3px;
+        }
     </style>
     @stack('styles')
 </head>
@@ -136,14 +219,17 @@
 <body>
     <!-- Sidebar -->
     <aside class="sidebar">
-        <a href="{{ route('admin.dashboard') }}" class="sidebar-brand">
-            <i class="bi bi-qr-code-scan me-2"></i>POS Admin
-        </a>
+        <div class="sidebar-header">
+            <a href="{{ route('admin.dashboard') }}" class="sidebar-brand">
+                <i class="bi bi-qr-code-scan"></i>
+                <span>POS Admin</span>
+            </a>
+        </div>
 
         <nav class="sidebar-nav">
-            <div class="nav-section">Dashboard</div>
+            <div class="nav-section">Main</div>
             <a href="{{ route('admin.dashboard') }}" class="nav-link {{ request()->routeIs('admin.dashboard') ? 'active' : '' }}">
-                <i class="bi bi-speedometer2"></i> Overview
+                <i class="bi bi-speedometer2"></i> Dashboard
             </a>
 
             <div class="nav-section">Management</div>
@@ -165,7 +251,7 @@
                 <i class="bi bi-graph-up"></i> Sales Report
             </a>
             <a href="{{ route('admin.reports.orders') }}" class="nav-link {{ request()->routeIs('admin.reports.orders') ? 'active' : '' }}">
-                <i class="bi bi-receipt"></i> Order Report
+                <i class="bi bi-file-earmark-text"></i> Order Report
             </a>
 
             <div class="nav-section">Settings</div>
@@ -179,13 +265,21 @@
     <div class="main-content">
         <!-- Top Navbar -->
         <header class="top-navbar d-flex justify-content-between align-items-center">
-            <div>
-                <h5 class="mb-0">@yield('page-title', 'Dashboard')</h5>
+            <div class="d-flex align-items-center">
+                <button class="btn btn-link text-dark d-md-none me-2" type="button" onclick="document.querySelector('.sidebar').classList.toggle('show')">
+                    <i class="bi bi-list fs-4"></i>
+                </button>
+                <h5 class="mb-0 fw-semibold">@yield('page-title', 'Dashboard')</h5>
             </div>
             <div class="dropdown">
-                <a href="#" class="d-flex align-items-center text-decoration-none dropdown-toggle" data-bs-toggle="dropdown">
-                    <span class="me-2">{{ auth()->user()->name }}</span>
-                    <i class="bi bi-person-circle fs-4"></i>
+                <a href="#" class="d-flex align-items-center text-decoration-none dropdown-toggle user-dropdown" data-bs-toggle="dropdown">
+                    <div class="me-2 text-end d-none d-sm-block">
+                        <div class="fw-semibold">{{ auth()->user()->name }}</div>
+                        <small class="text-muted">Administrator</small>
+                    </div>
+                    <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
+                        <i class="bi bi-person-fill"></i>
+                    </div>
                 </a>
                 <ul class="dropdown-menu dropdown-menu-end">
                     <li><a class="dropdown-item" href="{{ route('home') }}"><i class="bi bi-house me-2"></i>View Site</a></li>
@@ -206,13 +300,19 @@
         <div class="content-wrapper">
             @if(session('success'))
             <div class="alert alert-success alert-dismissible fade show" role="alert">
-                {{ session('success') }}
+                <i class="bi bi-check-circle me-2"></i>{{ session('success') }}
                 <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
             </div>
             @endif
             @if(session('error'))
             <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                {{ session('error') }}
+                <i class="bi bi-exclamation-circle me-2"></i>{{ session('error') }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+            @endif
+            @if(session('info'))
+            <div class="alert alert-info alert-dismissible fade show" role="alert">
+                <i class="bi bi-info-circle me-2"></i>{{ session('info') }}
                 <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
             </div>
             @endif

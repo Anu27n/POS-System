@@ -14,40 +14,77 @@
     
     <style>
         :root {
-            --primary-color: #4f46e5;
-            --secondary-color: #6366f1;
+            --primary-color: #030a22;
+            --primary-light: #0a1940;
         }
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background-color: #f8fafc;
         }
+        .navbar {
+            background-color: var(--primary-color) !important;
+        }
         .navbar-brand {
             font-weight: 700;
+            color: white !important;
+        }
+        .navbar-nav .nav-link {
+            color: rgba(255,255,255,0.85) !important;
+        }
+        .navbar-nav .nav-link:hover {
+            color: white !important;
         }
         .btn-primary {
             background-color: var(--primary-color);
             border-color: var(--primary-color);
         }
         .btn-primary:hover {
-            background-color: var(--secondary-color);
-            border-color: var(--secondary-color);
+            background-color: var(--primary-light);
+            border-color: var(--primary-light);
+        }
+        .btn-outline-primary {
+            color: var(--primary-color);
+            border-color: var(--primary-color);
+        }
+        .btn-outline-primary:hover {
+            background-color: var(--primary-color);
+            border-color: var(--primary-color);
+            color: white;
         }
         .card {
             border: none;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+            border-radius: 0.5rem;
         }
         .card-header {
             background-color: white;
             border-bottom: 1px solid #e5e7eb;
+        }
+        .text-primary {
+            color: var(--primary-color) !important;
+        }
+        .bg-primary {
+            background-color: var(--primary-color) !important;
+        }
+        .dropdown-menu {
+            border: none;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+        footer {
+            background-color: var(--primary-color) !important;
+            color: white;
+        }
+        footer p {
+            color: rgba(255,255,255,0.7);
         }
     </style>
     @stack('styles')
 </head>
 <body>
     <!-- Navigation -->
-    <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm">
+    <nav class="navbar navbar-expand-lg navbar-dark shadow-sm">
         <div class="container">
-            <a class="navbar-brand text-primary" href="{{ route('home') }}">
+            <a class="navbar-brand" href="{{ route('home') }}">
                 <i class="bi bi-qr-code-scan me-2"></i>POS System
             </a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
@@ -117,8 +154,8 @@
     </main>
 
     <!-- Footer -->
-    <footer class="bg-white border-top py-4 mt-auto">
-        <div class="container text-center text-muted">
+    <footer class="border-top py-4 mt-auto">
+        <div class="container text-center">
             <p class="mb-0">&copy; {{ date('Y') }} POS System. All rights reserved.</p>
         </div>
     </footer>
