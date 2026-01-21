@@ -44,10 +44,10 @@ class ReportController extends Controller
             ->get();
 
         // Products sold
-        $productsSold = \App\Models\OrderItem::whereHas('order', function($q) use ($store, $startDate, $endDate) {
+        $productsSold = \App\Models\OrderItem::whereHas('order', function ($q) use ($store, $startDate, $endDate) {
             $q->where('store_id', $store->id)
-              ->where('payment_status', 'paid')
-              ->whereBetween('created_at', [$startDate . ' 00:00:00', $endDate . ' 23:59:59']);
+                ->where('payment_status', 'paid')
+                ->whereBetween('created_at', [$startDate . ' 00:00:00', $endDate . ' 23:59:59']);
         })->sum('quantity');
 
         $averageOrder = $averageOrderValue;

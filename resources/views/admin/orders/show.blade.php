@@ -258,8 +258,8 @@
                 </div>
                 <div class="card-body text-center">
                     @php
-                        $qrService = app(\App\Services\QRCodeService::class);
-                        $qrImage = $qrService->generateOrderQR($order);
+                    $qrService = app(\App\Services\QRCodeService::class);
+                    $qrImage = $qrService->generateOrderQR($order);
                     @endphp
                     <img src="{{ $qrImage }}" alt="Order QR Code" class="qr-code-img mb-3">
                     <p class="text-muted small mb-0">Scan this code to verify the order</p>

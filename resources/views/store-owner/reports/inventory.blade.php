@@ -153,30 +153,30 @@
                         <td>{{ $product->category->name ?? 'Uncategorized' }}</td>
                         <td class="text-center">
                             @if($product->track_inventory)
-                                @if($product->stock_quantity === 0)
-                                    <span class="badge bg-danger">0</span>
-                                @elseif($product->isLowStock())
-                                    <span class="badge bg-warning text-dark">{{ $product->stock_quantity }}</span>
-                                @else
-                                    <span class="badge bg-success">{{ $product->stock_quantity }}</span>
-                                @endif
+                            @if($product->stock_quantity === 0)
+                            <span class="badge bg-danger">0</span>
+                            @elseif($product->isLowStock())
+                            <span class="badge bg-warning text-dark">{{ $product->stock_quantity }}</span>
                             @else
-                                <span class="text-muted">N/A</span>
+                            <span class="badge bg-success">{{ $product->stock_quantity }}</span>
+                            @endif
+                            @else
+                            <span class="text-muted">N/A</span>
                             @endif
                         </td>
                         <td class="text-end">₹{{ number_format($product->price, 2) }}</td>
                         <td class="text-end">
                             @if($product->track_inventory)
-                                ₹{{ number_format($product->price * $product->stock_quantity, 2) }}
+                            ₹{{ number_format($product->price * $product->stock_quantity, 2) }}
                             @else
-                                <span class="text-muted">-</span>
+                            <span class="text-muted">-</span>
                             @endif
                         </td>
                         <td>
                             @if($product->status === 'available')
-                                <span class="badge bg-success">Available</span>
+                            <span class="badge bg-success">Available</span>
                             @else
-                                <span class="badge bg-secondary">{{ ucfirst($product->status) }}</span>
+                            <span class="badge bg-secondary">{{ ucfirst($product->status) }}</span>
                             @endif
                         </td>
                     </tr>

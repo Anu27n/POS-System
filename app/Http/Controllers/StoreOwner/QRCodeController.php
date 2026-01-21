@@ -33,10 +33,10 @@ class QRCodeController extends Controller
         $store = auth()->user()->getEffectiveStore();
 
         $url = route('store.show', $store->slug);
-        
+
         // Generate PNG QR code as base64 data URI
         $qrDataUri = $this->qrCodeService->generatePngDataUri($url);
-        
+
         // Extract pure base64 data from data URI and decode to binary
         $base64Data = str_replace('data:image/png;base64,', '', $qrDataUri);
         $pngBinary = base64_decode($base64Data);

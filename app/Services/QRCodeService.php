@@ -120,12 +120,12 @@ class QRCodeService
 
         // The stored file contains the base64 data URI directly
         $content = Storage::disk('public')->get($storagePath);
-        
+
         // If it's already a data URI, return as-is
         if (str_starts_with($content, 'data:image/')) {
             return $content;
         }
-        
+
         // Otherwise wrap as SVG (legacy support)
         return 'data:image/svg+xml;base64,' . base64_encode($content);
     }

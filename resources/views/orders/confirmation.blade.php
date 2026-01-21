@@ -23,8 +23,8 @@ use Illuminate\Support\Facades\Storage;
                     <!-- QR Code -->
                     <div class="bg-white p-4 rounded-3 d-inline-block mb-4">
                         @php
-                            $qrService = app(\App\Services\QRCodeService::class);
-                            $qrImage = $qrService->generateOrderQR($order);
+                        $qrService = app(\App\Services\QRCodeService::class);
+                        $qrImage = $qrService->generateOrderQR($order);
                         @endphp
                         <img src="{{ $qrImage }}" alt="Order QR Code" style="width: 250px; height: 250px;">
                     </div>
@@ -197,8 +197,8 @@ use Illuminate\Support\Facades\Storage;
                     <h5 class="mb-3">Order Verification QR Code</h5>
                     <div class="mb-3">
                         @php
-                            $qrService = app(\App\Services\QRCodeService::class);
-                            $qrImage = $qrService->generateOrderQR($order);
+                        $qrService = app(\App\Services\QRCodeService::class);
+                        $qrImage = $qrService->generateOrderQR($order);
                         @endphp
                         <img src="{{ $qrImage }}" alt="Order QR Code" class="img-fluid" style="max-width: 200px;">
                     </div>
