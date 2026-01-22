@@ -1,10 +1,13 @@
 <?php
 
-if (!function_exists('formatCurrency')) {
+namespace App\Helpers;
+
+class CurrencyHelper
+{
     /**
-     * Format amount with currency symbol
+     * Get currency symbol
      */
-    function formatCurrency($amount, $currency = 'INR')
+    public static function getCurrencySymbol($currency = 'INR')
     {
         $symbols = [
             'USD' => '$',
@@ -13,7 +16,15 @@ if (!function_exists('formatCurrency')) {
             'GBP' => '£',
         ];
 
-        $symbol = $symbols[$currency] ?? $currency;
-        return $symbol . number_format($amount, 2);
+        return $symbols[$currency] ?? $currency;
+    }
+
+    /**
+     * Format amount with currency symbol
+     */
+    public static function format($amount, $currency = 'INR')
+    {
+        $symbol = self::getCurrencySymbol($currency);
+        return $symbol . number_format((float)$amount, 2);
     }
 }

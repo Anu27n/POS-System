@@ -3,6 +3,10 @@
 @section('title', 'Store QR Code')
 @section('page-title', 'Store QR Code')
 
+@php
+    use Illuminate\Support\Facades\Storage;
+@endphp
+
 @section('content')
 <div class="row justify-content-center">
     <div class="col-lg-6">
