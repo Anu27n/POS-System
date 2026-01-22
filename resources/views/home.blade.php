@@ -1458,17 +1458,17 @@
                 </div>
                 <ul class="price-features">
                     @if($plan->features && count($plan->features) > 0)
-                        @php
-                            $features = is_array($plan->features) ? $plan->features : json_decode($plan->features, true) ?? [];
-                        @endphp
-                        @foreach($features as $feature => $enabled)
-                            @if(!is_numeric($feature))
-                            <li class="{{ !$enabled ? 'disabled' : '' }}">
-                                <i class="bi bi-{{ $enabled ? 'check-circle-fill' : 'x-circle' }}"></i>
-                                {{ ucwords(str_replace('_', ' ', $feature)) }}
-                            </li>
-                            @endif
-                        @endforeach
+                    @php
+                    $features = is_array($plan->features) ? $plan->features : json_decode($plan->features, true) ?? [];
+                    @endphp
+                    @foreach($features as $feature => $enabled)
+                    @if(!is_numeric($feature))
+                    <li class="{{ !$enabled ? 'disabled' : '' }}">
+                        <i class="bi bi-{{ $enabled ? 'check-circle-fill' : 'x-circle' }}"></i>
+                        {{ ucwords(str_replace('_', ' ', $feature)) }}
+                    </li>
+                    @endif
+                    @endforeach
                     @else
                     <li><i class="bi bi-check-circle-fill"></i> All basic features</li>
                     <li><i class="bi bi-check-circle-fill"></i> QR code ordering</li>

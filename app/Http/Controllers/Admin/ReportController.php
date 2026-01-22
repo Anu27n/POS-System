@@ -162,7 +162,7 @@ class ReportController extends Controller
             'Content-Disposition' => "attachment; filename=\"{$filename}\"",
         ];
 
-        $callback = function() use ($orders) {
+        $callback = function () use ($orders) {
             $file = fopen('php://output', 'w');
             fputcsv($file, ['Order ID', 'Store', 'Customer', 'Total', 'Payment Status', 'Order Status', 'Date']);
 

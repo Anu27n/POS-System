@@ -4,7 +4,7 @@
 @section('page-title', 'Store QR Code')
 
 @php
-    use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Storage;
 @endphp
 
 @section('content')
