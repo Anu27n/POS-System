@@ -177,4 +177,109 @@ class Store extends Model
 
         return $methods;
     }
+
+    /**
+     * Get the taxes for the store
+     */
+    public function taxes(): HasMany
+    {
+        return $this->hasMany(StoreTax::class);
+    }
+
+    /**
+     * Get enabled taxes
+     */
+    public function enabledTaxes(): HasMany
+    {
+        return $this->hasMany(StoreTax::class)->where('is_enabled', true);
+    }
+
+    /**
+     * Get tax settings
+     */
+    public function taxSettings(): \Illuminate\Database\Eloquent\Relations\HasOne
+    {
+        return $this->hasOne(StoreTaxSetting::class);
+    }
+
+    /**
+     * Get or create tax settings
+     */
+    public function getOrCreateTaxSettings(): StoreTaxSetting
+    {
+        return $this->taxSettings ?? StoreTaxSetting::create([
+            'store_id' => $this->id,
+            'taxes_enabled' => false,
+            'tax_type' => 'order_level',
+        ]);
+    }
+
+    /**
+     * Get active subscription
+     */
+    public function activeSubscription(): \Illuminate\Database\Eloquent\Relations\HasOne
+    {
+        return $this->hasOne(Subscription::class)->where(function ($query) {
+            $query->where('status', 'active')
+                  ->orWhere(function ($q) {
+                      $q->where('status', 'trial')
+                        ->where('trial_ends_at', '>', now());
+                  });
+        });
+    }
+
+    /**
+     * Get all subscriptions
+     */
+    public function subscriptions(): HasMany
+    {
+        return $this->hasMany(Subscription::class);
+    }
+
+    /**
+     * Get cash register sessions
+     */
+    public function cashRegisterSessions(): HasMany
+    {
+        return $this->hasMany(CashRegisterSession::class);
+    }
+
+    /**
+     * Check if store has access to a feature
+     */
+    public function hasFeature(string $featureSlug): bool
+    {
+        $subscription = $this->activeSubscription;
+        if (!$subscription) {
+            return true; // If no subscription system, allow all features
+        }
+        return $subscription->hasFeature($featureSlug);
+    }
+
+    /**
+     * Calculate taxes for a given amount
+     */
+    public function calculateTaxes(float $amount): array
+    {
+        $taxSettings = $this->taxSettings;
+        if (!$taxSettings || !$taxSettings->taxes_enabled) {
+            return ['taxes' => [], 'total_tax' => 0];
+        }
+
+        $taxes = [];
+        $totalTax = 0;
+
+        foreach ($this->enabledTaxes as $tax) {
+            $taxAmount = $tax->calculateTax($amount);
+            $taxes[] = [
+                'id' => $tax->id,
+                'name' => $tax->name,
+                'percentage' => $tax->percentage,
+                'amount' => $taxAmount,
+            ];
+            $totalTax += $taxAmount;
+        }
+
+        return ['taxes' => $taxes, 'total_tax' => $totalTax];
+    }
 }

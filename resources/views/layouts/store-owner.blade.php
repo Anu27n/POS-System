@@ -273,6 +273,13 @@
             </a>
             @endif
 
+            <div class="nav-section">Cash Management</div>
+            @if(auth()->user()->isStoreOwner() || auth()->user()->hasAnyStaffPermission(['use_pos', 'process_payments']))
+            <a href="{{ route('store-owner.cash-register.index') }}" class="nav-link {{ request()->routeIs('store-owner.cash-register.*') ? 'active' : '' }}">
+                <i class="bi bi-cash-stack"></i> Cash Register
+            </a>
+            @endif
+
             <div class="nav-section">Reports</div>
             @if(auth()->user()->isStoreOwner() || auth()->user()->hasStaffPermission('view_reports'))
             <a href="{{ route('store-owner.reports.sales') }}" class="nav-link {{ request()->routeIs('store-owner.reports.sales') ? 'active' : '' }}">
@@ -281,12 +288,18 @@
             <a href="{{ route('store-owner.reports.inventory') }}" class="nav-link {{ request()->routeIs('store-owner.reports.inventory') ? 'active' : '' }}">
                 <i class="bi bi-boxes"></i> Inventory Report
             </a>
+            <a href="{{ route('store-owner.reports.tax') }}" class="nav-link {{ request()->routeIs('store-owner.reports.tax') ? 'active' : '' }}">
+                <i class="bi bi-percent"></i> Tax Report
+            </a>
             @endif
 
             <div class="nav-section">Settings</div>
             @if(auth()->user()->isStoreOwner() || auth()->user()->hasStaffPermission('manage_settings'))
             <a href="{{ route('store-owner.settings.index') }}" class="nav-link {{ request()->routeIs('store-owner.settings.index') ? 'active' : '' }}">
                 <i class="bi bi-gear"></i> Store Settings
+            </a>
+            <a href="{{ route('store-owner.tax-settings.index') }}" class="nav-link {{ request()->routeIs('store-owner.tax-settings.*') ? 'active' : '' }}">
+                <i class="bi bi-receipt-cutoff"></i> Tax Settings
             </a>
             <a href="{{ route('store-owner.payment-settings.index') }}" class="nav-link {{ request()->routeIs('store-owner.payment-settings.*') ? 'active' : '' }}">
                 <i class="bi bi-credit-card"></i> Payment Settings
@@ -311,6 +324,11 @@
             <div class="d-flex align-items-center gap-3">
                 @php $effectiveStore = auth()->user()->getEffectiveStore(); @endphp
                 @if($effectiveStore)
+                @if(auth()->user()->isStoreOwner() || auth()->user()->hasAnyStaffPermission(['use_pos', 'process_payments']))
+                <a href="{{ route('store-owner.pos.index') }}" class="btn btn-primary btn-sm">
+                    <i class="bi bi-display me-1"></i>POS
+                </a>
+                @endif
                 <a href="{{ route('store.show', $effectiveStore->slug) }}" class="btn btn-outline-primary btn-sm" target="_blank">
                     <i class="bi bi-eye me-1"></i>View Store
                 </a>

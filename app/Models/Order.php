@@ -16,6 +16,7 @@ class Order extends Model
     protected $fillable = [
         'order_number',
         'user_id',
+        'store_customer_id',
         'store_id',
         'subtotal',
         'tax',
@@ -190,6 +191,28 @@ class Order extends Model
     }
 
     /**
+     * Get the store customer (for POS walk-in customers)
+     */
+    public function storeCustomer(): BelongsTo
+    {
+        return $this->belongsTo(StoreCustomer::class, 'store_customer_id');
+    }
+
+    /**
+     * Get customer name from either user or store customer
+     */
+    public function getCustomerNameAttribute(): string
+    {
+        if ($this->storeCustomer) {
+            return $this->storeCustomer->name;
+        }
+        if ($this->user) {
+            return $this->user->name;
+        }
+        return 'Walk-in Customer';
+    }
+
+    /**
      * Get the store for the order
      */
     public function store(): BelongsTo
@@ -203,6 +226,14 @@ class Order extends Model
     public function items(): HasMany
     {
         return $this->hasMany(OrderItem::class);
+    }
+
+    /**
+     * Get the order taxes
+     */
+    public function taxes(): HasMany
+    {
+        return $this->hasMany(OrderTax::class);
     }
 
     /**

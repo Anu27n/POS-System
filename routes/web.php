@@ -8,6 +8,7 @@ use App\Http\Controllers\CheckoutController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\InstallerController;
 use App\Http\Controllers\OrderController;
+use App\Http\Controllers\PricingController;
 use App\Http\Controllers\StoreController;
 use Illuminate\Support\Facades\Route;
 
@@ -36,6 +37,9 @@ Route::prefix('install')->group(function () {
 */
 
 Route::get('/', [HomeController::class, 'index'])->name('home');
+
+// Pricing page
+Route::get('/pricing', [PricingController::class, 'index'])->name('pricing');
 
 // Store public pages
 Route::get('/store/{slug}', [StoreController::class, 'show'])->name('store.show');
@@ -83,6 +87,12 @@ Route::middleware('auth')->group(function () {
     // Customer orders
     Route::get('/my-orders', [OrderController::class, 'index'])->name('orders.index');
     Route::get('/my-orders/{order}', [OrderController::class, 'show'])->name('orders.show');
+
+    // Plan checkout
+    Route::get('/pricing/{plan}/checkout', [PricingController::class, 'checkout'])->name('pricing.checkout');
+    Route::post('/pricing/{plan}/subscribe', [PricingController::class, 'subscribe'])->name('pricing.subscribe');
+    Route::get('/pricing/{plan}/payment', [PricingController::class, 'payment'])->name('pricing.payment');
+    Route::post('/pricing/{plan}/razorpay-callback', [PricingController::class, 'razorpayCallback'])->name('pricing.razorpay-callback');
 });
 
 /*
@@ -109,6 +119,14 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin'])->grou
     // Reports
     Route::get('/reports/sales', [Admin\ReportController::class, 'sales'])->name('reports.sales');
     Route::get('/reports/orders', [Admin\ReportController::class, 'orders'])->name('reports.orders');
+
+    // Plan management
+    Route::resource('plans', Admin\PlanController::class);
+    Route::post('/plans/{plan}/toggle-status', [Admin\PlanController::class, 'toggleStatus'])->name('plans.toggle-status');
+    
+    // Plan features management
+    Route::resource('plan-features', Admin\PlanFeatureController::class)->except(['show']);
+    Route::post('/plan-features/seed-defaults', [Admin\PlanFeatureController::class, 'seedDefaults'])->name('plan-features.seed-defaults');
 
     // Order management with QR Scanner
     Route::get('/orders', [Admin\OrderController::class, 'index'])->name('orders.index');
@@ -173,4 +191,27 @@ Route::prefix('store-owner')->name('store-owner.')->middleware(['auth', 'role:st
     // Reports
     Route::get('/reports/sales', [StoreOwner\ReportController::class, 'sales'])->name('reports.sales');
     Route::get('/reports/inventory', [StoreOwner\ReportController::class, 'inventory'])->name('reports.inventory');
+    Route::get('/reports/tax', [StoreOwner\TaxReportController::class, 'index'])->name('reports.tax');
+    Route::get('/reports/tax/export', [StoreOwner\TaxReportController::class, 'export'])->name('reports.tax.export');
+
+    // Tax settings
+    Route::get('/tax-settings', [StoreOwner\TaxSettingController::class, 'index'])->name('tax-settings.index');
+    Route::put('/tax-settings', [StoreOwner\TaxSettingController::class, 'updateSettings'])->name('tax-settings.update');
+    Route::post('/tax-settings/tax', [StoreOwner\TaxSettingController::class, 'storeTax'])->name('tax-settings.store-tax');
+    Route::put('/tax-settings/tax/{tax}', [StoreOwner\TaxSettingController::class, 'updateTax'])->name('tax-settings.update-tax');
+    Route::delete('/tax-settings/tax/{tax}', [StoreOwner\TaxSettingController::class, 'destroyTax'])->name('tax-settings.destroy-tax');
+    Route::post('/tax-settings/tax/{tax}/toggle', [StoreOwner\TaxSettingController::class, 'toggleTax'])->name('tax-settings.toggle-tax');
+
+    // Cash Register
+    Route::get('/cash-register', [StoreOwner\CashRegisterController::class, 'index'])->name('cash-register.index');
+    Route::post('/cash-register/open', [StoreOwner\CashRegisterController::class, 'open'])->name('cash-register.open');
+    Route::post('/cash-register/{session}/close', [StoreOwner\CashRegisterController::class, 'close'])->name('cash-register.close');
+    Route::post('/cash-register/{session}/add-cash', [StoreOwner\CashRegisterController::class, 'addCash'])->name('cash-register.add-cash');
+    Route::get('/cash-register/check-session', [StoreOwner\CashRegisterController::class, 'checkSession'])->name('cash-register.check-session');
+    Route::get('/cash-register/reports', [StoreOwner\CashRegisterController::class, 'reports'])->name('cash-register.reports');
+    Route::get('/cash-register/{session}', [StoreOwner\CashRegisterController::class, 'show'])->name('cash-register.show');
+
+    // POS Customer search API
+    Route::get('/pos/customers/search', [StoreOwner\POSController::class, 'searchCustomers'])->name('pos.customers.search');
+    Route::post('/pos/customers/create', [StoreOwner\POSController::class, 'createCustomer'])->name('pos.customers.create');
 });

@@ -242,8 +242,13 @@
             <a href="{{ route('admin.orders.index') }}" class="nav-link {{ request()->routeIs('admin.orders.index') || request()->routeIs('admin.orders.show') ? 'active' : '' }}">
                 <i class="bi bi-receipt"></i> Orders
             </a>
-            <a href="{{ route('admin.orders.scanner') }}" class="nav-link {{ request()->routeIs('admin.orders.scanner') ? 'active' : '' }}">
-                <i class="bi bi-qr-code-scan"></i> QR Scanner
+
+            <div class="nav-section">Subscription</div>
+            <a href="{{ route('admin.plans.index') }}" class="nav-link {{ request()->routeIs('admin.plans.*') ? 'active' : '' }}">
+                <i class="bi bi-credit-card-2-front"></i> Plans
+            </a>
+            <a href="{{ route('admin.plan-features.index') }}" class="nav-link {{ request()->routeIs('admin.plan-features.*') ? 'active' : '' }}">
+                <i class="bi bi-list-check"></i> Plan Features
             </a>
 
             <div class="nav-section">Reports</div>

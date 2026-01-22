@@ -3,8 +3,10 @@
 namespace App\Http\Controllers\StoreOwner;
 
 use App\Http\Controllers\Controller;
+use App\Models\CashRegisterSession;
 use App\Models\Order;
 use App\Models\OrderItem;
+use App\Models\OrderTax;
 use App\Models\Product;
 use App\Services\QRCodeService;
 use Illuminate\Http\Request;
@@ -25,7 +27,13 @@ class POSController extends Controller
      */
     public function index()
     {
-        $store = auth()->user()->store;
+        $store = auth()->user()->getEffectiveStore();
+        $user = auth()->user();
+
+        // Check for cash register session
+        $cashRegisterSession = CashRegisterSession::getAnyOpenSession($store->id);
+        $lastClosedSession = CashRegisterSession::getLastClosedSession($store->id);
+        $suggestedOpeningCash = $lastClosedSession ? $lastClosedSession->closing_cash : 0;
 
         $pendingOrders = $store->orders()
             ->with('customer')
@@ -45,9 +53,22 @@ class POSController extends Controller
             ->orderBy('name')
             ->get();
 
-        $taxRate = $store->tax_rate ?? 0;
+        // Get tax settings
+        $taxSettings = $store->taxSettings;
+        $taxes = ($taxSettings && $taxSettings->taxes_enabled) ? $store->enabledTaxes : collect();
+        $taxRate = $store->tax_rate ?? 0; // Legacy tax rate
 
-        return view('store-owner.pos.index', compact('store', 'pendingOrders', 'products', 'categories', 'taxRate'));
+        return view('store-owner.pos.index', compact(
+            'store',
+            'pendingOrders',
+            'products',
+            'categories',
+            'taxRate',
+            'taxes',
+            'taxSettings',
+            'cashRegisterSession',
+            'suggestedOpeningCash'
+        ));
     }
 
     /**
@@ -55,7 +76,7 @@ class POSController extends Controller
      */
     public function process(Request $request)
     {
-        $store = auth()->user()->store;
+        $store = auth()->user()->getEffectiveStore();
 
         // Parse request data
         $data = $request->json()->all();
@@ -63,6 +84,7 @@ class POSController extends Controller
         $paymentMethod = $data['payment_method'] ?? 'cash';
         $notes = $data['notes'] ?? null;
         $discountAmount = floatval($data['discount_amount'] ?? 0);
+        $customerId = $data['customer_id'] ?? null;
 
         if (empty($items)) {
             return response()->json([
@@ -105,17 +127,38 @@ class POSController extends Controller
                 ];
             }
 
-            // Calculate totals
-            $taxRate = $store->tax_rate ?? 0;
-            $tax = ($subtotal - $discountAmount) * ($taxRate / 100);
-            $total = $subtotal - $discountAmount + $tax;
+            // Calculate taxes using new tax system
+            $taxSettings = $store->taxSettings;
+            $taxableAmount = $subtotal - $discountAmount;
+            $totalTax = 0;
+            $taxBreakdown = [];
 
-            // Create order
+            if ($taxSettings && $taxSettings->taxes_enabled) {
+                foreach ($store->enabledTaxes as $tax) {
+                    $taxAmount = $tax->calculateTax($taxableAmount);
+                    $totalTax += $taxAmount;
+                    $taxBreakdown[] = [
+                        'store_tax_id' => $tax->id,
+                        'tax_name' => $tax->name,
+                        'tax_percentage' => $tax->percentage,
+                        'taxable_amount' => $taxableAmount,
+                        'tax_amount' => $taxAmount,
+                    ];
+                }
+            } else {
+                // Legacy tax rate
+                $taxRate = $store->tax_rate ?? 0;
+                $totalTax = $taxableAmount * ($taxRate / 100);
+            }
+
+            $total = $subtotal - $discountAmount + $totalTax;
+
+            // Create order with optional store customer
             $order = Order::create([
-                'user_id' => null, // Walk-in customer
                 'store_id' => $store->id,
+                'store_customer_id' => $customerId ?: null,
                 'subtotal' => $subtotal,
-                'tax' => $tax,
+                'tax' => $totalTax,
                 'discount' => $discountAmount,
                 'total' => $total,
                 'payment_method' => $paymentMethod,
@@ -125,6 +168,11 @@ class POSController extends Controller
                 'paid_at' => now(),
                 'transaction_id' => 'POS-' . now()->format('YmdHis') . '-' . rand(1000, 9999),
             ]);
+
+            // Create order tax records
+            foreach ($taxBreakdown as $taxRecord) {
+                OrderTax::create(array_merge($taxRecord, ['order_id' => $order->id]));
+            }
 
             // Create order items
             foreach ($orderItems as $item) {
@@ -145,6 +193,20 @@ class POSController extends Controller
             // Generate verification QR code and save to storage
             $qrPath = $this->qrCodeService->generateAndSaveOrderQR($order);
             $order->update(['verification_qr_path' => $qrPath]);
+
+            // Update customer stats if a store customer was selected
+            if ($customerId) {
+                $storeCustomer = $store->customers()->find($customerId);
+                if ($storeCustomer) {
+                    $storeCustomer->recordOrder($total);
+                }
+            }
+
+            // Add transaction to cash register if session is open
+            $cashSession = CashRegisterSession::getAnyOpenSession($store->id);
+            if ($cashSession) {
+                $cashSession->addTransaction('sale', $paymentMethod, $total, $order->id);
+            }
 
             DB::commit();
 
@@ -340,5 +402,67 @@ class POSController extends Controller
         $pdf = Pdf::loadView('orders.receipt', compact('order'));
 
         return $pdf->download("receipt-{$order->order_number}.pdf");
+    }
+
+    /**
+     * Search customers for POS
+     */
+    public function searchCustomers(Request $request)
+    {
+        $store = auth()->user()->getEffectiveStore();
+        $search = $request->input('q', '');
+
+        if (strlen($search) < 2) {
+            return response()->json(['customers' => []]);
+        }
+
+        $customers = $store->customers()
+            ->where(function ($query) use ($search) {
+                $query->where('name', 'like', "%{$search}%")
+                      ->orWhere('phone', 'like', "%{$search}%")
+                      ->orWhere('email', 'like', "%{$search}%");
+            })
+            ->select('id', 'name', 'phone', 'email')
+            ->limit(10)
+            ->get();
+
+        return response()->json(['customers' => $customers]);
+    }
+
+    /**
+     * Create a new customer from POS
+     */
+    public function createCustomer(Request $request)
+    {
+        $store = auth()->user()->getEffectiveStore();
+
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'phone' => 'required|string|max:20',
+            'email' => 'nullable|email|max:255',
+        ]);
+
+        // Check if customer with same phone already exists
+        $existing = $store->customers()->where('phone', $validated['phone'])->first();
+        if ($existing) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Customer with this phone number already exists.',
+                'customer' => $existing,
+            ], 422);
+        }
+
+        $customer = $store->customers()->create([
+            'name' => $validated['name'],
+            'phone' => $validated['phone'],
+            'email' => $validated['email'] ?? null,
+            'is_manually_added' => true,
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Customer created successfully.',
+            'customer' => $customer,
+        ]);
     }
 }

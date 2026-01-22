@@ -210,6 +210,22 @@
                         </button>
                     </div>
 
+                    <!-- Customer Selection -->
+                    <div class="px-3 py-2 border-bottom bg-light">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div class="flex-grow-1">
+                                <small class="text-muted">Customer</small>
+                                <div id="selectedCustomerDisplay">
+                                    <span class="text-muted">Walk-in Customer</span>
+                                </div>
+                            </div>
+                            <button type="button" class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#customerModal">
+                                <i class="bi bi-person-plus"></i>
+                            </button>
+                        </div>
+                        <input type="hidden" id="selectedCustomerId" value="">
+                    </div>
+
                     <div class="cart-items" id="cartItems">
                         <div class="text-center text-muted py-5" id="emptyCart">
                             <i class="bi bi-cart fs-1 mb-2 d-block"></i>
@@ -901,7 +917,8 @@
         const orderData = {
             items: cart,
             payment_method: paymentMethod,
-            discount_amount: discount
+            discount_amount: discount,
+            customer_id: document.getElementById('selectedCustomerId').value || null
         };
 
         document.getElementById('checkoutBtn').disabled = true;
@@ -967,5 +984,201 @@
 
     // Initialize
     updateCartDisplay();
+
+    // Customer Search Functionality
+    let customerSearchTimeout;
+    const customerSearchInput = document.getElementById('customerSearchInput');
+    const customerSearchResults = document.getElementById('customerSearchResults');
+
+    if (customerSearchInput) {
+        customerSearchInput.addEventListener('input', function() {
+            clearTimeout(customerSearchTimeout);
+            const query = this.value.trim();
+            
+            if (query.length < 2) {
+                customerSearchResults.innerHTML = '<div class="text-muted text-center py-3">Type at least 2 characters to search</div>';
+                return;
+            }
+
+            customerSearchResults.innerHTML = '<div class="text-center py-3"><span class="spinner-border spinner-border-sm"></span> Searching...</div>';
+
+            customerSearchTimeout = setTimeout(() => {
+                fetch(`{{ route('store-owner.pos.customers.search') }}?q=${encodeURIComponent(query)}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.customers.length === 0) {
+                            customerSearchResults.innerHTML = '<div class="text-muted text-center py-3">No customers found</div>';
+                            return;
+                        }
+
+                        customerSearchResults.innerHTML = data.customers.map(customer => `
+                            <div class="customer-result p-2 border-bottom" style="cursor:pointer" onclick="selectCustomer(${customer.id}, '${customer.name}', '${customer.phone || ''}')">
+                                <div class="fw-semibold">${customer.name}</div>
+                                <small class="text-muted">${customer.phone || ''} ${customer.email ? '• ' + customer.email : ''}</small>
+                            </div>
+                        `).join('');
+                    })
+                    .catch(error => {
+                        customerSearchResults.innerHTML = '<div class="text-danger text-center py-3">Error searching customers</div>';
+                    });
+            }, 300);
+        });
+    }
+
+    function selectCustomer(id, name, phone) {
+        document.getElementById('selectedCustomerId').value = id;
+        document.getElementById('selectedCustomerDisplay').innerHTML = `
+            <strong>${name}</strong>
+            ${phone ? '<small class="text-muted d-block">' + phone + '</small>' : ''}
+        `;
+        bootstrap.Modal.getInstance(document.getElementById('customerModal')).hide();
+    }
+
+    function clearSelectedCustomer() {
+        document.getElementById('selectedCustomerId').value = '';
+        document.getElementById('selectedCustomerDisplay').innerHTML = '<span class="text-muted">Walk-in Customer</span>';
+    }
+
+    // New Customer Form
+    const newCustomerForm = document.getElementById('newCustomerForm');
+    if (newCustomerForm) {
+        newCustomerForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const formData = new FormData(this);
+            const submitBtn = this.querySelector('button[type="submit"]');
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Creating...';
+
+            fetch('{{ route('store-owner.pos.customers.create') }}', {
+                method: 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                    'Accept': 'application/json'
+                },
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    selectCustomer(data.customer.id, data.customer.name, data.customer.phone);
+                    this.reset();
+                    document.getElementById('searchCustomerTab').click();
+                } else {
+                    alert('Error: ' + (data.message || 'Failed to create customer'));
+                }
+            })
+            .catch(error => {
+                alert('Error creating customer');
+            })
+            .finally(() => {
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = '<i class="bi bi-person-plus me-1"></i> Add Customer';
+            });
+        });
+    }
 </script>
+
+<!-- Customer Selection Modal -->
+<div class="modal fade" id="customerModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="bi bi-person me-2"></i>Select Customer</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <ul class="nav nav-tabs mb-3" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active" id="searchCustomerTab" data-bs-toggle="tab" data-bs-target="#searchCustomerPane">
+                            <i class="bi bi-search me-1"></i> Search
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" data-bs-toggle="tab" data-bs-target="#newCustomerPane">
+                            <i class="bi bi-person-plus me-1"></i> New Customer
+                        </button>
+                    </li>
+                </ul>
+                <div class="tab-content">
+                    <div class="tab-pane fade show active" id="searchCustomerPane">
+                        <input type="text" class="form-control mb-3" id="customerSearchInput" placeholder="Search by name, phone, or email...">
+                        <div id="customerSearchResults" style="max-height: 300px; overflow-y: auto;">
+                            <div class="text-muted text-center py-3">Type to search for customers</div>
+                        </div>
+                        <div class="mt-3">
+                            <button type="button" class="btn btn-sm btn-outline-secondary" onclick="clearSelectedCustomer()" data-bs-dismiss="modal">
+                                <i class="bi bi-x me-1"></i> Use Walk-in Customer
+                            </button>
+                        </div>
+                    </div>
+                    <div class="tab-pane fade" id="newCustomerPane">
+                        <form id="newCustomerForm">
+                            <div class="mb-3">
+                                <label class="form-label">Customer Name <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" name="name" required>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Phone Number</label>
+                                <input type="tel" class="form-control" name="phone" placeholder="+91 9876543210">
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Email</label>
+                                <input type="email" class="form-control" name="email" placeholder="customer@example.com">
+                            </div>
+                            <button type="submit" class="btn btn-primary w-100">
+                                <i class="bi bi-person-plus me-1"></i> Add Customer
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Cash Register Modal (shown when no session is open) -->
+@if(!isset($cashRegisterSession))
+<div class="modal fade" id="cashRegisterModal" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title"><i class="bi bi-cash-stack me-2"></i>Open Cash Register</h5>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-info">
+                    <i class="bi bi-info-circle me-2"></i>
+                    You need to open a cash register session before processing orders.
+                </div>
+                <form action="{{ route('store-owner.cash-register.open') }}" method="POST">
+                    @csrf
+                    <div class="mb-3">
+                        <label class="form-label">Opening Cash Amount <span class="text-danger">*</span></label>
+                        <div class="input-group input-group-lg">
+                            <span class="input-group-text">{{ \App\Helpers\CurrencyHelper::getCurrencySymbol() ?? '₹' }}</span>
+                            <input type="number" step="0.01" class="form-control" name="opening_cash" placeholder="0.00" required autofocus>
+                        </div>
+                        <small class="text-muted">Enter the amount of cash currently in the drawer</small>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Notes (Optional)</label>
+                        <textarea class="form-control" name="notes" rows="2" placeholder="Any notes about this session..."></textarea>
+                    </div>
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-primary btn-lg">
+                            <i class="bi bi-unlock me-2"></i> Open Register & Start Selling
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        var cashRegisterModal = new bootstrap.Modal(document.getElementById('cashRegisterModal'));
+        cashRegisterModal.show();
+    });
+</script>
+@endif
 @endsection

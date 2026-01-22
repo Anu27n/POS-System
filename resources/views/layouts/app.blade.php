@@ -109,33 +109,43 @@
                 <span class="navbar-toggler-icon"></span>
             </button>
             <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link {{ request()->routeIs('home') ? 'active' : '' }}" href="{{ route('home') }}">Home</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {{ request()->routeIs('pricing') ? 'active' : '' }}" href="{{ route('pricing') }}">Pricing</a>
+                    </li>
+                </ul>
                 <ul class="navbar-nav ms-auto">
                     @guest
                     <li class="nav-item">
                         <a class="nav-link" href="{{ route('login') }}">Login</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="{{ route('register') }}">Register</a>
+                        <a class="nav-link btn btn-outline-light btn-sm px-3 ms-2" href="{{ route('register') }}">Get Started</a>
                     </li>
                     @else
                     <li class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
-                            {{ auth()->user()->name }}
+                            <i class="bi bi-person-circle me-1"></i> {{ auth()->user()->name }}
                         </a>
                         <ul class="dropdown-menu dropdown-menu-end">
                             @if(auth()->user()->isAdmin())
-                            <li><a class="dropdown-item" href="{{ route('admin.dashboard') }}">Admin Dashboard</a></li>
-                            @elseif(auth()->user()->isStoreOwner())
-                            <li><a class="dropdown-item" href="{{ route('store-owner.dashboard') }}">Store Dashboard</a></li>
+                            <li><a class="dropdown-item" href="{{ route('admin.dashboard') }}"><i class="bi bi-speedometer2 me-2"></i>Admin Dashboard</a></li>
                             @endif
-                            <li><a class="dropdown-item" href="{{ route('orders.index') }}">My Orders</a></li>
+                            @if(auth()->user()->isStoreOwner() || auth()->user()->isStaff())
+                            <li><a class="dropdown-item" href="{{ route('store-owner.dashboard') }}"><i class="bi bi-shop me-2"></i>Store Dashboard</a></li>
+                            <li><a class="dropdown-item" href="{{ route('store-owner.pos.index') }}"><i class="bi bi-display me-2"></i>POS Terminal</a></li>
+                            @endif
+                            <li><a class="dropdown-item" href="{{ route('orders.index') }}"><i class="bi bi-bag me-2"></i>My Orders</a></li>
                             <li>
                                 <hr class="dropdown-divider">
                             </li>
                             <li>
                                 <form action="{{ route('logout') }}" method="POST">
                                     @csrf
-                                    <button type="submit" class="dropdown-item">Logout</button>
+                                    <button type="submit" class="dropdown-item"><i class="bi bi-box-arrow-right me-2"></i>Logout</button>
                                 </form>
                             </li>
                         </ul>
@@ -173,13 +183,7 @@
         @yield('content')
     </main>
 
-    <!-- Footer -->
-    <footer class="border-top py-4 mt-auto">
-        <div class="container text-center">
-            <p class="mb-0">&copy; {{ date('Y') }} POS System. All rights reserved.</p>
-        </div>
-    </footer>
-
+   
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     @stack('scripts')
