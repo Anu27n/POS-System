@@ -33,10 +33,29 @@ class CartItem extends Model
     }
 
     /**
-     * Get the line total
+     * Get the unit price (uses sale_price if available, otherwise regular price)
+     */
+    public function getPriceAttribute(): float
+    {
+        if (!$this->product) {
+            return 0;
+        }
+        return (float) ($this->product->sale_price ?? $this->product->price ?? 0);
+    }
+
+    /**
+     * Get the line total (subtotal)
+     */
+    public function getSubtotalAttribute(): float
+    {
+        return $this->price * $this->quantity;
+    }
+
+    /**
+     * Alias for subtotal
      */
     public function getTotalAttribute(): float
     {
-        return $this->product->price * $this->quantity;
+        return $this->subtotal;
     }
 }

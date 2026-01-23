@@ -1050,8 +1050,7 @@
             submitBtn.disabled = true;
             submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Creating...';
 
-            fetch('{{ route('
-                    store - owner.pos.customers.create ') }}', {
+            fetch('{{ route('store-owner.pos.customers.create') }}', {
                         method: 'POST',
                         headers: {
                             'X-CSRF-TOKEN': '{{ csrf_token() }}',

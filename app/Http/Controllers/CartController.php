@@ -38,7 +38,6 @@ class CartController extends Controller
             'store_id' => 'required|exists:stores,id',
             'product_id' => 'required|exists:products,id',
             'quantity' => 'nullable|integer|min:1',
-            'options' => 'nullable|array',
         ]);
 
         $store = Store::findOrFail($validated['store_id']);
@@ -59,23 +58,16 @@ class CartController extends Controller
 
         $cart = $this->getOrCreateCart($store);
 
-        // Check if item already exists
-        $existingItem = $cart->items()
-            ->where('product_id', $product->id)
-            ->where('options', json_encode($validated['options'] ?? []))
-            ->first();
+        // Check if item already exists - use updateOrCreate to avoid unique constraint violation
+        $existingItem = $cart->items()->where('product_id', $product->id)->first();
 
         if ($existingItem) {
             $existingItem->quantity += $quantity;
-            $existingItem->subtotal = $existingItem->quantity * $existingItem->price;
             $existingItem->save();
         } else {
             $cart->items()->create([
                 'product_id' => $product->id,
                 'quantity' => $quantity,
-                'price' => $product->sale_price ?? $product->price,
-                'subtotal' => $quantity * ($product->sale_price ?? $product->price),
-                'options' => $validated['options'] ?? [],
             ]);
         }
 
@@ -103,12 +95,11 @@ class CartController extends Controller
             $cartItem->delete();
         } else {
             // Check stock
-            if ($cartItem->product && $cartItem->product->track_stock && $validated['quantity'] > $cartItem->product->stock_quantity) {
+            if ($cartItem->product && $cartItem->product->track_inventory && $validated['quantity'] > $cartItem->product->stock_quantity) {
                 return back()->with('error', 'Not enough stock available.');
             }
 
             $cartItem->quantity = $validated['quantity'];
-            $cartItem->subtotal = $cartItem->quantity * $cartItem->price;
             $cartItem->save();
         }
 

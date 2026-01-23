@@ -42,13 +42,6 @@
                                 <!-- Product Details -->
                                 <div class="flex-grow-1">
                                     <h6 class="mb-1">{{ $item->product->name ?? 'Product' }}</h6>
-                                    @if($item->options)
-                                        <small class="text-muted">
-                                            @foreach($item->options as $key => $value)
-                                                {{ ucfirst($key) }}: {{ $value }}@if(!$loop->last), @endif
-                                            @endforeach
-                                        </small>
-                                    @endif
                                     <div class="text-primary fw-semibold">₹{{ number_format($item->price, 2) }}</div>
                                 </div>
                                 
