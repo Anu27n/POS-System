@@ -309,6 +309,24 @@
                                 Click "Start Camera" to begin scanning
                             </div>
                         </div>
+                        
+                        <!-- Manual Order Number Entry -->
+                        <div class="card mt-4">
+                            <div class="card-header bg-secondary text-white">
+                                <h6 class="mb-0"><i class="bi bi-keyboard me-2"></i>Manual Order Lookup</h6>
+                            </div>
+                            <div class="card-body">
+                                <p class="text-muted small mb-2">Enter order number if camera scanning doesn't work:</p>
+                                <div class="input-group">
+                                    <span class="input-group-text">ORD</span>
+                                    <input type="text" class="form-control" id="manualOrderNumber" placeholder="e.g., 20260125001" maxlength="20">
+                                    <button class="btn btn-primary" type="button" onclick="lookupOrderManually()">
+                                        <i class="bi bi-search me-1"></i>Find
+                                    </button>
+                                </div>
+                                <div id="manualLookupStatus" class="mt-2 small"></div>
+                            </div>
+                        </div>
                     </div>
 
                     <!-- Scanned Order Display -->
@@ -482,31 +500,42 @@
     let html5QrcodeScanner = null;
     let isScanning = false;
     let currentScannedOrder = null;
-    const taxRate = {
-        {
-            $taxRate ?? 0
-        }
-    };
+    const taxRate = {{ $taxRate ?? 0 }};
 
     // =====================
     // QR SCANNER FUNCTIONS
     // =====================
 
     function startScanner() {
+        const qrReaderElement = document.getElementById("qr-reader");
+        const statusElement = document.getElementById('scannerStatus');
+        
+        if (!qrReaderElement) {
+            console.error('qr-reader element not found');
+            statusElement.innerHTML = '<span class="text-danger">Scanner element not found</span>';
+            return;
+        }
+
+        // Check if Html5Qrcode is loaded
+        if (typeof Html5Qrcode === 'undefined') {
+            console.error('Html5Qrcode library not loaded');
+            statusElement.innerHTML = '<span class="text-danger">QR Scanner library not loaded. Please refresh the page.</span>';
+            return;
+        }
+
+        statusElement.innerHTML = '<span class="text-info"><i class="bi bi-hourglass-split me-1"></i>Requesting camera access...</span>';
+
         const config = {
             fps: 10,
-            qrbox: {
-                width: 250,
-                height: 250
-            },
+            qrbox: { width: 250, height: 250 },
             aspectRatio: 1.0,
         };
 
+        // Create new scanner instance
         html5QrcodeScanner = new Html5Qrcode("qr-reader");
 
-        html5QrcodeScanner.start({
-                facingMode: "environment"
-            },
+        html5QrcodeScanner.start(
+            { facingMode: "environment" },
             config,
             onScanSuccess,
             onScanError
@@ -514,9 +543,17 @@
             isScanning = true;
             document.getElementById('startScanBtn').classList.add('d-none');
             document.getElementById('stopScanBtn').classList.remove('d-none');
-            document.getElementById('scannerStatus').innerHTML = '<span class="text-success"><i class="bi bi-record-circle me-1"></i>Camera active - Position QR code in frame</span>';
+            statusElement.innerHTML = '<span class="text-success"><i class="bi bi-record-circle me-1"></i>Camera active - Position QR code in frame</span>';
         }).catch(err => {
-            document.getElementById('scannerStatus').innerHTML = `<span class="text-danger">Error: ${err}</span>`;
+            console.error('Camera error:', err);
+            let errorMsg = err.toString();
+            if (errorMsg.includes('NotAllowedError') || errorMsg.includes('Permission')) {
+                statusElement.innerHTML = '<span class="text-danger"><i class="bi bi-exclamation-triangle me-1"></i>Camera permission denied. Please allow camera access and try again.</span>';
+            } else if (errorMsg.includes('NotFoundError') || errorMsg.includes('no camera')) {
+                statusElement.innerHTML = '<span class="text-danger"><i class="bi bi-exclamation-triangle me-1"></i>No camera found. Use Manual Order Lookup below.</span>';
+            } else {
+                statusElement.innerHTML = '<span class="text-danger"><i class="bi bi-exclamation-triangle me-1"></i>Camera Error: ' + errorMsg + '</span>';
+            }
         });
     }
 
@@ -535,6 +572,9 @@
         // Stop scanning after successful scan
         stopScanner();
 
+        console.log('QR Scanned! Raw data:', decodedText);
+        console.log('Decoded result:', decodedResult);
+
         document.getElementById('scannerStatus').innerHTML = '<span class="text-info"><i class="bi bi-hourglass-split me-1"></i>Verifying order...</span>';
 
         // Send to server for verification
@@ -548,8 +588,12 @@
                     qr_data: decodedText
                 })
             })
-            .then(response => response.json())
+            .then(response => {
+                console.log('Response status:', response.status);
+                return response.json();
+            })
             .then(data => {
+                console.log('Server response:', data);
                 if (data.success) {
                     displayScannedOrder(data.order);
                     document.getElementById('scannerStatus').innerHTML = '<span class="text-success"><i class="bi bi-check-circle me-1"></i>Order verified successfully!</span>';
@@ -559,6 +603,7 @@
                 }
             })
             .catch(error => {
+                console.error('Network error:', error);
                 showScanError('Failed to verify QR code. Please try again.');
                 document.getElementById('scannerStatus').innerHTML = '<span class="text-danger">Network error</span>';
             });
@@ -566,7 +611,50 @@
 
     function onScanError(errorMessage) {
         // Ignore scan errors (continuous scanning will produce many)
+        // Uncomment to debug: console.log('Scan error:', errorMessage);
     }
+
+    // Manual order lookup function
+    function lookupOrderManually() {
+        const orderInput = document.getElementById('manualOrderNumber');
+        const statusDiv = document.getElementById('manualLookupStatus');
+        const orderNumber = orderInput.value.trim();
+
+        if (!orderNumber) {
+            statusDiv.innerHTML = '<span class="text-danger">Please enter an order number</span>';
+            return;
+        }
+
+        statusDiv.innerHTML = '<span class="text-info"><i class="bi bi-hourglass-split me-1"></i>Looking up order...</span>';
+
+        fetch(`{{ route("store-owner.pos.order.lookup") }}?order_number=${encodeURIComponent(orderNumber)}`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    displayScannedOrder(data.order);
+                    statusDiv.innerHTML = '<span class="text-success"><i class="bi bi-check-circle me-1"></i>Order found!</span>';
+                    orderInput.value = '';
+                } else {
+                    showScanError(data.message);
+                    statusDiv.innerHTML = `<span class="text-danger"><i class="bi bi-x-circle me-1"></i>${data.message}</span>`;
+                }
+            })
+            .catch(error => {
+                statusDiv.innerHTML = '<span class="text-danger">Network error. Please try again.</span>';
+            });
+    }
+
+    // Allow Enter key to trigger lookup
+    document.addEventListener('DOMContentLoaded', function() {
+        const orderInput = document.getElementById('manualOrderNumber');
+        if (orderInput) {
+            orderInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    lookupOrderManually();
+                }
+            });
+        }
+    });
 
     function displayScannedOrder(order) {
         currentScannedOrder = order;
@@ -1050,8 +1138,7 @@
             submitBtn.disabled = true;
             submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Creating...';
 
-            fetch('{{ route('
-                    store - owner.pos.customers.create ') }}', {
+            fetch('{{ route('store-owner.pos.customers.create') }}', {
                         method: 'POST',
                         headers: {
                             'X-CSRF-TOKEN': '{{ csrf_token() }}',

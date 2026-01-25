@@ -24,6 +24,12 @@ class AuthController extends Controller
      */
     public function login(Request $request)
     {
+        \Log::info('Login attempt', [
+            'email' => $request->input('email'),
+            'has_password' => !empty($request->input('password')),
+            'ip' => $request->ip(),
+        ]);
+
         $loginField = $request->input('email');
 
         // Check if login field is email or phone
@@ -39,25 +45,55 @@ class AuthController extends Controller
             'password' => $request->password
         ];
 
-        if (Auth::attempt($credentials, $request->boolean('remember'))) {
-            $request->session()->regenerate();
+        \Log::info('Attempting authentication', [
+            'field_type' => $fieldType,
+            'credentials_key' => $fieldType,
+        ]);
 
-            $user = Auth::user();
+        // Manual authentication to avoid session regeneration issues in Codespaces
+        $user = User::where($fieldType, $loginField)->first();
 
+        if ($user && Hash::check($request->password, $user->password)) {
             if (!$user->is_active) {
-                Auth::logout();
+                \Log::warning('User account deactivated', ['user_id' => $user->id]);
                 return back()->withErrors([
                     'email' => 'Your account has been deactivated.',
                 ]);
             }
 
+            // Store auth in the EXISTING session directly - don't migrate session
+            $sessionKey = 'login_web_' . sha1('Illuminate\Auth\SessionGuard');
+            $request->session()->put($sessionKey, $user->id);
+            $request->session()->save();
+
+            // Set the user in the guard manually
+            Auth::setUser($user);
+
+            \Log::info('Authentication successful', [
+                'user_id' => $user->id,
+                'role' => $user->role,
+                'is_active' => $user->is_active,
+                'session_id' => $request->session()->getId(),
+                'session_key' => $sessionKey,
+                'auth_id' => auth()->id(),
+            ]);
+
             // Redirect based on role
-            return match ($user->role) {
-                'admin' => redirect()->intended(route('admin.dashboard')),
-                'store_owner', 'staff' => redirect()->intended(route('store-owner.dashboard')),
-                default => redirect()->intended(route('home')),
+            $redirectTo = match ($user->role) {
+                'admin' => route('admin.dashboard'),
+                'store_owner', 'staff' => route('store-owner.dashboard'),
+                default => route('home'),
             };
+
+            \Log::info('Redirecting user', [
+                'redirect_to' => $redirectTo,
+                'auth_id' => auth()->id(),
+            ]);
+
+            return redirect()->intended($redirectTo);
         }
+
+        \Log::warning('Authentication failed', ['email' => $loginField]);
 
         return back()->withErrors([
             'email' => 'The provided credentials do not match our records.',

@@ -6,7 +6,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
-    <title>@yield('title', 'Store Dashboard') - POS System</title>
+    <title>@yield('title', 'Store Dashboard') - {{ $appSettings['app_name'] ?? 'POS System' }}</title>
+
+    @if(!empty($appSettings['app_favicon']))
+    <link rel="icon" type="image/png" href="{{ asset('storage/' . $appSettings['app_favicon']) }}">
+    @endif
 
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -298,6 +302,11 @@
             <a href="{{ route('store-owner.settings.index') }}" class="nav-link {{ request()->routeIs('store-owner.settings.index') ? 'active' : '' }}">
                 <i class="bi bi-gear"></i> Store Settings
             </a>
+            @if(auth()->user()->getEffectiveStore()->hasFeature('store_customization'))
+            <a href="{{ route('store-owner.customization.index') }}" class="nav-link {{ request()->routeIs('store-owner.customization.*') ? 'active' : '' }}">
+                <i class="bi bi-palette"></i> Customization
+            </a>
+            @endif
             <a href="{{ route('store-owner.tax-settings.index') }}" class="nav-link {{ request()->routeIs('store-owner.tax-settings.*') ? 'active' : '' }}">
                 <i class="bi bi-receipt-cutoff"></i> Tax Settings
             </a>

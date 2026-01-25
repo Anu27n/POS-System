@@ -26,6 +26,8 @@ class CashRegisterSession extends Model
         'total_card_sales',
         'total_upi_sales',
         'total_other_sales',
+        'total_cash_in',
+        'total_cash_out',
         'notes',
         'closing_notes',
         'status',
@@ -42,6 +44,8 @@ class CashRegisterSession extends Model
         'total_card_sales' => 'decimal:2',
         'total_upi_sales' => 'decimal:2',
         'total_other_sales' => 'decimal:2',
+        'total_cash_in' => 'decimal:2',
+        'total_cash_out' => 'decimal:2',
         'opened_at' => 'datetime',
         'closed_at' => 'datetime',
     ];
@@ -95,11 +99,38 @@ class CashRegisterSession extends Model
     }
 
     /**
-     * Calculate expected cash (opening + cash sales)
+     * Calculate expected cash (opening + cash sales + cash_in - cash_out)
+     * This is the amount that SHOULD be in the drawer based on transactions
      */
     public function calculateExpectedCash(): float
     {
-        return $this->opening_cash + $this->total_cash_sales;
+        return (float) $this->opening_cash 
+            + (float) $this->total_cash_sales 
+            + (float) ($this->total_cash_in ?? 0) 
+            - (float) ($this->total_cash_out ?? 0);
+    }
+
+    /**
+     * Get expected cash attribute dynamically calculated
+     * This ensures real-time calculation for open sessions
+     */
+    public function getExpectedCashAttribute($value): float
+    {
+        // If session is closed, return stored value from database
+        if ($this->attributes['closed_at'] ?? null) {
+            return (float) ($value ?? 0);
+        }
+        // For open sessions, calculate dynamically
+        return $this->calculateExpectedCash();
+    }
+
+    /**
+     * Get actual closing cash - this is the calculated amount that cannot be changed
+     * Opening Cash + Cash Sales + Cash In - Cash Out
+     */
+    public function getActualClosingCashAttribute(): float
+    {
+        return $this->calculateExpectedCash();
     }
 
     /**
@@ -125,13 +156,13 @@ class CashRegisterSession extends Model
                 default => $this->total_other_sales += $amount,
             };
         } elseif ($type === 'cash_in') {
-            // Cash in increases expected cash
-            $this->total_cash_sales += $amount;
+            // Cash in increases expected cash - track separately
+            $this->total_cash_in = ($this->total_cash_in ?? 0) + $amount;
         } elseif ($type === 'cash_out') {
-            // Cash out decreases expected cash
-            $this->total_cash_sales -= $amount;
+            // Cash out decreases expected cash - track separately
+            $this->total_cash_out = ($this->total_cash_out ?? 0) + $amount;
         } elseif ($type === 'refund' && strtolower($paymentMethod) === 'cash') {
-            // Refunds decrease cash
+            // Refunds decrease cash sales
             $this->total_cash_sales -= $amount;
         }
 
@@ -142,12 +173,15 @@ class CashRegisterSession extends Model
 
     /**
      * Close the session
+     * Closing cash is now automatically calculated and cannot be changed
      */
-    public function closeSession(float $closingCash, ?string $notes = null): void
+    public function closeSession(?string $notes = null): void
     {
         $this->expected_cash = $this->calculateExpectedCash();
-        $this->closing_cash = $closingCash;
-        $this->cash_difference = $closingCash - $this->expected_cash;
+        // Closing cash is automatically set to the expected cash (calculated amount)
+        // This prevents any discrepancies - the actual cash is the calculated cash
+        $this->closing_cash = $this->expected_cash;
+        $this->cash_difference = 0; // No difference since closing = expected
         $this->closing_notes = $notes;
         $this->closed_at = now();
         $this->save();

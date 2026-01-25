@@ -38,6 +38,24 @@ Route::prefix('install')->group(function () {
 
 Route::get('/', [HomeController::class, 'index'])->name('home');
 
+// Debug route for testing sessions
+Route::get('/test-session', function() {
+    $count = session('test_count', 0);
+    session(['test_count' => $count + 1]);
+    return response()->json([
+        'session_driver' => config('session.driver'),
+        'test_count' => session('test_count'),
+        'session_id' => session()->getId(),
+        'auth_check' => auth()->check(),
+        'auth_user' => auth()->user(),
+        'cookie_config' => [
+            'secure' => config('session.secure'),
+            'same_site' => config('session.same_site'),
+            'domain' => config('session.domain'),
+        ]
+    ]);
+});
+
 // Pricing page
 Route::get('/pricing', [PricingController::class, 'index'])->name('pricing');
 
@@ -116,6 +134,12 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin'])->grou
     Route::get('/settings/payment', [Admin\PaymentSettingController::class, 'index'])->name('settings.payment');
     Route::post('/settings/payment', [Admin\PaymentSettingController::class, 'update'])->name('settings.payment.update');
 
+    // Customization settings
+    Route::get('/settings/customization', [Admin\CustomizationController::class, 'index'])->name('settings.customization');
+    Route::post('/settings/customization', [Admin\CustomizationController::class, 'update'])->name('settings.customization.update');
+    Route::get('/settings/customization/remove-logo', [Admin\CustomizationController::class, 'removeLogo'])->name('settings.customization.remove-logo');
+    Route::get('/settings/customization/remove-favicon', [Admin\CustomizationController::class, 'removeFavicon'])->name('settings.customization.remove-favicon');
+
     // Reports
     Route::get('/reports/sales', [Admin\ReportController::class, 'sales'])->name('reports.sales');
     Route::get('/reports/orders', [Admin\ReportController::class, 'orders'])->name('reports.orders');
@@ -179,6 +203,12 @@ Route::prefix('store-owner')->name('store-owner.')->middleware(['auth', 'role:st
     Route::get('/settings', [StoreOwner\StoreSettingController::class, 'index'])->name('settings.index');
     Route::put('/settings', [StoreOwner\StoreSettingController::class, 'update'])->name('settings.update');
 
+    // Store customization (plan-based feature)
+    Route::get('/customization', [StoreOwner\CustomizationController::class, 'index'])->name('customization.index');
+    Route::put('/customization', [StoreOwner\CustomizationController::class, 'update'])->name('customization.update');
+    Route::get('/customization/remove-logo', [StoreOwner\CustomizationController::class, 'removeLogo'])->name('customization.remove-logo');
+    Route::get('/customization/reset-colors', [StoreOwner\CustomizationController::class, 'resetColors'])->name('customization.reset-colors');
+
     // Payment settings
     Route::get('/payment-settings', [StoreOwner\PaymentSettingsController::class, 'index'])->name('payment-settings.index');
     Route::put('/payment-settings', [StoreOwner\PaymentSettingsController::class, 'update'])->name('payment-settings.update');
@@ -214,4 +244,5 @@ Route::prefix('store-owner')->name('store-owner.')->middleware(['auth', 'role:st
     // POS Customer search API
     Route::get('/pos/customers/search', [StoreOwner\POSController::class, 'searchCustomers'])->name('pos.customers.search');
     Route::post('/pos/customers/create', [StoreOwner\POSController::class, 'createCustomer'])->name('pos.customers.create');
+    Route::get('/pos/order/lookup', [StoreOwner\POSController::class, 'lookupOrder'])->name('pos.order.lookup');
 });

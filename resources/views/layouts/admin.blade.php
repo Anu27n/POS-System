@@ -6,7 +6,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
-    <title>@yield('title', 'Admin Dashboard') - POS System</title>
+    <title>@yield('title', 'Admin Dashboard') - {{ $appSettings['app_name'] ?? 'POS System' }}</title>
+
+    @if(!empty($appSettings['app_favicon']))
+    <link rel="icon" type="image/png" href="{{ asset('storage/' . $appSettings['app_favicon']) }}">
+    @endif
 
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -221,8 +225,12 @@
     <aside class="sidebar">
         <div class="sidebar-header">
             <a href="{{ route('admin.dashboard') }}" class="sidebar-brand">
-                <i class="bi bi-qr-code-scan"></i>
-                <span>POS Admin</span>
+                @if(!empty($appSettings['app_logo']))
+                    <img src="{{ asset('storage/' . $appSettings['app_logo']) }}" alt="" style="height: 28px;" class="me-2">
+                @else
+                    <i class="bi bi-qr-code-scan"></i>
+                @endif
+                <span>{{ $appSettings['app_name'] ?? 'POS' }} Admin</span>
             </a>
         </div>
 
@@ -260,7 +268,10 @@
             </a>
 
             <div class="nav-section">Settings</div>
-            <a href="{{ route('admin.settings.payment') }}" class="nav-link {{ request()->routeIs('admin.settings.*') ? 'active' : '' }}">
+            <a href="{{ route('admin.settings.customization') }}" class="nav-link {{ request()->routeIs('admin.settings.customization*') ? 'active' : '' }}">
+                <i class="bi bi-palette"></i> Customization
+            </a>
+            <a href="{{ route('admin.settings.payment') }}" class="nav-link {{ request()->routeIs('admin.settings.payment*') ? 'active' : '' }}">
                 <i class="bi bi-credit-card"></i> Payment Settings
             </a>
         </nav>

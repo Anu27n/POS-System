@@ -26,16 +26,16 @@
     <div class="col-md-3">
         <div class="card stat-card" style="border-left-color: #d97706;">
             <div class="card-body">
-                <div class="stat-label">Total Orders</div>
+                <div class="stat-label">Total Subscriptions</div>
                 <div class="stat-value">{{ $stats['total_orders'] }}</div>
-                <small class="text-warning">{{ $stats['pending_orders'] }} pending</small>
+                <small class="text-success">{{ $stats['active_subscriptions'] ?? 0 }} active</small>
             </div>
         </div>
     </div>
     <div class="col-md-3">
         <div class="card stat-card" style="border-left-color: #7c3aed;">
             <div class="card-body">
-                <div class="stat-label">Total Revenue</div>
+                <div class="stat-label">Subscription Revenue</div>
                 <div class="stat-value">₹{{ number_format($stats['total_revenue'], 2) }}</div>
             </div>
         </div>
@@ -43,43 +43,43 @@
 </div>
 
 <div class="row g-4">
-    <!-- Recent Orders -->
+    <!-- Recent Subscriptions -->
     <div class="col-lg-8">
         <div class="card">
             <div class="card-header d-flex justify-content-between align-items-center">
-                <h6 class="mb-0">Recent Orders</h6>
-                <a href="{{ route('admin.reports.orders') }}" class="btn btn-sm btn-outline-primary">View All</a>
+                <h6 class="mb-0">Recent Subscriptions</h6>
+                <a href="{{ route('admin.stores.index') }}" class="btn btn-sm btn-outline-primary">View All Stores</a>
             </div>
             <div class="card-body p-0">
                 <div class="table-responsive">
                     <table class="table table-hover mb-0">
                         <thead>
                             <tr>
-                                <th>Order #</th>
-                                <th>Customer</th>
                                 <th>Store</th>
-                                <th>Total</th>
+                                <th>Plan</th>
+                                <th>Amount</th>
                                 <th>Status</th>
-                                <th>Date</th>
+                                <th>Start Date</th>
+                                <th>End Date</th>
                             </tr>
                         </thead>
                         <tbody>
-                            @forelse($recentOrders as $order)
+                            @forelse($recentSubscriptions as $subscription)
                             <tr>
-                                <td><code>{{ $order->order_number }}</code></td>
-                                <td>{{ $order->customer->name }}</td>
-                                <td>{{ $order->store->name }}</td>
-                                <td>₹{{ number_format($order->total, 2) }}</td>
+                                <td>{{ $subscription->store->name ?? 'N/A' }}</td>
+                                <td><span class="badge bg-primary">{{ $subscription->plan->name ?? 'N/A' }}</span></td>
+                                <td>₹{{ number_format($subscription->amount_paid, 2) }}</td>
                                 <td>
-                                    <span class="badge bg-{{ $order->payment_status === 'paid' ? 'success' : 'warning' }}">
-                                        {{ ucfirst($order->payment_status) }}
+                                    <span class="badge bg-{{ $subscription->status === 'active' ? 'success' : ($subscription->status === 'pending' ? 'warning' : 'secondary') }}">
+                                        {{ ucfirst($subscription->status) }}
                                     </span>
                                 </td>
-                                <td>{{ $order->created_at->format('M d, Y H:i') }}</td>
+                                <td>{{ $subscription->start_date ? \Carbon\Carbon::parse($subscription->start_date)->format('M d, Y') : 'N/A' }}</td>
+                                <td>{{ $subscription->end_date ? \Carbon\Carbon::parse($subscription->end_date)->format('M d, Y') : 'N/A' }}</td>
                             </tr>
                             @empty
                             <tr>
-                                <td colspan="6" class="text-center py-4 text-muted">No orders yet</td>
+                                <td colspan="6" class="text-center py-4 text-muted">No subscriptions yet</td>
                             </tr>
                             @endforelse
                         </tbody>

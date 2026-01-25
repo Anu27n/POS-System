@@ -19,29 +19,44 @@
                 </button>
             </div>
             <div class="card-body">
-                <div class="row">
-                    <div class="col-md-3">
+                <div class="row g-3 mb-3">
+                    <div class="col-md-4 col-6">
                         <div class="p-3 bg-light rounded text-center">
                             <h6 class="text-muted mb-1">Opening Cash</h6>
                             <h4 class="text-primary mb-0">{{ \App\Helpers\CurrencyHelper::format($currentSession->opening_cash) }}</h4>
                         </div>
                     </div>
-                    <div class="col-md-3">
+                    <div class="col-md-4 col-6">
                         <div class="p-3 bg-light rounded text-center">
                             <h6 class="text-muted mb-1">Cash Sales</h6>
                             <h4 class="text-success mb-0">{{ \App\Helpers\CurrencyHelper::format($currentSession->total_cash_sales) }}</h4>
                         </div>
                     </div>
-                    <div class="col-md-3">
+                    <div class="col-md-4 col-6">
                         <div class="p-3 bg-light rounded text-center">
                             <h6 class="text-muted mb-1">Card Sales</h6>
                             <h4 class="text-info mb-0">{{ \App\Helpers\CurrencyHelper::format($currentSession->total_card_sales) }}</h4>
                         </div>
                     </div>
-                    <div class="col-md-3">
+                </div>
+                <div class="row g-3">
+                    <div class="col-md-4 col-6">
                         <div class="p-3 bg-success bg-opacity-10 rounded text-center">
-                            <h6 class="text-muted mb-1">Expected Cash</h6>
-                            <h4 class="text-success mb-0">{{ \App\Helpers\CurrencyHelper::format($currentSession->expected_cash) }}</h4>
+                            <h6 class="text-muted mb-1">Cash In</h6>
+                            <h4 class="text-success mb-0">+{{ \App\Helpers\CurrencyHelper::format($currentSession->total_cash_in ?? 0) }}</h4>
+                        </div>
+                    </div>
+                    <div class="col-md-4 col-6">
+                        <div class="p-3 bg-warning bg-opacity-10 rounded text-center">
+                            <h6 class="text-muted mb-1">Cash Out</h6>
+                            <h4 class="text-warning mb-0">-{{ \App\Helpers\CurrencyHelper::format($currentSession->total_cash_out ?? 0) }}</h4>
+                        </div>
+                    </div>
+                    <div class="col-md-4 col-12">
+                        <div class="p-3 bg-primary bg-opacity-10 rounded text-center border border-primary">
+                            <h6 class="text-muted mb-1">Expected Cash (Auto-Calculated)</h6>
+                            <h4 class="text-primary mb-0 fw-bold">{{ \App\Helpers\CurrencyHelper::format($currentSession->expected_cash) }}</h4>
+                            <small class="text-muted">Opening + Sales + In - Out</small>
                         </div>
                     </div>
                 </div>
@@ -295,34 +310,43 @@
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
-                    <div class="alert alert-info">
+                    <div class="alert alert-info mb-3">
+                        <h6 class="mb-2"><i class="bi bi-calculator me-1"></i> Cash Calculation Summary</h6>
                         <div class="d-flex justify-content-between mb-1">
                             <span>Opening Cash:</span>
                             <strong>{{ \App\Helpers\CurrencyHelper::format($currentSession->opening_cash) }}</strong>
                         </div>
                         <div class="d-flex justify-content-between mb-1">
-                            <span>Cash Sales:</span>
-                            <strong>{{ \App\Helpers\CurrencyHelper::format($currentSession->total_cash_sales) }}</strong>
+                            <span>+ Cash Sales (POS Orders):</span>
+                            <strong class="text-success">{{ \App\Helpers\CurrencyHelper::format($currentSession->total_cash_sales) }}</strong>
                         </div>
+                        @if(($currentSession->total_cash_in ?? 0) > 0)
+                        <div class="d-flex justify-content-between mb-1">
+                            <span>+ Cash In:</span>
+                            <strong class="text-success">{{ \App\Helpers\CurrencyHelper::format($currentSession->total_cash_in ?? 0) }}</strong>
+                        </div>
+                        @endif
+                        @if(($currentSession->total_cash_out ?? 0) > 0)
+                        <div class="d-flex justify-content-between mb-1">
+                            <span>- Cash Out:</span>
+                            <strong class="text-danger">{{ \App\Helpers\CurrencyHelper::format($currentSession->total_cash_out ?? 0) }}</strong>
+                        </div>
+                        @endif
                         <hr class="my-2">
                         <div class="d-flex justify-content-between">
-                            <span>Expected Cash in Drawer:</span>
-                            <strong class="text-primary">{{ \App\Helpers\CurrencyHelper::format($currentSession->expected_cash) }}</strong>
+                            <span class="fw-bold">Actual Closing Cash:</span>
+                            <strong class="text-primary fs-5">{{ \App\Helpers\CurrencyHelper::format($currentSession->expected_cash) }}</strong>
                         </div>
                     </div>
 
-                    <div class="mb-3">
-                        <label class="form-label">Actual Closing Cash <span class="text-danger">*</span></label>
-                        <div class="input-group input-group-lg">
-                            <span class="input-group-text">{{ \App\Helpers\CurrencyHelper::getCurrencySymbol() }}</span>
-                            <input type="number" step="0.01" class="form-control" name="closing_cash"
-                                placeholder="{{ $currentSession->expected_cash }}" required autofocus>
-                        </div>
-                        <small class="text-muted">Count the cash in your drawer and enter the total</small>
+                    <div class="alert alert-success mb-3">
+                        <i class="bi bi-info-circle me-1"></i>
+                        <strong>Note:</strong> The closing cash is automatically calculated based on your opening cash, POS cash sales, cash in, and cash out transactions. This amount cannot be changed to avoid discrepancies.
                     </div>
+
                     <div class="mb-3">
                         <label class="form-label">Closing Notes (Optional)</label>
-                        <textarea class="form-control" name="notes" rows="2" placeholder="Any discrepancies or notes..."></textarea>
+                        <textarea class="form-control" name="notes" rows="2" placeholder="Any notes about this session..."></textarea>
                     </div>
                 </div>
                 <div class="modal-footer">

@@ -6,7 +6,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
-    <title>@yield('title', 'POS System')</title>
+    <title>@yield('title', $appSettings['app_name'] ?? 'POS System') - {{ $appSettings['app_name'] ?? 'POS System' }}</title>
+
+    @if(!empty($appSettings['app_favicon']))
+    <link rel="icon" type="image/png" href="{{ asset('storage/' . $appSettings['app_favicon']) }}">
+    @endif
 
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -102,8 +106,13 @@
     <!-- Navigation -->
     <nav class="navbar navbar-expand-lg navbar-dark shadow-sm">
         <div class="container">
-            <a class="navbar-brand" href="{{ route('home') }}">
-                <i class="bi bi-qr-code-scan me-2"></i>POS System
+            <a class="navbar-brand d-flex align-items-center" href="{{ route('home') }}">
+                @if(!empty($appSettings['app_logo']))
+                    <img src="{{ asset('storage/' . $appSettings['app_logo']) }}" alt="{{ $appSettings['app_name'] ?? 'POS System' }}" style="height: 35px;" class="me-2">
+                @else
+                    <i class="bi bi-qr-code-scan me-2"></i>
+                @endif
+                {{ $appSettings['app_name'] ?? 'POS System' }}
             </a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
                 <span class="navbar-toggler-icon"></span>
@@ -183,6 +192,34 @@
         @yield('content')
     </main>
 
+    <!-- Footer -->
+    <footer class="py-4 mt-auto">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-6">
+                    <p class="mb-0">
+                        @if(!empty($appSettings['footer_text']))
+                            {{ $appSettings['footer_text'] }}
+                        @else
+                            &copy; {{ date('Y') }} {{ $appSettings['app_name'] ?? 'POS System' }}. All rights reserved.
+                        @endif
+                    </p>
+                </div>
+                <div class="col-md-6 text-md-end">
+                    @if(!empty($appSettings['app_email']))
+                        <a href="mailto:{{ $appSettings['app_email'] }}" class="text-white-50 text-decoration-none me-3">
+                            <i class="bi bi-envelope me-1"></i>{{ $appSettings['app_email'] }}
+                        </a>
+                    @endif
+                    @if(!empty($appSettings['app_phone']))
+                        <a href="tel:{{ $appSettings['app_phone'] }}" class="text-white-50 text-decoration-none">
+                            <i class="bi bi-telephone me-1"></i>{{ $appSettings['app_phone'] }}
+                        </a>
+                    @endif
+                </div>
+            </div>
+        </div>
+    </footer>
 
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>

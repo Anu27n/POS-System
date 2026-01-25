@@ -279,6 +279,85 @@ class POSController extends Controller
     }
 
     /**
+     * Lookup order by order number (manual entry)
+     */
+    public function lookupOrder(Request $request)
+    {
+        $validated = $request->validate([
+            'order_number' => 'required|string',
+        ]);
+
+        $store = auth()->user()->getEffectiveStore();
+        
+        // Clean the order number (remove ORD prefix if entered)
+        $orderNumber = $validated['order_number'];
+        if (!str_starts_with(strtoupper($orderNumber), 'ORD')) {
+            $orderNumber = 'ORD' . $orderNumber;
+        }
+
+        // Find the order
+        $order = Order::with(['customer', 'items.product'])
+            ->where('store_id', $store->id)
+            ->where('order_number', strtoupper($orderNumber))
+            ->first();
+
+        if (!$order) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Order not found. Please check the order number.',
+            ], 404);
+        }
+
+        // Check if order is already completed
+        if ($order->order_status === 'completed') {
+            return response()->json([
+                'success' => false,
+                'message' => 'This order has already been completed.',
+                'order' => [
+                    'order_number' => $order->order_number,
+                    'order_status' => $order->order_status,
+                ],
+            ]);
+        }
+
+        // Check if order is cancelled
+        if ($order->order_status === 'cancelled') {
+            return response()->json([
+                'success' => false,
+                'message' => 'This order has been cancelled.',
+                'order' => [
+                    'order_number' => $order->order_number,
+                    'order_status' => $order->order_status,
+                ],
+            ]);
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Order found',
+            'order' => [
+                'id' => $order->id,
+                'order_number' => $order->order_number,
+                'customer_name' => $order->customer ? $order->customer->name : 'Walk-in Customer',
+                'items' => $order->items->map(fn($item) => [
+                    'name' => $item->product_name,
+                    'quantity' => $item->quantity,
+                    'price' => $item->price,
+                    'subtotal' => $item->subtotal,
+                ]),
+                'subtotal' => $order->subtotal,
+                'tax' => $order->tax,
+                'discount' => $order->discount,
+                'total' => $order->total,
+                'payment_method' => $order->payment_method,
+                'payment_status' => $order->payment_status,
+                'order_status' => $order->order_status,
+                'created_at' => $order->created_at->format('M d, Y H:i'),
+            ],
+        ]);
+    }
+
+    /**
      * Mark order as paid (for counter payments)
      */
     public function markPaid(Request $request, Order $order)

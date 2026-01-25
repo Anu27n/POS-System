@@ -91,6 +91,7 @@ class CashRegisterController extends Controller
 
     /**
      * Close the current cash register session
+     * Closing cash is now automatically calculated
      */
     public function close(Request $request, CashRegisterSession $session)
     {
@@ -106,11 +107,11 @@ class CashRegisterController extends Controller
         }
 
         $validated = $request->validate([
-            'closing_cash' => 'required|numeric|min:0',
             'notes' => 'nullable|string|max:500',
         ]);
 
-        $session->closeSession($validated['closing_cash'], $validated['notes']);
+        // Closing cash is automatically calculated - no manual input
+        $session->closeSession($validated['notes'] ?? null);
 
         return redirect()->route('store-owner.cash-register.index')
             ->with('success', 'Cash register closed successfully.');

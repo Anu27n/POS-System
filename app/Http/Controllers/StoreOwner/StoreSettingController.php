@@ -64,11 +64,17 @@ class StoreSettingController extends Controller
         $store = auth()->user()->store;
 
         $url = route('store.show', $store->slug);
-        $qrCode = $this->qrCodeService->generateStoreQR($store, $url);
+        
+        // Generate PNG QR code as base64 data URI
+        $qrDataUri = $this->qrCodeService->generatePngDataUri($url);
+        
+        // Extract pure base64 data from data URI and decode to binary
+        $base64Data = str_replace('data:image/png;base64,', '', $qrDataUri);
+        $pngBinary = base64_decode($base64Data);
 
-        // Save QR code
-        $filename = 'qrcodes/store-' . $store->id . '.svg';
-        Storage::disk('public')->put($filename, $qrCode);
+        // Save QR code as PNG
+        $filename = 'qrcodes/store-' . $store->id . '.png';
+        Storage::disk('public')->put($filename, $pngBinary);
 
         $store->update(['qr_code' => $filename]);
 
@@ -86,6 +92,6 @@ class StoreSettingController extends Controller
             return back()->with('error', 'QR code not found. Please generate it first.');
         }
 
-        return Storage::disk('public')->download($store->qr_code, 'store-qr-' . $store->slug . '.svg');
+        return Storage::disk('public')->download($store->qr_code, 'store-qr-' . $store->slug . '.png');
     }
 }

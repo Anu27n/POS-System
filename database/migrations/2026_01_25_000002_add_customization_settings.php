@@ -11,8 +11,12 @@ return new class extends Migration
      */
     public function up(): void
     {
+        // Add customization fields to stores table
         Schema::table('stores', function (Blueprint $table) {
-            //
+            $table->string('primary_color', 7)->nullable()->after('logo');
+            $table->string('secondary_color', 7)->nullable()->after('primary_color');
+            $table->string('accent_color', 7)->nullable()->after('secondary_color');
+            $table->string('font_family')->nullable()->after('accent_color');
         });
     }
 
@@ -22,7 +26,7 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('stores', function (Blueprint $table) {
-            //
+            $table->dropColumn(['primary_color', 'secondary_color', 'accent_color', 'font_family']);
         });
     }
 };
