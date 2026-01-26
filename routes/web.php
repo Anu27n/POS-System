@@ -18,7 +18,7 @@ use Illuminate\Support\Facades\Route;
 |--------------------------------------------------------------------------
 */
 
-Route::prefix('install')->group(function () {
+Route::prefix('install')->withoutMiddleware(\App\Http\Middleware\CheckInstallation::class)->group(function () {
     Route::get('/', [InstallerController::class, 'index'])->name('installer.index');
     Route::get('/requirements', [InstallerController::class, 'requirements'])->name('installer.requirements');
     Route::get('/database', [InstallerController::class, 'database'])->name('installer.database');
