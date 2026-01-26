@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Cart;
+use App\Models\CashRegisterSession;
 use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\Store;
@@ -141,6 +142,13 @@ class CheckoutController extends Controller
 
             // Update customer stats
             $storeCustomer->recordOrder($total);
+
+            // Add transaction to cash register if session is open
+            $cashSession = CashRegisterSession::getAnyOpenSession($store->id);
+            if ($cashSession && $validated['payment_method'] !== 'online') {
+                // Only add to cash register for non-online payments
+                $cashSession->addTransaction('sale', $validated['payment_method'], $total, $order->id);
+            }
 
             // Clear cart
             $cart->items()->delete();

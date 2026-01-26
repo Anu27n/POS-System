@@ -1151,7 +1151,10 @@
                     if (data.success) {
                         selectCustomer(data.customer.id, data.customer.name, data.customer.phone);
                         this.reset();
-                        document.getElementById('searchCustomerTab').click();
+                        // Close the modal after successful creation
+                        const modal = bootstrap.Modal.getInstance(document.getElementById('customerModal'));
+                        if (modal) modal.hide();
+                        alert('Customer added successfully!');
                     } else {
                         alert('Error: ' + (data.message || 'Failed to create customer'));
                     }

@@ -72,7 +72,7 @@
                             @endif
                         </td>
                         <td>
-                            @if(!$product->track_stock)
+                            @if(!$product->track_inventory)
                                 <span class="badge bg-secondary">Not Tracked</span>
                             @elseif($product->stock_quantity <= 0)
                                 <span class="badge bg-danger">Out of Stock</span>
@@ -83,7 +83,7 @@
                             @endif
                         </td>
                         <td>
-                            @if($product->is_active)
+                            @if($product->status === 'available')
                                 <span class="badge bg-success">Active</span>
                             @else
                                 <span class="badge bg-secondary">Inactive</span>

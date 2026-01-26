@@ -100,6 +100,23 @@ class TaxReportController extends Controller
             'year' => $this->getTaxForPeriod($store->id, 'year'),
         ];
 
+        // Calculate date range info
+        $dateRange = [
+            'start' => $startDate->format('M d, Y'),
+            'end' => $endDate->format('M d, Y'),
+            'days' => (int) ceil($startDate->diffInDays($endDate)) + 1,
+        ];
+
+        // Get recent tax transactions
+        $taxTransactions = OrderTax::whereHas('order', function ($query) use ($store, $startDate, $endDate) {
+            $query->where('store_id', $store->id)
+                ->where('payment_status', 'paid')
+                ->whereBetween('created_at', [$startDate, $endDate]);
+        })
+            ->with('order')
+            ->latest('created_at')
+            ->paginate(20);
+
         return view('store-owner.reports.tax', compact(
             'store',
             'taxSummary',
@@ -111,7 +128,9 @@ class TaxReportController extends Controller
             'startDate',
             'endDate',
             'summary',
-            'taxBreakdown'
+            'taxBreakdown',
+            'dateRange',
+            'taxTransactions'
         ));
     }
 

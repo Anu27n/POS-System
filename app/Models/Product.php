@@ -17,15 +17,23 @@ class Product extends Model
         'name',
         'slug',
         'sku',
+        'barcode',
         'description',
         'price',
         'compare_price',
+        'cost_price',
+        'tax_rate',
         'stock_quantity',
         'low_stock_threshold',
         'image',
         'gallery',
         'status',
         'track_inventory',
+        'is_featured',
+        'sizes',
+        'colors',
+        'unit',
+        'weight',
     ];
 
     protected $casts = [

@@ -406,6 +406,12 @@ class POSController extends Controller
             'transaction_id' => $transactionId,
         ]);
 
+        // Add transaction to cash register if session is open
+        $cashSession = CashRegisterSession::getAnyOpenSession($store->id);
+        if ($cashSession) {
+            $cashSession->addTransaction('sale', $paymentMethod, $order->total, $order->id);
+        }
+
         return response()->json([
             'success' => true,
             'message' => 'Order marked as paid successfully.',
