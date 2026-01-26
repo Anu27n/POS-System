@@ -52,6 +52,20 @@ class ReportController extends Controller
 
         $averageOrder = $averageOrderValue;
 
+        // Top selling products
+        $topProducts = \App\Models\OrderItem::whereHas('order', function ($q) use ($store, $startDate, $endDate) {
+            $q->where('store_id', $store->id)
+                ->where('payment_status', 'paid')
+                ->whereBetween('created_at', [$startDate . ' 00:00:00', $endDate . ' 23:59:59']);
+        })
+            ->select('product_name')
+            ->selectRaw('SUM(quantity) as quantity')
+            ->selectRaw('SUM(total) as revenue')
+            ->groupBy('product_name')
+            ->orderByDesc('quantity')
+            ->limit(10)
+            ->get();
+
         return view('store-owner.reports.sales', compact(
             'store',
             'totalSales',
@@ -61,7 +75,8 @@ class ReportController extends Controller
             'paymentMethods',
             'startDate',
             'endDate',
-            'productsSold'
+            'productsSold',
+            'topProducts'
         ));
     }
 

@@ -41,6 +41,42 @@ class TaxReportController extends Controller
         $totalTax = $taxSummary->sum('total_tax');
         $totalTaxable = $taxSummary->sum('total_taxable');
 
+        // Get order count with tax in the period
+        $orderCount = Order::where('store_id', $store->id)
+            ->where('payment_status', 'paid')
+            ->whereBetween('created_at', [$startDate, $endDate])
+            ->whereHas('taxes')
+            ->count();
+
+        // Get total sales for the period
+        $totalSales = Order::where('store_id', $store->id)
+            ->where('payment_status', 'paid')
+            ->whereBetween('created_at', [$startDate, $endDate])
+            ->sum('total');
+
+        // Calculate effective tax rate
+        $effectiveRate = $totalSales > 0 ? round(($totalTax / $totalSales) * 100, 2) : 0;
+
+        // Build summary array for the view
+        $summary = [
+            'total_sales' => $totalSales,
+            'total_tax' => $totalTax,
+            'order_count' => $orderCount,
+            'effective_rate' => $effectiveRate,
+        ];
+
+        // Get tax breakdown by type
+        $taxBreakdown = OrderTax::whereHas('order', function ($query) use ($store, $startDate, $endDate) {
+            $query->where('store_id', $store->id)
+                ->where('payment_status', 'paid')
+                ->whereBetween('created_at', [$startDate, $endDate]);
+        })
+            ->select('tax_name', 'tax_percentage as percentage')
+            ->selectRaw('SUM(tax_amount) as total_amount')
+            ->groupBy('tax_name', 'tax_percentage')
+            ->orderByDesc('total_amount')
+            ->get();
+
         // Get daily breakdown
         $dailyBreakdown = OrderTax::whereHas('order', function ($query) use ($store, $startDate, $endDate) {
             $query->where('store_id', $store->id)
@@ -73,7 +109,9 @@ class TaxReportController extends Controller
             'stats',
             'period',
             'startDate',
-            'endDate'
+            'endDate',
+            'summary',
+            'taxBreakdown'
         ));
     }
 

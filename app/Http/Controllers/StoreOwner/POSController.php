@@ -183,7 +183,7 @@ class POSController extends Controller
                     'product_sku' => $item['product']->sku ?? '',
                     'price' => $item['product']->price,
                     'quantity' => $item['quantity'],
-                    'subtotal' => $item['subtotal'],
+                    'total' => $item['subtotal'],
                 ]);
 
                 // Reduce stock
