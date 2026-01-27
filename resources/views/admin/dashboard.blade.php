@@ -74,8 +74,8 @@
                                         {{ ucfirst($subscription->status) }}
                                     </span>
                                 </td>
-                                <td>{{ $subscription->start_date ? \Carbon\Carbon::parse($subscription->start_date)->format('M d, Y') : 'N/A' }}</td>
-                                <td>{{ $subscription->end_date ? \Carbon\Carbon::parse($subscription->end_date)->format('M d, Y') : 'N/A' }}</td>
+                                <td>{{ $subscription->starts_at ? $subscription->starts_at->format('M d, Y') : 'N/A' }}</td>
+                                <td>{{ $subscription->ends_at ? $subscription->ends_at->format('M d, Y') : 'N/A' }}</td>
                             </tr>
                             @empty
                             <tr>

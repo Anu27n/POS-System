@@ -13,7 +13,7 @@ class ReportController extends Controller
      */
     public function sales(Request $request)
     {
-        $store = auth()->user()->store;
+        $store = auth()->user()->getEffectiveStore();
 
         $startDate = $request->input('start_date', now()->subMonth()->format('Y-m-d'));
         $endDate = $request->input('end_date', now()->format('Y-m-d'));
@@ -85,7 +85,7 @@ class ReportController extends Controller
      */
     public function inventory()
     {
-        $store = auth()->user()->store;
+        $store = auth()->user()->getEffectiveStore();
 
         $products = $store->products()
             ->with('category')

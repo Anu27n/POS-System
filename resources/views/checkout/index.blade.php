@@ -179,10 +179,23 @@
                             <span>Subtotal</span>
                             <span>₹{{ number_format($subtotal, 2) }}</span>
                         </div>
-                        <div class="d-flex justify-content-between mb-2">
-                            <span>Tax</span>
-                            <span>₹{{ number_format($tax, 2) }}</span>
-                        </div>
+                        @if(!empty($taxBreakdown))
+                            @foreach($taxBreakdown as $taxItem)
+                            <div class="d-flex justify-content-between mb-2">
+                                <span class="text-muted small">{{ $taxItem['name'] }} ({{ number_format($taxItem['percentage'], 2) }}%)</span>
+                                <span class="text-muted small">₹{{ number_format($taxItem['amount'], 2) }}</span>
+                            </div>
+                            @endforeach
+                            <div class="d-flex justify-content-between mb-2">
+                                <span>Total Tax</span>
+                                <span>₹{{ number_format($tax, 2) }}</span>
+                            </div>
+                        @else
+                            <div class="d-flex justify-content-between mb-2">
+                                <span>Tax</span>
+                                <span>₹{{ number_format($tax, 2) }}</span>
+                            </div>
+                        @endif
                         <hr>
                         <div class="d-flex justify-content-between mb-3">
                             <strong class="fs-5">Total</strong>

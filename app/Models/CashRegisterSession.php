@@ -166,6 +166,9 @@ class CashRegisterSession extends Model
             $this->total_cash_sales -= $amount;
         }
 
+        // Update expected cash after each transaction
+        $this->expected_cash = $this->calculateExpectedCash();
+        
         $this->save();
 
         return $transaction;

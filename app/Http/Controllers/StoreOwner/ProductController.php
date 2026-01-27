@@ -14,7 +14,7 @@ class ProductController extends Controller
      */
     public function index(Request $request)
     {
-        $store = auth()->user()->store;
+        $store = auth()->user()->getEffectiveStore();
         $query = $store->products()->with('category');
 
         if ($request->filled('search')) {
@@ -43,7 +43,7 @@ class ProductController extends Controller
      */
     public function create()
     {
-        $store = auth()->user()->store;
+        $store = auth()->user()->getEffectiveStore();
         $categories = $store->categories()->orderBy('name')->get();
 
         return view('store-owner.products.create', compact('categories'));
@@ -76,7 +76,7 @@ class ProductController extends Controller
             'weight' => 'nullable|numeric|min:0',
         ]);
 
-        $store = auth()->user()->store;
+        $store = auth()->user()->getEffectiveStore();
 
         if ($request->hasFile('image')) {
             $validated['image'] = $request->file('image')->store('products', 'public');
@@ -129,7 +129,7 @@ class ProductController extends Controller
     {
         $this->authorizeProduct($product);
 
-        $store = auth()->user()->store;
+        $store = auth()->user()->getEffectiveStore();
         $categories = $store->categories()->orderBy('name')->get();
 
         return view('store-owner.products.edit', compact('product', 'categories'));
@@ -242,7 +242,8 @@ class ProductController extends Controller
      */
     private function authorizeProduct(Product $product): void
     {
-        if ($product->store_id !== auth()->user()->store->id) {
+        $store = auth()->user()->getEffectiveStore();
+        if (!$store || $product->store_id !== $store->id) {
             abort(403);
         }
     }

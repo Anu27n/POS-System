@@ -22,7 +22,7 @@ class StoreSettingController extends Controller
      */
     public function index()
     {
-        $store = auth()->user()->store;
+        $store = auth()->user()->getEffectiveStore();
 
         return view('store-owner.settings.index', compact('store'));
     }
@@ -32,15 +32,18 @@ class StoreSettingController extends Controller
      */
     public function update(Request $request)
     {
-        $store = auth()->user()->store;
+        $store = auth()->user()->getEffectiveStore();
 
         $validated = $request->validate([
             'name' => 'required|string|max:255',
+            'type' => 'required|string|in:grocery,clothing,department',
             'description' => 'nullable|string',
             'address' => 'nullable|string|max:500',
             'phone' => 'nullable|string|max:20',
             'email' => 'nullable|email|max:255',
+            'currency' => 'nullable|string|in:USD,EUR,GBP,INR',
             'logo' => 'nullable|image|max:2048',
+            'is_active' => 'nullable',
         ]);
 
         if ($request->hasFile('logo')) {
@@ -50,6 +53,10 @@ class StoreSettingController extends Controller
             }
             $validated['logo'] = $request->file('logo')->store('stores', 'public');
         }
+
+        // Map is_active to status
+        $validated['status'] = $request->input('is_active') == '1' ? 'active' : 'inactive';
+        unset($validated['is_active']);
 
         $store->update($validated);
 
@@ -61,7 +68,7 @@ class StoreSettingController extends Controller
      */
     public function generateQRCode()
     {
-        $store = auth()->user()->store;
+        $store = auth()->user()->getEffectiveStore();
 
         $url = route('store.show', $store->slug);
         
@@ -86,7 +93,7 @@ class StoreSettingController extends Controller
      */
     public function downloadQRCode()
     {
-        $store = auth()->user()->store;
+        $store = auth()->user()->getEffectiveStore();
 
         if (!$store->qr_code || !Storage::disk('public')->exists($store->qr_code)) {
             return back()->with('error', 'QR code not found. Please generate it first.');

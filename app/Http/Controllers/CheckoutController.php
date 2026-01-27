@@ -42,8 +42,24 @@ class CheckoutController extends Controller
 
         // Calculate totals
         $subtotal = $cart->subtotal;
-        $taxRate = $store->tax_rate ?? 0;
-        $tax = $subtotal * ($taxRate / 100);
+        
+        // Calculate taxes using new tax system
+        $taxSettings = $store->taxSettings;
+        $tax = 0;
+        $taxBreakdown = [];
+        
+        if ($taxSettings && $taxSettings->taxes_enabled) {
+            foreach ($store->enabledTaxes as $storeTax) {
+                $taxAmount = $storeTax->calculateTax($subtotal);
+                $tax += $taxAmount;
+                $taxBreakdown[] = [
+                    'name' => $storeTax->name,
+                    'percentage' => $storeTax->percentage,
+                    'amount' => $taxAmount,
+                ];
+            }
+        }
+        
         $total = $subtotal + $tax;
 
         // Get available payment methods
@@ -52,7 +68,7 @@ class CheckoutController extends Controller
         // Check if user is logged in
         $isLoggedIn = auth()->check();
 
-        return view('checkout.index', compact('cart', 'store', 'subtotal', 'tax', 'total', 'paymentMethods', 'isLoggedIn'));
+        return view('checkout.index', compact('cart', 'store', 'subtotal', 'tax', 'taxBreakdown', 'total', 'paymentMethods', 'isLoggedIn'));
     }
 
     /**
@@ -99,8 +115,26 @@ class CheckoutController extends Controller
 
             // Calculate totals
             $subtotal = $cart->subtotal;
-            $taxRate = $store->tax_rate ?? 0;
-            $tax = $subtotal * ($taxRate / 100);
+            
+            // Calculate taxes using new tax system
+            $taxSettings = $store->taxSettings;
+            $tax = 0;
+            $taxBreakdown = [];
+            
+            if ($taxSettings && $taxSettings->taxes_enabled) {
+                foreach ($store->enabledTaxes as $storeTax) {
+                    $taxAmount = $storeTax->calculateTax($subtotal);
+                    $tax += $taxAmount;
+                    $taxBreakdown[] = [
+                        'store_tax_id' => $storeTax->id,
+                        'tax_name' => $storeTax->name,
+                        'tax_percentage' => $storeTax->percentage,
+                        'taxable_amount' => $subtotal,
+                        'tax_amount' => $taxAmount,
+                    ];
+                }
+            }
+            
             $total = $subtotal + $tax;
 
             // Create or update store customer record
@@ -119,6 +153,11 @@ class CheckoutController extends Controller
                 'order_status' => 'pending',
                 'notes' => $validated['notes'] ?? null,
             ]);
+
+            // Create order tax records
+            foreach ($taxBreakdown as $taxRecord) {
+                \App\Models\OrderTax::create(array_merge($taxRecord, ['order_id' => $order->id]));
+            }
 
             // Create order items and reduce stock
             foreach ($cart->items as $item) {

@@ -149,7 +149,7 @@
             <i class="bi bi-cart-x fs-1 text-muted mb-3 d-block"></i>
             <h4>Your cart is empty</h4>
             <p class="text-muted mb-4">Start shopping by browsing our stores</p>
-            <a href="{{ route('home') }}" class="btn btn-primary">
+            <a href="{{ route('home') }}#stores" class="btn btn-primary">
                 <i class="bi bi-shop me-1"></i>Browse Stores
             </a>
         </div>

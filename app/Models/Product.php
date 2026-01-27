@@ -41,6 +41,7 @@ class Product extends Model
         'compare_price' => 'decimal:2',
         'gallery' => 'array',
         'track_inventory' => 'boolean',
+        'is_featured' => 'boolean',
     ];
 
     protected static function boot()

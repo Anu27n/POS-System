@@ -147,6 +147,7 @@
                             <li><a class="dropdown-item" href="{{ route('store-owner.dashboard') }}"><i class="bi bi-shop me-2"></i>Store Dashboard</a></li>
                             <li><a class="dropdown-item" href="{{ route('store-owner.pos.index') }}"><i class="bi bi-display me-2"></i>POS Terminal</a></li>
                             @endif
+                            <li><a class="dropdown-item" href="{{ route('cart.index') }}"><i class="bi bi-cart me-2"></i>My Cart</a></li>
                             <li><a class="dropdown-item" href="{{ route('orders.index') }}"><i class="bi bi-bag me-2"></i>My Orders</a></li>
                             <li>
                                 <hr class="dropdown-divider">
@@ -191,35 +192,6 @@
     <main class="py-4">
         @yield('content')
     </main>
-
-    <!-- Footer -->
-    <footer class="py-4 mt-auto">
-        <div class="container">
-            <div class="row">
-                <div class="col-md-6">
-                    <p class="mb-0">
-                        @if(!empty($appSettings['footer_text']))
-                            {{ $appSettings['footer_text'] }}
-                        @else
-                            &copy; {{ date('Y') }} {{ $appSettings['app_name'] ?? 'POS System' }}. All rights reserved.
-                        @endif
-                    </p>
-                </div>
-                <div class="col-md-6 text-md-end">
-                    @if(!empty($appSettings['app_email']))
-                        <a href="mailto:{{ $appSettings['app_email'] }}" class="text-white-50 text-decoration-none me-3">
-                            <i class="bi bi-envelope me-1"></i>{{ $appSettings['app_email'] }}
-                        </a>
-                    @endif
-                    @if(!empty($appSettings['app_phone']))
-                        <a href="tel:{{ $appSettings['app_phone'] }}" class="text-white-50 text-decoration-none">
-                            <i class="bi bi-telephone me-1"></i>{{ $appSettings['app_phone'] }}
-                        </a>
-                    @endif
-                </div>
-            </div>
-        </div>
-    </footer>
 
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>

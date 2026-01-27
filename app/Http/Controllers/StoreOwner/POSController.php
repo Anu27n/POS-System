@@ -235,7 +235,7 @@ class POSController extends Controller
             'qr_data' => 'required|string',
         ]);
 
-        $store = auth()->user()->store;
+        $store = auth()->user()->getEffectiveStore();
 
         // Use QRCodeService to validate the scanned QR data
         $result = $this->qrCodeService->verifyOrderQR($validated['qr_data'], $store->id);
@@ -362,7 +362,7 @@ class POSController extends Controller
      */
     public function markPaid(Request $request, Order $order)
     {
-        $store = auth()->user()->store;
+        $store = auth()->user()->getEffectiveStore();
 
         // Security: Verify store ownership
         if ($order->store_id !== $store->id) {
@@ -431,7 +431,7 @@ class POSController extends Controller
      */
     public function completeOrder(Request $request, Order $order)
     {
-        $store = auth()->user()->store;
+        $store = auth()->user()->getEffectiveStore();
 
         // Security: Verify store ownership
         if ($order->store_id !== $store->id) {
@@ -476,7 +476,7 @@ class POSController extends Controller
      */
     public function receipt(Order $order)
     {
-        $store = auth()->user()->store;
+        $store = auth()->user()->getEffectiveStore();
 
         if ($order->store_id !== $store->id) {
             abort(403);
