@@ -26,7 +26,8 @@
         background: var(--primary-dark);
         position: relative;
         overflow: hidden;
-        padding-top: 80px;
+        padding-top: 0px;
+        margin-top: -1px; /* Remove any gap between navbar and hero */
     }
 
     .hero-modern::before {
@@ -1098,6 +1099,59 @@
         .payment-strip {
             flex-direction: column;
             gap: 20px;
+        }
+    }
+    
+    /* Mobile view improvements */
+    @media (max-width: 575px) {
+        .hero-modern {
+            min-height: auto;
+            padding-top: 60px;
+            padding-bottom: 40px;
+        }
+        
+        .hero-title {
+            font-size: 1.75rem;
+        }
+        
+        .hero-description {
+            font-size: 1rem;
+        }
+        
+        .features-section,
+        .how-it-works-section,
+        .pricing-section,
+        .testimonials-section,
+        .cta-section {
+            padding: 50px 0;
+        }
+        
+        .section-title {
+            font-size: 1.5rem;
+        }
+        
+        .dashboard-preview {
+            padding: 12px;
+        }
+        
+        .floating-card {
+            display: none;
+        }
+        
+        .btn-glow, .btn-ghost {
+            padding: 12px 24px;
+            font-size: 0.9rem;
+            width: 100%;
+        }
+        
+        .hero-buttons {
+            flex-direction: column;
+            width: 100%;
+        }
+        
+        .hero-trust {
+            flex-direction: column;
+            gap: 12px;
         }
     }
 </style>

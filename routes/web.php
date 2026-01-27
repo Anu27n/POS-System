@@ -75,6 +75,12 @@ Route::middleware('guest')->group(function () {
     Route::post('/login', [AuthController::class, 'login']);
     Route::get('/register', [AuthController::class, 'showRegisterForm'])->name('register');
     Route::post('/register', [AuthController::class, 'register']);
+    
+    // Password Reset Routes
+    Route::get('/forgot-password', [AuthController::class, 'showForgotPasswordForm'])->name('password.request');
+    Route::post('/forgot-password', [AuthController::class, 'sendResetLink'])->name('password.email');
+    Route::get('/reset-password/{token}', [AuthController::class, 'showResetPasswordForm'])->name('password.reset');
+    Route::post('/reset-password', [AuthController::class, 'resetPassword'])->name('password.update');
 });
 
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout')->middleware('auth');
@@ -139,6 +145,11 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin'])->grou
     Route::post('/settings/customization', [Admin\CustomizationController::class, 'update'])->name('settings.customization.update');
     Route::get('/settings/customization/remove-logo', [Admin\CustomizationController::class, 'removeLogo'])->name('settings.customization.remove-logo');
     Route::get('/settings/customization/remove-favicon', [Admin\CustomizationController::class, 'removeFavicon'])->name('settings.customization.remove-favicon');
+
+    // SMTP & Email settings
+    Route::get('/settings/smtp', [Admin\SmtpSettingController::class, 'index'])->name('settings.smtp');
+    Route::post('/settings/smtp', [Admin\SmtpSettingController::class, 'update'])->name('settings.smtp.update');
+    Route::post('/settings/smtp/test', [Admin\SmtpSettingController::class, 'test'])->name('settings.smtp.test');
 
     // Reports
     Route::get('/reports/sales', [Admin\ReportController::class, 'sales'])->name('reports.sales');

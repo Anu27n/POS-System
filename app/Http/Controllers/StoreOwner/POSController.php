@@ -289,16 +289,19 @@ class POSController extends Controller
 
         $store = auth()->user()->getEffectiveStore();
         
-        // Clean the order number (remove ORD prefix if entered)
-        $orderNumber = $validated['order_number'];
-        if (!str_starts_with(strtoupper($orderNumber), 'ORD')) {
-            $orderNumber = 'ORD' . $orderNumber;
-        }
+        // Clean the order number (remove ORD prefix if entered, handle hyphen)
+        $orderNumber = strtoupper(trim($validated['order_number']));
+        
+        // Remove 'ORD' or 'ORD-' prefix if user entered it
+        $orderNumber = preg_replace('/^ORD-?/', '', $orderNumber);
+        
+        // Add the standard ORD- prefix
+        $orderNumber = 'ORD-' . $orderNumber;
 
         // Find the order
         $order = Order::with(['customer', 'items.product'])
             ->where('store_id', $store->id)
-            ->where('order_number', strtoupper($orderNumber))
+            ->where('order_number', $orderNumber)
             ->first();
 
         if (!$order) {

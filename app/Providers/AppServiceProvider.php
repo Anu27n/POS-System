@@ -2,7 +2,9 @@
 
 namespace App\Providers;
 
+use App\Models\Order;
 use App\Models\SystemSetting;
+use App\Observers\OrderObserver;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\File;
@@ -32,6 +34,9 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        // Register Order observer
+        Order::observe(OrderObserver::class);
+
         // CRITICAL: Always share default settings first
         // This ensures views can render even during errors
         View::share('appSettings', $this->getDefaultSettings());

@@ -26,6 +26,18 @@
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background-color: #f8fafc;
+            margin: 0;
+            padding: 0;
+        }
+
+        /* Global image fallback placeholder */
+        .image-fallback {
+            background-color: #f3f4f6;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #9ca3af;
+            font-size: 2rem;
         }
 
         .navbar {
@@ -167,7 +179,7 @@
     </nav>
 
     <!-- Flash Messages -->
-    <div class="container mt-3">
+    <div class="container mt-3" style="position: absolute; z-index: 1050; width: 100%;">
         @if(session('success'))
         <div class="alert alert-success alert-dismissible fade show" role="alert">
             {{ session('success') }}
@@ -189,12 +201,30 @@
     </div>
 
     <!-- Main Content -->
-    <main class="py-4">
+    <main>
         @yield('content')
     </main>
 
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <script>
+        // Global image error handler - replaces broken images with SVG placeholder
+        document.addEventListener('DOMContentLoaded', function() {
+            // Find all images without explicit onerror handler
+            document.querySelectorAll('img').forEach(function(img) {
+                if (!img.hasAttribute('onerror') || img.getAttribute('onerror') === '') {
+                    img.onerror = function() {
+                        this.onerror = null; // Prevent infinite loop
+                        const width = this.width || 200;
+                        const height = this.height || 200;
+                        this.src = `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='${width}' height='${height}'%3E%3Crect fill='%23f3f4f6' width='${width}' height='${height}'/%3E%3Ctext fill='%239ca3af' font-family='sans-serif' font-size='24' dy='10.5' font-weight='bold' x='50%25' y='50%25' text-anchor='middle'%3E📦%3C/text%3E%3C/svg%3E`;
+                    };
+                }
+            });
+        });
+    </script>
+    
     @stack('scripts')
 </body>
 

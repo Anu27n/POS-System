@@ -8,6 +8,56 @@
     .pos-container {
         height: calc(100vh - 140px);
     }
+    
+    /* Mobile: Stack cart below products */
+    @media (max-width: 991px) {
+        .pos-container {
+            height: auto;
+        }
+        .pos-container > .col-lg-8,
+        .pos-container > .col-lg-4 {
+            height: auto;
+        }
+        .pos-container > .col-lg-4 {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            z-index: 1040;
+            max-height: 50vh;
+            padding: 0;
+        }
+        .pos-container > .col-lg-4 .card {
+            border-radius: 16px 16px 0 0;
+            box-shadow: 0 -4px 20px rgba(0,0,0,0.15);
+        }
+        .pos-container > .col-lg-4 .cart-items {
+            max-height: 25vh;
+        }
+        .pos-container > .col-lg-8 {
+            padding-bottom: 200px;
+        }
+        .products-grid {
+            height: auto !important;
+            max-height: 60vh;
+        }
+        /* Mobile cart toggle */
+        .mobile-cart-toggle {
+            display: block !important;
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 1050;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            font-size: 1.5rem;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+        }
+        .cart-section.collapsed {
+            transform: translateY(calc(100% - 60px));
+        }
+    }
 
     .products-grid {
         height: 100%;
@@ -18,16 +68,39 @@
         cursor: pointer;
         transition: transform 0.2s, box-shadow 0.2s;
         height: 100%;
+        -webkit-tap-highlight-color: transparent;
+        user-select: none;
     }
 
-    .product-card:hover {
+    .product-card:hover,
+    .product-card:active {
         transform: translateY(-2px);
         box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    }
+    
+    .product-card:active {
+        transform: scale(0.98);
     }
 
     .product-card img {
         height: 120px;
         object-fit: cover;
+    }
+    
+    @media (max-width: 575px) {
+        .product-card img {
+            height: 80px;
+        }
+        .product-card .card-body {
+            padding: 8px !important;
+        }
+        .product-card .card-title {
+            font-size: 0.75rem;
+            margin-bottom: 4px !important;
+        }
+        .product-card .card-text {
+            font-size: 0.85rem;
+        }
     }
 
     .cart-section {
@@ -107,6 +180,10 @@
         font-size: 1rem;
         border-radius: 8px;
     }
+    
+    .mobile-cart-toggle {
+        display: none;
+    }
 </style>
 @endpush
 
@@ -165,17 +242,21 @@
                                 data-name="{{ strtolower($product->name) }}"
                                 data-sku="{{ strtolower($product->sku ?? '') }}"
                                 data-barcode="{{ strtolower($product->barcode ?? '') }}">
-                                <div class="card product-card"
-                                    onclick="addToCart({{ json_encode([
-                                         'id' => $product->id,
-                                         'name' => $product->name,
-                                         'price' => $product->price,
-                                         'image' => $product->image ? asset('storage/' . $product->image) : null,
-                                         'stock' => $product->stock_quantity,
-                                         'track_stock' => $product->track_inventory,
-                                     ]) }})">
+                                <div class="card product-card" style="cursor: pointer;"
+                                    data-product='{{ json_encode([
+                                         "id" => $product->id,
+                                         "name" => $product->name,
+                                         "price" => $product->price,
+                                         "image" => $product->image ? asset("storage/" . $product->image) : null,
+                                         "stock" => $product->stock_quantity,
+                                         "track_stock" => $product->track_inventory,
+                                     ]) }}'>
                                     @if($product->image)
-                                    <img src="{{ asset('storage/' . $product->image) }}" class="card-img-top" alt="{{ $product->name }}">
+                                    <img src="{{ asset('storage/' . $product->image) }}" class="card-img-top" alt="{{ $product->name }}"
+                                        onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                                    <div class="bg-light align-items-center justify-content-center" style="height: 120px; display: none;">
+                                        <i class="bi bi-box text-muted fs-1"></i>
+                                    </div>
                                     @else
                                     <div class="bg-light d-flex align-items-center justify-content-center" style="height: 120px;">
                                         <i class="bi bi-box text-muted fs-1"></i>
@@ -186,7 +267,7 @@
                                             {{ $product->name }}
                                         </h6>
                                         <p class="card-text mb-0 fw-bold text-primary">
-                                            ₹{{ number_format($product->price, 2) }}
+                                            {{ \App\Helpers\CurrencyHelper::format($product->price, $store->currency ?? 'INR') }}
                                         </p>
                                         @if($product->track_inventory)
                                         <small class="text-muted">Stock: {{ $product->stock_quantity }}</small>
@@ -237,23 +318,23 @@
                     <div class="cart-summary">
                         <div class="d-flex justify-content-between mb-2">
                             <span>Subtotal:</span>
-                            <span id="cartSubtotal">₹0.00</span>
+                            <span id="cartSubtotal">{{ \App\Helpers\CurrencyHelper::getCurrencySymbol($store->currency ?? 'INR') }}0.00</span>
                         </div>
                         <div class="d-flex justify-content-between mb-2">
                             <span>Tax (<span id="taxRate">{{ $taxRate ?? 0 }}</span>%):</span>
-                            <span id="cartTax">₹0.00</span>
+                            <span id="cartTax">{{ \App\Helpers\CurrencyHelper::getCurrencySymbol($store->currency ?? 'INR') }}0.00</span>
                         </div>
                         <div class="d-flex justify-content-between mb-3">
                             <span>Discount:</span>
                             <div class="input-group input-group-sm" style="width: 100px;">
-                                <span class="input-group-text">₹</span>
+                                <span class="input-group-text">{{ \App\Helpers\CurrencyHelper::getCurrencySymbol($store->currency ?? 'INR') }}</span>
                                 <input type="number" class="form-control" id="discountAmount" value="0" min="0" step="0.01">
                             </div>
                         </div>
                         <hr>
                         <div class="d-flex justify-content-between mb-3">
                             <strong class="fs-5">Total:</strong>
-                            <strong class="fs-5" id="cartTotal">₹0.00</strong>
+                            <strong class="fs-5" id="cartTotal">{{ \App\Helpers\CurrencyHelper::getCurrencySymbol($store->currency ?? 'INR') }}0.00</strong>
                         </div>
 
                         <div class="mb-3">
@@ -501,6 +582,7 @@
     let isScanning = false;
     let currentScannedOrder = null;
     const taxRate = {{ $taxRate ?? 0 }};
+    const currencySymbol = '{{ \App\Helpers\CurrencyHelper::getCurrencySymbol($store->currency ?? "INR") }}';
 
     // =====================
     // QR SCANNER FUNCTIONS
@@ -870,6 +952,52 @@
     // CART FUNCTIONS
     // =====================
 
+    // Product card click handler with touch support
+    document.getElementById('productsGrid').addEventListener('click', function(e) {
+        console.log('Click detected on:', e.target);
+        const productCard = e.target.closest('.product-card');
+        console.log('Product card found:', productCard);
+        if (productCard && productCard.dataset.product) {
+            e.preventDefault();
+            e.stopPropagation();
+            try {
+                console.log('Product data:', productCard.dataset.product);
+                const product = JSON.parse(productCard.dataset.product);
+                console.log('Parsed product:', product);
+                addToCart(product);
+                // Visual feedback
+                productCard.style.transform = 'scale(0.95)';
+                setTimeout(() => {
+                    productCard.style.transform = '';
+                }, 150);
+            } catch (err) {
+                console.error('Error parsing product data:', err);
+                alert('Error adding product: ' + err.message);
+            }
+        } else {
+            console.log('No product card or data-product attribute found');
+        }
+    });
+
+    // Touch support for mobile
+    document.getElementById('productsGrid').addEventListener('touchend', function(e) {
+        const productCard = e.target.closest('.product-card');
+        if (productCard && productCard.dataset.product) {
+            e.preventDefault();
+            try {
+                const product = JSON.parse(productCard.dataset.product);
+                addToCart(product);
+                // Visual feedback
+                productCard.style.transform = 'scale(0.95)';
+                setTimeout(() => {
+                    productCard.style.transform = '';
+                }, 150);
+            } catch (err) {
+                console.error('Error parsing product data:', err);
+            }
+        }
+    }, { passive: false });
+
     // Category Filter
     document.querySelectorAll('.category-filter').forEach(btn => {
         btn.addEventListener('click', function() {
@@ -911,7 +1039,7 @@
             cart.push({
                 productId: product.id,
                 name: product.name,
-                price: product.price,
+                price: parseFloat(product.price),
                 quantity: 1
             });
         }
@@ -940,7 +1068,7 @@
                     <div class="d-flex justify-content-between align-items-start">
                         <div class="flex-grow-1">
                             <h6 class="mb-0">${item.name}</h6>
-                            <div class="text-primary">₹${item.price.toFixed(2)}</div>
+                            <div class="text-primary">${currencySymbol}${item.price.toFixed(2)}</div>
                         </div>
                         <div class="d-flex align-items-center gap-2">
                             <button class="btn btn-outline-secondary qty-btn" onclick="updateQty(${index}, -1)">-</button>
@@ -951,7 +1079,7 @@
                             </button>
                         </div>
                     </div>
-                    <div class="text-end fw-bold">₹${(item.price * item.quantity).toFixed(2)}</div>
+                    <div class="text-end fw-bold">${currencySymbol}${(item.price * item.quantity).toFixed(2)}</div>
                 </div>
             `;
             });
@@ -989,9 +1117,9 @@
         const tax = (subtotal - discount) * (taxRate / 100);
         const total = subtotal - discount + tax;
 
-        document.getElementById('cartSubtotal').textContent = '₹' + subtotal.toFixed(2);
-        document.getElementById('cartTax').textContent = '₹' + tax.toFixed(2);
-        document.getElementById('cartTotal').textContent = '₹' + total.toFixed(2);
+        document.getElementById('cartSubtotal').textContent = currencySymbol + subtotal.toFixed(2);
+        document.getElementById('cartTax').textContent = currencySymbol + tax.toFixed(2);
+        document.getElementById('cartTotal').textContent = currencySymbol + total.toFixed(2);
     }
 
     document.getElementById('discountAmount').addEventListener('input', updateTotals);

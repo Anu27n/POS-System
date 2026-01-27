@@ -17,8 +17,13 @@ use Illuminate\Support\Facades\Storage;
             <div class="card-body text-center">
                 @if($store->qr_code && Storage::disk('public')->exists($store->qr_code))
                 <div class="mb-4">
-                    <img src="{{ Storage::url($store->qr_code) }}" alt="Store QR Code"
-                        class="img-fluid" style="max-width: 300px;">
+                    <img src="{{ asset('storage/' . $store->qr_code) }}" alt="Store QR Code"
+                        class="img-fluid" style="max-width: 300px;"
+                        onerror="this.style.display='none'; document.getElementById('qr-error').style.display='block';">
+                    <div id="qr-error" class="alert alert-warning" style="display: none;">
+                        <i class="bi bi-exclamation-triangle me-2"></i>
+                        QR code image not loading. Try regenerating it.
+                    </div>
                 </div>
                 <p class="text-muted mb-4">
                     Customers can scan this QR code to access your store menu and place orders.

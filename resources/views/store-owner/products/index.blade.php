@@ -47,7 +47,8 @@
                             @if($product->image)
                                 <img src="{{ asset('storage/' . $product->image) }}" 
                                      alt="{{ $product->name }}" class="rounded" 
-                                     style="width: 50px; height: 50px; object-fit: cover;">
+                                     style="width: 60px; height: 60px; object-fit: cover;"
+                                     onerror="this.onerror=null; this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2260%22 height=%2260%22%3E%3Crect fill=%22%23f3f4f6%22 width=%2260%22 height=%2260%22/%3E%3Ctext fill=%22%239ca3af%22 font-family=%22sans-serif%22 font-size=%2224%22 dy=%2210.5%22 x=%2250%25%22 y=%2250%25%22 text-anchor=%22middle%22%3E📦%3C/text%3E%3C/svg%3E';">
                             @else
                                 <div class="bg-light rounded d-flex align-items-center justify-content-center"
                                      style="width: 50px; height: 50px;">

@@ -79,7 +79,12 @@
                 @if($store->logo)
                 <img src="{{ asset('storage/' . $store->logo) }}"
                     alt="{{ $store->name }}" class="rounded-circle bg-white p-1"
-                    style="width: 80px; height: 80px; object-fit: cover;">
+                    style="width: 80px; height: 80px; object-fit: cover;"
+                    onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                <div class="bg-white bg-opacity-25 rounded-circle align-items-center justify-content-center"
+                    style="width: 80px; height: 80px; display: none;">
+                    <i class="bi bi-shop fs-1"></i>
+                </div>
                 @else
                 <div class="bg-white bg-opacity-25 rounded-circle d-flex align-items-center justify-content-center"
                     style="width: 80px; height: 80px;">
@@ -166,50 +171,71 @@
                 @forelse($products as $product)
                 <div class="col-6 col-md-4">
                     <div class="card h-100 product-card">
-                        <a href="{{ route('store.product', [$store->slug, $product]) }}" class="text-decoration-none">
+                        @if($product->track_stock && $product->stock_quantity <= 0)
+                        <div class="bg-light d-flex align-items-center justify-content-center position-relative"
+                            style="height: 200px; cursor: not-allowed;">
                             @if($product->image)
                             <img src="{{ asset('storage/' . $product->image) }}"
                                 class="card-img-top" alt="{{ $product->name }}"
-                                style="height: 200px; object-fit: cover;">
+                                style="height: 200px; object-fit: cover; opacity: 0.5;">
                             @else
-                            <div class="bg-light d-flex align-items-center justify-content-center"
-                                style="height: 200px;">
-                                <i class="bi bi-box text-muted" style="font-size: 4rem;"></i>
-                            </div>
+                            <i class="bi bi-box text-muted" style="font-size: 4rem;"></i>
                             @endif
-                        </a>
+                            <span class="badge bg-secondary position-absolute" style="top: 50%; left: 50%; transform: translate(-50%, -50%);">Out of Stock</span>
+                        </div>
+                        @else
+                        <form action="{{ route('cart.add') }}" method="POST" class="add-to-cart-form h-100 d-flex flex-column">
+                            @csrf
+                            <input type="hidden" name="store_id" value="{{ $store->id }}">
+                            <input type="hidden" name="product_id" value="{{ $product->id }}">
+                            <input type="hidden" name="quantity" value="1">
+                            <div class="product-image-wrapper position-relative" style="cursor: pointer;" onclick="this.closest('form').requestSubmit();">
+                                @if($product->image)
+                                <img src="{{ asset('storage/' . $product->image) }}"
+                                    class="card-img-top" alt="{{ $product->name }}"
+                                    style="height: 200px; object-fit: cover;"
+                                    onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                                <div class="bg-light align-items-center justify-content-center"
+                                    style="height: 200px; display: none;">
+                                    <i class="bi bi-box text-muted" style="font-size: 4rem;"></i>
+                                </div>
+                                @else
+                                <div class="bg-light d-flex align-items-center justify-content-center"
+                                    style="height: 200px;">
+                                    <i class="bi bi-box text-muted" style="font-size: 4rem;"></i>
+                                </div>
+                                @endif
+                                <div class="position-absolute top-0 start-0 end-0 bottom-0 d-flex align-items-center justify-content-center hover-overlay" style="background: rgba(0,0,0,0); transition: all 0.2s;">
+                                    <span class="btn btn-store-primary btn-sm opacity-0 add-hint">
+                                        <i class="bi bi-cart-plus me-1"></i>Add to Cart
+                                    </span>
+                                </div>
+                            </div>
+                        @endif
                         @if($product->sale_price)
                         <span class="badge bg-danger position-absolute" style="top: 10px; right: 10px;">
                             Sale
                         </span>
                         @endif
-                        <div class="card-body">
-                            <h6 class="card-title mb-2">
-                                <a href="{{ route('store.product', [$store->slug, $product]) }}"
-                                    class="text-decoration-none text-dark">
-                                    {{ $product->name }}
-                                </a>
+                        <div class="card-body flex-grow-1">
+                            <h6 class="card-title mb-2 text-truncate" title="{{ $product->name }}">
+                                {{ $product->name }}
                             </h6>
                             <p class="card-text mb-2">
                                 @if($product->sale_price)
-                                <span class="text-decoration-line-through text-muted">₹{{ number_format($product->price, 2) }}</span>
-                                <span class="text-danger fw-bold">₹{{ number_format($product->sale_price, 2) }}</span>
+                                <span class="text-decoration-line-through text-muted">{{ \App\Helpers\CurrencyHelper::format($product->price, $store->currency ?? 'INR') }}</span>
+                                <span class="text-danger fw-bold">{{ \App\Helpers\CurrencyHelper::format($product->sale_price, $store->currency ?? 'INR') }}</span>
                                 @else
-                                <span class="fw-bold product-price">₹{{ number_format($product->price, 2) }}</span>
+                                <span class="fw-bold product-price">{{ \App\Helpers\CurrencyHelper::format($product->price, $store->currency ?? 'INR') }}</span>
                                 @endif
                             </p>
                             @if($product->track_stock && $product->stock_quantity <= 0)
                                 <span class="badge bg-secondary">Out of Stock</span>
                                 @else
-                                <form action="{{ route('cart.add') }}" method="POST" class="add-to-cart-form">
-                                    @csrf
-                                    <input type="hidden" name="store_id" value="{{ $store->id }}">
-                                    <input type="hidden" name="product_id" value="{{ $product->id }}">
-                                    <input type="hidden" name="quantity" value="1">
-                                    <button type="submit" class="btn btn-store-primary btn-sm w-100">
-                                        <i class="bi bi-cart-plus me-1"></i>Add to Cart
-                                    </button>
-                                </form>
+                                <button type="submit" class="btn btn-store-primary btn-sm w-100">
+                                    <i class="bi bi-cart-plus me-1"></i>Add to Cart
+                                </button>
+                            </form>
                                 @endif
                         </div>
                     </div>
@@ -244,6 +270,43 @@
     .product-card:hover {
         transform: translateY(-5px);
         box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    }
+    
+    .product-image-wrapper:hover .hover-overlay {
+        background: rgba(0,0,0,0.3) !important;
+    }
+    
+    .product-image-wrapper:hover .add-hint {
+        opacity: 1 !important;
+    }
+    
+    /* Mobile responsive improvements */
+    @media (max-width: 767px) {
+        .store-header {
+            padding: 15px 0 !important;
+        }
+        .store-header h1 {
+            font-size: 1.25rem;
+        }
+        .store-header .rounded-circle {
+            width: 50px !important;
+            height: 50px !important;
+        }
+        .product-card img, .product-image-wrapper > div {
+            height: 140px !important;
+        }
+        .card-body {
+            padding: 10px !important;
+        }
+        .card-title {
+            font-size: 0.9rem;
+        }
+        .product-price {
+            font-size: 0.95rem;
+        }
+        .col-lg-3 {
+            display: none;
+        }
     }
 </style>
 

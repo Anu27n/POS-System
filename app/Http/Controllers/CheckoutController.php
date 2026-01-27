@@ -212,14 +212,23 @@ class CheckoutController extends Controller
     /**
      * Show order confirmation
      */
-    public function confirmation(Order $order)
+    public function confirmation(Request $request, Order $order)
     {
-        // Ensure user can only see their own orders
-        if ($order->user_id !== auth()->id()) {
+        // Ensure user can only see their own orders (or guest orders)
+        if ($order->user_id && $order->user_id !== auth()->id()) {
             abort(403);
         }
 
         $order->load(['store', 'items.product']);
+
+        // Return JSON for AJAX status check requests
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json([
+                'order_number' => $order->order_number,
+                'payment_status' => $order->payment_status,
+                'order_status' => $order->order_status,
+            ]);
+        }
 
         return view('orders.confirmation', compact('order'));
     }

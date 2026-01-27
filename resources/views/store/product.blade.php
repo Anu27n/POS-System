@@ -27,7 +27,12 @@
                 @if($product->image)
                     <img src="{{ asset('storage/' . $product->image) }}" 
                          class="card-img-top" alt="{{ $product->name }}"
-                         style="max-height: 500px; object-fit: contain;">
+                         style="max-height: 500px; object-fit: contain;"
+                         onerror="this.onerror=null; this.style.display='none'; this.parentElement.querySelector('.fallback-image').style.display='flex';">
+                    <div class="bg-light align-items-center justify-content-center fallback-image" 
+                         style="height: 400px; display: none;">
+                        <i class="bi bi-box text-muted" style="font-size: 8rem;"></i>
+                    </div>
                 @else
                     <div class="bg-light d-flex align-items-center justify-content-center" 
                          style="height: 400px;">
