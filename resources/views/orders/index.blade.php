@@ -95,7 +95,7 @@
             <i class="bi bi-bag fs-1 text-muted mb-3 d-block"></i>
             <h4>No orders yet</h4>
             <p class="text-muted mb-4">Start shopping to see your orders here</p>
-            <a href="{{ route('home') }}" class="btn btn-primary">
+            <a href="{{ route('home') }}#stores" class="btn btn-primary">
                 <i class="bi bi-shop me-1"></i>Browse Stores
             </a>
         </div>

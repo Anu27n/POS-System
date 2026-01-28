@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Cart;
+use App\Models\CashRegisterSession;
 use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\Store;
@@ -41,8 +42,24 @@ class CheckoutController extends Controller
 
         // Calculate totals
         $subtotal = $cart->subtotal;
-        $taxRate = $store->tax_rate ?? 0;
-        $tax = $subtotal * ($taxRate / 100);
+        
+        // Calculate taxes using new tax system
+        $taxSettings = $store->taxSettings;
+        $tax = 0;
+        $taxBreakdown = [];
+        
+        if ($taxSettings && $taxSettings->taxes_enabled) {
+            foreach ($store->enabledTaxes as $storeTax) {
+                $taxAmount = $storeTax->calculateTax($subtotal);
+                $tax += $taxAmount;
+                $taxBreakdown[] = [
+                    'name' => $storeTax->name,
+                    'percentage' => $storeTax->percentage,
+                    'amount' => $taxAmount,
+                ];
+            }
+        }
+        
         $total = $subtotal + $tax;
 
         // Get available payment methods
@@ -51,7 +68,7 @@ class CheckoutController extends Controller
         // Check if user is logged in
         $isLoggedIn = auth()->check();
 
-        return view('checkout.index', compact('cart', 'store', 'subtotal', 'tax', 'total', 'paymentMethods', 'isLoggedIn'));
+        return view('checkout.index', compact('cart', 'store', 'subtotal', 'tax', 'taxBreakdown', 'total', 'paymentMethods', 'isLoggedIn'));
     }
 
     /**
@@ -98,8 +115,26 @@ class CheckoutController extends Controller
 
             // Calculate totals
             $subtotal = $cart->subtotal;
-            $taxRate = $store->tax_rate ?? 0;
-            $tax = $subtotal * ($taxRate / 100);
+            
+            // Calculate taxes using new tax system
+            $taxSettings = $store->taxSettings;
+            $tax = 0;
+            $taxBreakdown = [];
+            
+            if ($taxSettings && $taxSettings->taxes_enabled) {
+                foreach ($store->enabledTaxes as $storeTax) {
+                    $taxAmount = $storeTax->calculateTax($subtotal);
+                    $tax += $taxAmount;
+                    $taxBreakdown[] = [
+                        'store_tax_id' => $storeTax->id,
+                        'tax_name' => $storeTax->name,
+                        'tax_percentage' => $storeTax->percentage,
+                        'taxable_amount' => $subtotal,
+                        'tax_amount' => $taxAmount,
+                    ];
+                }
+            }
+            
             $total = $subtotal + $tax;
 
             // Create or update store customer record
@@ -118,6 +153,11 @@ class CheckoutController extends Controller
                 'order_status' => 'pending',
                 'notes' => $validated['notes'] ?? null,
             ]);
+
+            // Create order tax records
+            foreach ($taxBreakdown as $taxRecord) {
+                \App\Models\OrderTax::create(array_merge($taxRecord, ['order_id' => $order->id]));
+            }
 
             // Create order items and reduce stock
             foreach ($cart->items as $item) {
@@ -142,14 +182,22 @@ class CheckoutController extends Controller
             // Update customer stats
             $storeCustomer->recordOrder($total);
 
+            // Add transaction to cash register if session is open
+            $cashSession = CashRegisterSession::getAnyOpenSession($store->id);
+            $onlinePaymentMethods = ['razorpay', 'stripe', 'paypal'];
+            if ($cashSession && !in_array($validated['payment_method'], $onlinePaymentMethods)) {
+                // Only add to cash register for non-online payments
+                $cashSession->addTransaction('sale', $validated['payment_method'], $total, $order->id);
+            }
+
             // Clear cart
             $cart->items()->delete();
             $cart->delete();
 
             DB::commit();
 
-            // If online payment, redirect to payment gateway
-            if ($validated['payment_method'] === 'online') {
+            // If online payment (Razorpay, Stripe, PayPal), redirect to payment gateway
+            if (in_array($validated['payment_method'], $onlinePaymentMethods)) {
                 return $this->paymentService->initiatePayment($order);
             }
 
@@ -165,14 +213,23 @@ class CheckoutController extends Controller
     /**
      * Show order confirmation
      */
-    public function confirmation(Order $order)
+    public function confirmation(Request $request, Order $order)
     {
-        // Ensure user can only see their own orders
-        if ($order->user_id !== auth()->id()) {
+        // Ensure user can only see their own orders (or guest orders)
+        if ($order->user_id && $order->user_id !== auth()->id()) {
             abort(403);
         }
 
         $order->load(['store', 'items.product']);
+
+        // Return JSON for AJAX status check requests
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json([
+                'order_number' => $order->order_number,
+                'payment_status' => $order->payment_status,
+                'order_status' => $order->order_status,
+            ]);
+        }
 
         return view('orders.confirmation', compact('order'));
     }

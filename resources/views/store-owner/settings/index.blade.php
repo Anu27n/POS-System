@@ -88,38 +88,27 @@
                 </div>
             </div>
             
-            <!-- Tax Settings -->
+            <!-- Currency Settings -->
             <div class="card mb-4">
                 <div class="card-header">
-                    <h6 class="mb-0">Tax & Currency Settings</h6>
+                    <h6 class="mb-0">Currency Settings</h6>
                 </div>
                 <div class="card-body">
-                    <div class="row">
-                        <div class="col-md-6">
-                            <div class="mb-3">
-                                <label class="form-label">Tax Rate (%)</label>
-                                <input type="number" class="form-control @error('tax_rate') is-invalid @enderror" 
-                                       name="tax_rate" value="{{ old('tax_rate', $store->tax_rate ?? 0) }}" 
-                                       step="0.01" min="0" max="100">
-                                @error('tax_rate')
-                                    <div class="invalid-feedback">{{ $message }}</div>
-                                @enderror
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="mb-3">
-                                <label class="form-label">Currency</label>
-                                <select class="form-select @error('currency') is-invalid @enderror" name="currency">
-                                    <option value="USD" {{ old('currency', $store->currency ?? 'USD') == 'USD' ? 'selected' : '' }}>USD ($)</option>
-                                    <option value="EUR" {{ old('currency', $store->currency) == 'EUR' ? 'selected' : '' }}>EUR (€)</option>
-                                    <option value="GBP" {{ old('currency', $store->currency) == 'GBP' ? 'selected' : '' }}>GBP (£)</option>
-                                    <option value="INR" {{ old('currency', $store->currency) == 'INR' ? 'selected' : '' }}>INR (₹)</option>
-                                </select>
-                                @error('currency')
-                                    <div class="invalid-feedback">{{ $message }}</div>
-                                @enderror
-                            </div>
-                        </div>
+                    <div class="mb-3">
+                        <label class="form-label">Currency</label>
+                        <select class="form-select @error('currency') is-invalid @enderror" name="currency">
+                            <option value="USD" {{ old('currency', $store->currency ?? 'USD') == 'USD' ? 'selected' : '' }}>USD ($)</option>
+                            <option value="EUR" {{ old('currency', $store->currency) == 'EUR' ? 'selected' : '' }}>EUR (€)</option>
+                            <option value="GBP" {{ old('currency', $store->currency) == 'GBP' ? 'selected' : '' }}>GBP (£)</option>
+                            <option value="INR" {{ old('currency', $store->currency) == 'INR' ? 'selected' : '' }}>INR (₹)</option>
+                        </select>
+                        @error('currency')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
+                    </div>
+                    <div class="alert alert-info mb-0">
+                        <i class="bi bi-info-circle me-2"></i>
+                        To configure tax settings, please visit the <a href="{{ route('store-owner.tax-settings.index') }}" class="alert-link">Tax Settings</a> page.
                     </div>
                 </div>
             </div>
@@ -156,9 +145,10 @@
                     <div class="form-check form-switch mb-2">
                         <input type="hidden" name="is_active" value="0">
                         <input type="checkbox" class="form-check-input" id="isActive" 
-                               name="is_active" value="1" {{ old('is_active', $store->is_active) ? 'checked' : '' }}>
+                               name="is_active" value="1" {{ old('is_active', $store->status === 'active') ? 'checked' : '' }}>
                         <label class="form-check-label" for="isActive">Store is active and accepting orders</label>
                     </div>
+                    <small class="text-muted">When inactive, customers cannot place new orders from your store.</small>
                 </div>
             </div>
             

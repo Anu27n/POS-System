@@ -23,7 +23,7 @@ class DashboardController extends Controller
      */
     public function index()
     {
-        $store = auth()->user()->store;
+        $store = auth()->user()->getEffectiveStore();
 
         if (!$store) {
             return view('store-owner.no-store');

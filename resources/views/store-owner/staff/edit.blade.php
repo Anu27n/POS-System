@@ -114,7 +114,7 @@
 
 @push('scripts')
 <script>
-    const rolePermissions = @json(\App\ Models\ Staff::ROLE_PERMISSIONS);
+    const rolePermissions = @json(\App\Models\Staff::ROLE_PERMISSIONS);
 
     function resetToDefaults() {
         const role = document.querySelector('select[name="role"]').value;

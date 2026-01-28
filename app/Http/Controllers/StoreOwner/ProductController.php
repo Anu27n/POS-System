@@ -14,7 +14,7 @@ class ProductController extends Controller
      */
     public function index(Request $request)
     {
-        $store = auth()->user()->store;
+        $store = auth()->user()->getEffectiveStore();
         $query = $store->products()->with('category');
 
         if ($request->filled('search')) {
@@ -43,7 +43,7 @@ class ProductController extends Controller
      */
     public function create()
     {
-        $store = auth()->user()->store;
+        $store = auth()->user()->getEffectiveStore();
         $categories = $store->categories()->orderBy('name')->get();
 
         return view('store-owner.products.create', compact('categories'));
@@ -60,24 +60,53 @@ class ProductController extends Controller
             'sku' => 'nullable|string|max:50',
             'description' => 'nullable|string',
             'price' => 'required|numeric|min:0',
-            'compare_price' => 'nullable|numeric|min:0',
-            'stock_quantity' => 'required|integer|min:0',
+            'sale_price' => 'nullable|numeric|min:0',
+            'cost_price' => 'nullable|numeric|min:0',
+            'stock_quantity' => 'nullable|integer|min:0',
             'low_stock_threshold' => 'nullable|integer|min:0',
             'image' => 'nullable|image|max:2048',
-            'status' => 'required|in:available,unavailable',
-            'track_inventory' => 'boolean',
+            'is_active' => 'nullable',
+            'is_featured' => 'nullable',
+            'track_stock' => 'nullable',
+            'tax_rate' => 'nullable|numeric|min:0|max:100',
+            'barcode' => 'nullable|string|max:100',
+            'sizes' => 'nullable|string',
+            'colors' => 'nullable|string',
+            'unit' => 'nullable|string|max:50',
+            'weight' => 'nullable|numeric|min:0',
         ]);
 
-        $store = auth()->user()->store;
+        $store = auth()->user()->getEffectiveStore();
 
         if ($request->hasFile('image')) {
             $validated['image'] = $request->file('image')->store('products', 'public');
         }
 
-        $validated['store_id'] = $store->id;
-        $validated['track_inventory'] = $request->boolean('track_inventory', true);
+        // Map form fields to model fields
+        $productData = [
+            'store_id' => $store->id,
+            'name' => $validated['name'],
+            'category_id' => $validated['category_id'] ?? null,
+            'sku' => $validated['sku'] ?? null,
+            'barcode' => $validated['barcode'] ?? null,
+            'description' => $validated['description'] ?? null,
+            'price' => $validated['price'],
+            'compare_price' => $validated['sale_price'] ?? null,
+            'cost_price' => $validated['cost_price'] ?? null,
+            'tax_rate' => $validated['tax_rate'] ?? 0,
+            'stock_quantity' => $validated['stock_quantity'] ?? 0,
+            'low_stock_threshold' => $validated['low_stock_threshold'] ?? 5,
+            'image' => $validated['image'] ?? null,
+            'status' => ($request->input('is_active') == '1') ? 'available' : 'unavailable',
+            'track_inventory' => ($request->input('track_stock') == '1'),
+            'is_featured' => ($request->input('is_featured') == '1'),
+            'sizes' => $validated['sizes'] ?? null,
+            'colors' => $validated['colors'] ?? null,
+            'unit' => $validated['unit'] ?? null,
+            'weight' => $validated['weight'] ?? null,
+        ];
 
-        Product::create($validated);
+        Product::create($productData);
 
         return redirect()->route('store-owner.products.index')
             ->with('success', 'Product created successfully.');
@@ -100,7 +129,7 @@ class ProductController extends Controller
     {
         $this->authorizeProduct($product);
 
-        $store = auth()->user()->store;
+        $store = auth()->user()->getEffectiveStore();
         $categories = $store->categories()->orderBy('name')->get();
 
         return view('store-owner.products.edit', compact('product', 'categories'));
@@ -119,12 +148,20 @@ class ProductController extends Controller
             'sku' => 'nullable|string|max:50',
             'description' => 'nullable|string',
             'price' => 'required|numeric|min:0',
-            'compare_price' => 'nullable|numeric|min:0',
-            'stock_quantity' => 'required|integer|min:0',
+            'sale_price' => 'nullable|numeric|min:0',
+            'cost_price' => 'nullable|numeric|min:0',
+            'stock_quantity' => 'nullable|integer|min:0',
             'low_stock_threshold' => 'nullable|integer|min:0',
             'image' => 'nullable|image|max:2048',
-            'status' => 'required|in:available,unavailable',
-            'track_inventory' => 'boolean',
+            'is_active' => 'nullable',
+            'is_featured' => 'nullable',
+            'track_stock' => 'nullable',
+            'tax_rate' => 'nullable|numeric|min:0|max:100',
+            'barcode' => 'nullable|string|max:100',
+            'sizes' => 'nullable|string',
+            'colors' => 'nullable|string',
+            'unit' => 'nullable|string|max:50',
+            'weight' => 'nullable|numeric|min:0',
         ]);
 
         if ($request->hasFile('image')) {
@@ -135,9 +172,33 @@ class ProductController extends Controller
             $validated['image'] = $request->file('image')->store('products', 'public');
         }
 
-        $validated['track_inventory'] = $request->boolean('track_inventory', true);
+        // Map form fields to model fields
+        $productData = [
+            'name' => $validated['name'],
+            'category_id' => $validated['category_id'] ?? null,
+            'sku' => $validated['sku'] ?? null,
+            'barcode' => $validated['barcode'] ?? null,
+            'description' => $validated['description'] ?? null,
+            'price' => $validated['price'],
+            'compare_price' => $validated['sale_price'] ?? null,
+            'cost_price' => $validated['cost_price'] ?? null,
+            'tax_rate' => $validated['tax_rate'] ?? 0,
+            'stock_quantity' => $validated['stock_quantity'] ?? 0,
+            'low_stock_threshold' => $validated['low_stock_threshold'] ?? 5,
+            'status' => ($request->input('is_active') == '1') ? 'available' : 'unavailable',
+            'track_inventory' => ($request->input('track_stock') == '1'),
+            'is_featured' => ($request->input('is_featured') == '1'),
+            'sizes' => $validated['sizes'] ?? null,
+            'colors' => $validated['colors'] ?? null,
+            'unit' => $validated['unit'] ?? null,
+            'weight' => $validated['weight'] ?? null,
+        ];
 
-        $product->update($validated);
+        if (isset($validated['image'])) {
+            $productData['image'] = $validated['image'];
+        }
+
+        $product->update($productData);
 
         return redirect()->route('store-owner.products.index')
             ->with('success', 'Product updated successfully.');
@@ -181,7 +242,8 @@ class ProductController extends Controller
      */
     private function authorizeProduct(Product $product): void
     {
-        if ($product->store_id !== auth()->user()->store->id) {
+        $store = auth()->user()->getEffectiveStore();
+        if (!$store || $product->store_id !== $store->id) {
             abort(403);
         }
     }

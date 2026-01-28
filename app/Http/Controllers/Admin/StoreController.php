@@ -5,6 +5,8 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Store;
 use App\Models\User;
+use App\Models\Plan;
+use App\Models\Subscription;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rules\Password;
@@ -105,7 +107,10 @@ class StoreController extends Controller
             })
             ->get();
 
-        return view('admin.stores.edit', compact('store', 'storeOwners'));
+        $plans = Plan::where('is_active', true)->orderBy('price')->get();
+        $currentSubscription = $store->subscriptions()->where('status', 'active')->first();
+
+        return view('admin.stores.edit', compact('store', 'storeOwners', 'plans', 'currentSubscription'));
     }
 
     /**
@@ -122,9 +127,29 @@ class StoreController extends Controller
             'type' => 'required|in:grocery,clothing,department,general',
             'status' => 'required|in:active,inactive',
             'user_id' => 'nullable|exists:users,id',
+            'plan_id' => 'nullable|exists:plans,id',
         ]);
 
         $store->update($validated);
+
+        // Handle subscription plan change
+        if ($request->filled('plan_id')) {
+            $plan = Plan::find($request->plan_id);
+            
+            // Cancel current active subscription if exists
+            $store->subscriptions()->where('status', 'active')->update(['status' => 'cancelled']);
+            
+            // Create new subscription
+            Subscription::create([
+                'store_id' => $store->id,
+                'plan_id' => $plan->id,
+                'status' => 'active',
+                'amount_paid' => $plan->price,
+                'start_date' => now(),
+                'end_date' => $plan->billing_cycle === 'monthly' ? now()->addMonth() : now()->addYear(),
+                'payment_method' => 'admin_assigned',
+            ]);
+        }
 
         return redirect()->route('admin.stores.index')
             ->with('success', 'Store updated successfully.');

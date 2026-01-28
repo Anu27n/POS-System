@@ -14,7 +14,7 @@ class CategoryController extends Controller
      */
     public function index()
     {
-        $store = auth()->user()->store;
+        $store = auth()->user()->getEffectiveStore();
         $categories = $store->categories()->orderBy('sort_order')->paginate(15);
 
         return view('store-owner.categories.index', compact('categories'));
@@ -41,7 +41,7 @@ class CategoryController extends Controller
             'is_active' => 'boolean',
         ]);
 
-        $store = auth()->user()->store;
+        $store = auth()->user()->getEffectiveStore();
 
         if ($request->hasFile('image')) {
             $validated['image'] = $request->file('image')->store('categories', 'public');
@@ -119,7 +119,8 @@ class CategoryController extends Controller
      */
     private function authorizeCategory(Category $category): void
     {
-        if ($category->store_id !== auth()->user()->store->id) {
+        $store = auth()->user()->getEffectiveStore();
+        if (!$store || $category->store_id !== $store->id) {
             abort(403);
         }
     }

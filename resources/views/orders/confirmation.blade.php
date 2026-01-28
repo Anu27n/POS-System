@@ -222,4 +222,50 @@ use Illuminate\Support\Facades\Storage;
         </div>
     </div>
 </div>
+
+<!-- Auto-refresh order status -->
+@if($order->payment_status !== 'paid' || !in_array($order->order_status, ['completed', 'cancelled']))
+<script>
+    // Poll for order status updates every 5 seconds
+    let statusCheckInterval;
+    let currentPaymentStatus = '{{ $order->payment_status }}';
+    let currentOrderStatus = '{{ $order->order_status }}';
+    
+    function checkOrderStatus() {
+        fetch('{{ route("order.confirmation", $order->order_number) }}', {
+            headers: {
+                'Accept': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.payment_status !== currentPaymentStatus || data.order_status !== currentOrderStatus) {
+                // Status changed - reload page
+                location.reload();
+            }
+        })
+        .catch(err => console.log('Status check failed:', err));
+    }
+    
+    // Start polling after 3 seconds
+    setTimeout(() => {
+        statusCheckInterval = setInterval(checkOrderStatus, 5000);
+    }, 3000);
+    
+    // Stop polling after 10 minutes
+    setTimeout(() => {
+        if (statusCheckInterval) clearInterval(statusCheckInterval);
+    }, 600000);
+    
+    // Clean up on page hide
+    document.addEventListener('visibilitychange', () => {
+        if (document.hidden && statusCheckInterval) {
+            clearInterval(statusCheckInterval);
+        } else if (!document.hidden) {
+            statusCheckInterval = setInterval(checkOrderStatus, 5000);
+        }
+    });
+</script>
+@endif
 @endsection

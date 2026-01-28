@@ -18,15 +18,33 @@ class CartController extends Controller
         $cart = $this->getCart();
 
         if (!$cart || $cart->items->isEmpty()) {
-            return view('cart.index', ['cart' => null, 'subtotal' => 0, 'tax' => 0, 'total' => 0]);
+            return view('cart.index', ['cart' => null, 'subtotal' => 0, 'tax' => 0, 'taxBreakdown' => [], 'total' => 0]);
         }
 
+        $cart->load(['items.product', 'store']);
+        $store = $cart->store;
         $subtotal = $cart->items->sum('subtotal');
-        $taxRate = $cart->store->tax_rate ?? 0;
-        $tax = $subtotal * ($taxRate / 100);
+        
+        // Calculate taxes using new tax system (same as checkout)
+        $taxSettings = $store->taxSettings;
+        $tax = 0;
+        $taxBreakdown = [];
+        
+        if ($taxSettings && $taxSettings->taxes_enabled) {
+            foreach ($store->enabledTaxes as $storeTax) {
+                $taxAmount = $storeTax->calculateTax($subtotal);
+                $tax += $taxAmount;
+                $taxBreakdown[] = [
+                    'name' => $storeTax->name,
+                    'percentage' => $storeTax->percentage,
+                    'amount' => $taxAmount,
+                ];
+            }
+        }
+        
         $total = $subtotal + $tax;
 
-        return view('cart.index', compact('cart', 'subtotal', 'tax', 'total'));
+        return view('cart.index', compact('cart', 'subtotal', 'tax', 'taxBreakdown', 'total'));
     }
 
     /**

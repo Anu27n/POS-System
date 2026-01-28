@@ -132,11 +132,11 @@
                     <div class="form-check mb-3">
                         <input type="hidden" name="track_stock" value="0">
                         <input type="checkbox" class="form-check-input" id="trackStock"
-                            name="track_stock" value="1" {{ old('track_stock', $product->track_stock) ? 'checked' : '' }}>
+                            name="track_stock" value="1" {{ old('track_stock', $product->track_inventory) ? 'checked' : '' }}>
                         <label class="form-check-label" for="trackStock">Track stock quantity</label>
                     </div>
 
-                    <div id="stockFields" class="row" style="{{ old('track_stock', $product->track_stock) ? '' : 'display: none;' }}">
+                    <div id="stockFields" class="row" style="{{ old('track_stock', $product->track_inventory) ? '' : 'display: none;' }}">
                         <div class="col-md-6">
                             <div class="mb-3">
                                 <label class="form-label">Stock Quantity</label>
@@ -230,7 +230,7 @@
                     <div class="form-check mb-2">
                         <input type="hidden" name="is_active" value="0">
                         <input type="checkbox" class="form-check-input" id="isActive"
-                            name="is_active" value="1" {{ old('is_active', $product->is_active) ? 'checked' : '' }}>
+                            name="is_active" value="1" {{ old('is_active', $product->status === 'available') ? 'checked' : '' }}>
                         <label class="form-check-label" for="isActive">Active</label>
                     </div>
                     <div class="form-check">

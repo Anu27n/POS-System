@@ -1,13 +1,15 @@
 @extends('installer.layout')
 
 @section('title', 'Migrations')
-@section('subtitle', 'Step 3: Database Setup')
+@section('subtitle', 'Step 4: Database Setup')
 @section('show-steps', true)
 @section('step1-class', 'completed')
 @section('line1-class', 'completed')
 @section('step2-class', 'completed')
 @section('line2-class', 'completed')
-@section('step3-class', 'active')
+@section('step3-class', 'completed')
+@section('line3-class', 'completed')
+@section('step4-class', 'active')
 
 @section('content')
 <div class="text-center mb-4">

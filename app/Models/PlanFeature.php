@@ -53,6 +53,7 @@ class PlanFeature extends Model
         ['name' => 'Staff Reports', 'slug' => 'staff_reports', 'category' => 'staff', 'description' => 'Track staff performance'],
         ['name' => 'Multi-Tax Support', 'slug' => 'multi_tax', 'category' => 'advanced', 'description' => 'Configure multiple GST taxes'],
         ['name' => 'Discount Management', 'slug' => 'discount_management', 'category' => 'advanced', 'description' => 'Create and apply discounts'],
+        ['name' => 'Store Customization', 'slug' => 'store_customization', 'category' => 'advanced', 'description' => 'Customize store logo and color scheme'],
         ['name' => 'Online Store', 'slug' => 'online_store', 'category' => 'integrations', 'description' => 'Public store page for online orders'],
         ['name' => 'Payment Gateway', 'slug' => 'payment_gateway', 'category' => 'integrations', 'description' => 'Razorpay/Stripe integration'],
         ['name' => 'Email Notifications', 'slug' => 'email_notifications', 'category' => 'integrations', 'description' => 'Send order confirmations via email'],

@@ -21,6 +21,10 @@ class Store extends Model
         'phone',
         'email',
         'logo',
+        'primary_color',
+        'secondary_color',
+        'accent_color',
+        'font_family',
         'type',
         'tax_rate',
         'currency',
@@ -249,10 +253,19 @@ class Store extends Model
      */
     public function hasFeature(string $featureSlug): bool
     {
-        $subscription = $this->activeSubscription;
+        // Get the active subscription with plan relation loaded
+        $subscription = $this->activeSubscription()->with('plan')->first();
+        
         if (!$subscription) {
-            return true; // If no subscription system, allow all features
+            // If store has no active subscription, check if any plans exist in the system
+            // If plans exist, the subscription system is active and features should be restricted
+            $plansExist = Plan::where('is_active', true)->exists();
+            if ($plansExist) {
+                return false; // No subscription = no access to premium features
+            }
+            return true; // No plans in system = subscription system not in use, allow all
         }
+        
         return $subscription->hasFeature($featureSlug);
     }
 
