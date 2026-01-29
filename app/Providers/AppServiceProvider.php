@@ -9,7 +9,9 @@ use Illuminate\Support\Facades\View;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\URL;
+use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\ServiceProvider;
+use App\Helpers\StorageHelper;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -65,6 +67,12 @@ class AppServiceProvider extends ServiceProvider
 
         // Register Order observer
         Order::observe(OrderObserver::class);
+
+        // Register Blade directive for storage URLs
+        // Usage: @storageUrl($path) - outputs the full URL for a storage path
+        Blade::directive('storageUrl', function ($expression) {
+            return "<?php echo \\App\\Helpers\\StorageHelper::url($expression); ?>";
+        });
 
         // CRITICAL: Always share default settings first
         // This ensures views can render even during errors

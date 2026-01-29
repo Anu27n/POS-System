@@ -1362,7 +1362,7 @@
             <div class="section-label">Features</div>
             <h2 class="section-title">Everything You Need to Succeed</h2>
             <p class="section-subtitle mx-auto">
-                Powerful tools designed specifically for Indian retailers, restaurants, and service businesses.
+                Powerful tools designed specifically for Indian retailers and service businesses.
             </p>
         </div>
 
@@ -1486,19 +1486,11 @@
             <div class="section-label">Who It's For</div>
             <h2 class="section-title">Built for Every Business</h2>
             <p class="section-subtitle mx-auto">
-                Whether you run a restaurant, retail store, or service business — we've got you covered.
+                Whether you run a retail store, grocery shop, or service business — we've got you covered.
             </p>
         </div>
 
         <div class="business-grid">
-            <div class="business-card">
-                <div class="business-icon">
-                    <i class="bi bi-cup-hot"></i>
-                </div>
-                <h3 class="business-title">Restaurants & Cafes</h3>
-                <p class="business-text">Table ordering, kitchen display, and dine-in management</p>
-            </div>
-
             <div class="business-card">
                 <div class="business-icon">
                     <i class="bi bi-shop-window"></i>
@@ -1521,6 +1513,14 @@
                 </div>
                 <h3 class="business-title">Salons & Spas</h3>
                 <p class="business-text">Service booking, staff schedules, and package billing</p>
+            </div>
+
+            <div class="business-card">
+                <div class="business-icon">
+                    <i class="bi bi-phone"></i>
+                </div>
+                <h3 class="business-title">Electronics & Mobile</h3>
+                <p class="business-text">Serial number tracking, warranty management, and repairs</p>
             </div>
         </div>
     </div>

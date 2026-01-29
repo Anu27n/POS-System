@@ -107,9 +107,15 @@ class AuthController extends Controller
     /**
      * Show the registration form
      */
-    public function showRegisterForm()
+    public function showRegisterForm(Request $request)
     {
-        return view('auth.register');
+        $registerAs = $request->get('register_as', 'customer');
+        $plan = $request->get('plan');
+        
+        return view('auth.register', [
+            'registerAs' => $registerAs,
+            'plan' => $plan,
+        ]);
     }
 
     /**
@@ -122,17 +128,32 @@ class AuthController extends Controller
             'phone' => 'required|string|max:20|unique:users',
             'email' => 'nullable|string|email|max:255|unique:users',
             'password' => ['required', 'confirmed', Password::defaults()],
+            'register_as' => 'nullable|in:customer,store_owner',
+            'plan' => 'nullable|integer|exists:plans,id',
         ]);
+
+        // Determine the role based on register_as parameter
+        $role = ($request->input('register_as') === 'store_owner') ? 'store_owner' : 'customer';
 
         $user = User::create([
             'name' => $validated['name'],
             'phone' => $validated['phone'],
             'email' => $validated['email'] ?? null,
             'password' => Hash::make($validated['password']),
-            'role' => 'customer',
+            'role' => $role,
         ]);
 
         Auth::login($user);
+
+        // If registering as store owner with a plan, redirect to pricing checkout
+        if ($role === 'store_owner' && $request->filled('plan')) {
+            return redirect()->route('pricing.checkout', ['plan' => $request->input('plan')]);
+        }
+
+        // Redirect based on role
+        if ($role === 'store_owner') {
+            return redirect()->route('pricing');
+        }
 
         return redirect()->route('home');
     }

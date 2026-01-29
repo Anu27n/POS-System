@@ -99,35 +99,45 @@ class InstallerController extends Controller
         ]);
 
         try {
-            // DEVELOPMENT BYPASS: Allow test purchase codes in non-production
-            $testCodes = ['TEST-LICENSE-2026', 'DEV-LICENSE-KEY', 'STYX-DEV-2026'];
-            if (config('app.env') !== 'production' && in_array(strtoupper($request->purchase_code), $testCodes)) {
-                // Store the test purchase code
-                $this->updateEnv([
-                    'PURCHASE_CODE' => $request->purchase_code,
+            // Check if we're on localhost or whitelisted development domain
+            $host = $request->getHost();
+            $isLocalDev = in_array($host, ['localhost', '127.0.0.1']) 
+                || str_ends_with($host, '.localhost')
+                || str_ends_with($host, '.github.dev')
+                || str_ends_with($host, '.codespaces.github.com')
+                || str_ends_with($host, '.preview.app');
+
+            // Try to verify with the license server
+            $licenseValid = false;
+            $errorMessage = '';
+
+            try {
+                $response = Http::timeout(10)->asForm()->post(self::LICENSE_API_URL, [
+                    'purchase_code' => $request->purchase_code,
+                    'domain' => $host,
+                    'secret_key' => self::LICENSE_SECRET_KEY,
                 ]);
-                File::put(storage_path('license_key'), $request->purchase_code);
-                
-                return redirect()->route('installer.database');
+
+                if ($response->successful()) {
+                    $result = $response->json();
+                    if (isset($result['valid']) && $result['valid']) {
+                        $licenseValid = true;
+                    } else {
+                        $errorMessage = $result['message'] ?? 'Invalid purchase code.';
+                    }
+                } else {
+                    $errorMessage = 'License server returned an error. Please try again.';
+                }
+            } catch (\Illuminate\Http\Client\ConnectionException $e) {
+                // Connection failed - allow on localhost/dev environments
+                if ($isLocalDev) {
+                    $licenseValid = true;
+                } else {
+                    $errorMessage = 'Unable to connect to license server. Please check your internet connection.';
+                }
             }
 
-            // Call the license verification API
-            $response = Http::timeout(30)->asForm()->post(self::LICENSE_API_URL, [
-                'purchase_code' => $request->purchase_code,
-                'domain' => $request->getHost(),
-                'secret_key' => self::LICENSE_SECRET_KEY,
-            ]);
-
-            if (!$response->successful()) {
-                return back()->withErrors([
-                    'purchase_code' => 'Unable to connect to license server. Please check your internet connection and try again.'
-                ])->withInput();
-            }
-
-            $result = $response->json();
-
-            if (!isset($result['valid']) || !$result['valid']) {
-                $errorMessage = $result['message'] ?? 'Invalid purchase code. Please check your purchase code and try again.';
+            if (!$licenseValid && !empty($errorMessage)) {
                 return back()->withErrors([
                     'purchase_code' => $errorMessage
                 ])->withInput();

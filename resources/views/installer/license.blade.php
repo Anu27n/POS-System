@@ -43,18 +43,6 @@
         Your purchase code will be verified with our license server. An active internet connection is required.
     </div>
     
-    @if(config('app.env') !== 'production')
-    <div class="alert alert-warning">
-        <i class="bi bi-code-square me-2"></i>
-        <strong>Development Mode:</strong> You can use one of these test codes for development:
-        <div class="mt-2">
-            <code class="bg-dark text-light px-2 py-1 rounded">TEST-LICENSE-2026</code>
-            <code class="bg-dark text-light px-2 py-1 rounded ms-2">DEV-LICENSE-KEY</code>
-            <code class="bg-dark text-light px-2 py-1 rounded ms-2">STYX-DEV-2026</code>
-        </div>
-    </div>
-    @endif
-    
     <div class="d-flex justify-content-between mt-4">
         <a href="{{ route('installer.requirements') }}" class="btn btn-outline-secondary">
             <i class="bi bi-arrow-left me-2"></i>Back

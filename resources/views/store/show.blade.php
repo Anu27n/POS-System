@@ -229,6 +229,31 @@
                                 <span class="fw-bold product-price">{{ \App\Helpers\CurrencyHelper::format($product->price, $store->currency ?? 'INR') }}</span>
                                 @endif
                             </p>
+                            
+                            {{-- Product Variants/Details --}}
+                            @if($product->unit || $product->weight)
+                            <p class="card-text mb-1 small text-muted">
+                                @if($product->unit)
+                                <span class="me-2"><i class="bi bi-box-seam me-1"></i>{{ $product->unit }}</span>
+                                @endif
+                                @if($product->weight)
+                                <span><i class="bi bi-speedometer2 me-1"></i>{{ $product->weight }} kg</span>
+                                @endif
+                            </p>
+                            @endif
+                            
+                            @if($product->sizes)
+                            <p class="card-text mb-1 small">
+                                <strong>Sizes:</strong> <span class="text-muted">{{ $product->sizes }}</span>
+                            </p>
+                            @endif
+                            
+                            @if($product->colors)
+                            <p class="card-text mb-2 small">
+                                <strong>Colors:</strong> <span class="text-muted">{{ $product->colors }}</span>
+                            </p>
+                            @endif
+                            
                             @if($product->track_stock && $product->stock_quantity <= 0)
                                 <span class="badge bg-secondary">Out of Stock</span>
                                 @else

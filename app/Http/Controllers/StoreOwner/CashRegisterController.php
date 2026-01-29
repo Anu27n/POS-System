@@ -206,7 +206,7 @@ class CashRegisterController extends Controller
                 ->sum('total_upi_sales'),
             'total_difference' => $store->cashRegisterSessions()
                 ->whereBetween('opened_at', [$startDate, $endDate])
-                ->where('status', 'closed')
+                ->whereNotNull('closed_at')
                 ->sum('cash_difference'),
         ];
 

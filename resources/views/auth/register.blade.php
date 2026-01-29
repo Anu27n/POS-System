@@ -9,13 +9,26 @@
             <div class="card shadow-sm mt-5">
                 <div class="card-body p-4">
                     <div class="text-center mb-4">
+                        @if(isset($registerAs) && $registerAs === 'store_owner')
+                        <i class="bi bi-shop text-primary" style="font-size: 3rem;"></i>
+                        <h4 class="mt-2">Create Store Owner Account</h4>
+                        <p class="text-muted">Register to start your online store</p>
+                        @else
                         <i class="bi bi-person-plus text-primary" style="font-size: 3rem;"></i>
                         <h4 class="mt-2">Create Account</h4>
                         <p class="text-muted">Join us to start ordering</p>
+                        @endif
                     </div>
 
                     <form method="POST" action="{{ route('register') }}">
                         @csrf
+                        
+                        @if(isset($registerAs))
+                        <input type="hidden" name="register_as" value="{{ $registerAs }}">
+                        @endif
+                        @if(isset($plan))
+                        <input type="hidden" name="plan" value="{{ $plan }}">
+                        @endif
 
                         <div class="mb-3">
                             <label for="name" class="form-label">Full Name <span class="text-danger">*</span></label>
@@ -37,10 +50,17 @@
                         </div>
 
                         <div class="mb-3">
-                            <label for="email" class="form-label">Email Address <span class="text-muted">(Optional)</span></label>
+                            <label for="email" class="form-label">Email Address 
+                                @if(isset($registerAs) && $registerAs === 'store_owner')
+                                <span class="text-danger">*</span>
+                                @else
+                                <span class="text-muted">(Optional)</span>
+                                @endif
+                            </label>
                             <input type="email" class="form-control @error('email') is-invalid @enderror"
                                 id="email" name="email" value="{{ old('email') }}"
-                                placeholder="e.g., john@example.com">
+                                placeholder="e.g., john@example.com"
+                                {{ isset($registerAs) && $registerAs === 'store_owner' ? 'required' : '' }}>
                             @error('email')
                             <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
@@ -61,7 +81,13 @@
                                 id="password_confirmation" name="password_confirmation" required>
                         </div>
 
-                        <button type="submit" class="btn btn-primary w-100">Create Account</button>
+                        <button type="submit" class="btn btn-primary w-100">
+                            @if(isset($registerAs) && $registerAs === 'store_owner')
+                            Create Store Owner Account
+                            @else
+                            Create Account
+                            @endif
+                        </button>
                     </form>
 
                     <div class="text-center mt-4">

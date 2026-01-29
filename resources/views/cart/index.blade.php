@@ -114,6 +114,14 @@
                         <!-- Product Details -->
                         <div class="flex-grow-1">
                             <h6 class="mb-1">{{ $item->product->name ?? 'Product' }}</h6>
+                            @if($item->product && ($item->product->sizes || $item->product->colors || $item->product->unit || $item->product->weight))
+                            <small class="text-muted d-block mb-1">
+                                @if($item->product->sizes)<span class="me-2">Sizes: {{ $item->product->sizes }}</span>@endif
+                                @if($item->product->colors)<span class="me-2">Colors: {{ $item->product->colors }}</span>@endif
+                                @if($item->product->unit)<span class="me-2">{{ $item->product->unit }}</span>@endif
+                                @if($item->product->weight)<span>{{ $item->product->weight }} kg</span>@endif
+                            </small>
+                            @endif
                             <div class="text-primary fw-semibold">₹{{ number_format($item->price, 2) }}</div>
                         </div>
 
