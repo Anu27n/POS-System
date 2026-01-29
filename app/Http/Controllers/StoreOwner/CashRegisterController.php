@@ -30,21 +30,24 @@ class CashRegisterController extends Controller
             ->orderBy('opened_at', 'desc')
             ->paginate(15);
 
-        // Today's stats
+        // Today's stats - show stats from all currently active/today's sessions
+        $todaySessions = $store->cashRegisterSessions()
+            ->where(function($query) {
+                $query->whereDate('opened_at', today())
+                    ->orWhereNull('closed_at'); // Include currently open session
+            })
+            ->get();
+        
         $todayStats = [
-            'session_count' => $store->cashRegisterSessions()
-                ->whereDate('opened_at', today())
-                ->count(),
-            'total_sales' => $store->cashRegisterSessions()
-                ->whereDate('opened_at', today())
-                ->selectRaw('COALESCE(SUM(total_cash_sales), 0) + COALESCE(SUM(total_card_sales), 0) + COALESCE(SUM(total_upi_sales), 0) as total')
-                ->value('total') ?? 0,
-            'cash_sales' => $store->cashRegisterSessions()
-                ->whereDate('opened_at', today())
-                ->sum('total_cash_sales') ?? 0,
-            'card_sales' => $store->cashRegisterSessions()
-                ->whereDate('opened_at', today())
-                ->sum('total_card_sales') ?? 0,
+            'session_count' => $todaySessions->count(),
+            'total_sales' => $todaySessions->sum(function($session) {
+                return ($session->total_cash_sales ?? 0) + 
+                       ($session->total_card_sales ?? 0) + 
+                       ($session->total_upi_sales ?? 0) + 
+                       ($session->total_other_sales ?? 0);
+            }),
+            'cash_sales' => $todaySessions->sum('total_cash_sales'),
+            'card_sales' => $todaySessions->sum('total_card_sales'),
         ];
 
         return view('store-owner.cash-register.index', compact(
@@ -91,6 +94,7 @@ class CashRegisterController extends Controller
 
     /**
      * Close the current cash register session
+     * Closing cash is now automatically calculated
      */
     public function close(Request $request, CashRegisterSession $session)
     {
@@ -106,11 +110,11 @@ class CashRegisterController extends Controller
         }
 
         $validated = $request->validate([
-            'closing_cash' => 'required|numeric|min:0',
             'notes' => 'nullable|string|max:500',
         ]);
 
-        $session->closeSession($validated['closing_cash'], $validated['notes']);
+        // Closing cash is automatically calculated - no manual input
+        $session->closeSession($validated['notes'] ?? null);
 
         return redirect()->route('store-owner.cash-register.index')
             ->with('success', 'Cash register closed successfully.');
@@ -202,7 +206,7 @@ class CashRegisterController extends Controller
                 ->sum('total_upi_sales'),
             'total_difference' => $store->cashRegisterSessions()
                 ->whereBetween('opened_at', [$startDate, $endDate])
-                ->where('status', 'closed')
+                ->whereNotNull('closed_at')
                 ->sum('cash_difference'),
         ];
 

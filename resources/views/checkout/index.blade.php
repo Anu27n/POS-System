@@ -39,6 +39,61 @@
         align-items: center;
         justify-content: center;
     }
+    
+    /* Mobile responsive styles */
+    @media (max-width: 767px) {
+        .payment-option .card-body {
+            padding: 0.75rem;
+        }
+        .payment-option .card-body i {
+            font-size: 1.5rem !important;
+            margin-bottom: 0.25rem !important;
+        }
+        .payment-option .card-body .fw-semibold {
+            font-size: 0.85rem;
+        }
+        .payment-option .card-body p {
+            font-size: 0.7rem;
+            margin-bottom: 0;
+        }
+        .col-md-6 .payment-option {
+            margin-bottom: 0.5rem;
+        }
+        /* Order summary sticky fix */
+        .sticky-top {
+            position: relative !important;
+            top: 0 !important;
+        }
+        /* Card spacing */
+        .card.mb-4 {
+            margin-bottom: 1rem !important;
+        }
+        /* Button sizing */
+        .btn-lg {
+            font-size: 0.95rem;
+            padding: 0.6rem 1rem;
+        }
+    }
+    
+    @media (max-width: 575px) {
+        .payment-option .card-body {
+            padding: 0.5rem;
+        }
+        .payment-option .card-body i {
+            font-size: 1.25rem !important;
+        }
+        .payment-option .card-body .fw-semibold {
+            font-size: 0.8rem;
+        }
+        /* Contact info on small screens */
+        .card-body .d-flex.align-items-center > div:first-child {
+            width: 40px !important;
+            height: 40px !important;
+        }
+        .card-body .d-flex.align-items-center > div:first-child i {
+            font-size: 1.25rem !important;
+        }
+    }
 </style>
 @endpush
 
@@ -165,6 +220,20 @@
                                 <div class="d-flex justify-content-between">
                                     <div>
                                         <span class="fw-semibold">{{ $item->product->name ?? 'Product' }}</span>
+                                        @if($item->product && ($item->product->sizes || $item->product->colors))
+                                        <br><small class="text-muted">
+                                            @if($item->product->sizes)Sizes: {{ $item->product->sizes }}@endif
+                                            @if($item->product->sizes && $item->product->colors) | @endif
+                                            @if($item->product->colors)Colors: {{ $item->product->colors }}@endif
+                                        </small>
+                                        @endif
+                                        @if($item->product && ($item->product->unit || $item->product->weight))
+                                        <br><small class="text-muted">
+                                            @if($item->product->unit){{ $item->product->unit }}@endif
+                                            @if($item->product->unit && $item->product->weight) | @endif
+                                            @if($item->product->weight){{ $item->product->weight }} kg@endif
+                                        </small>
+                                        @endif
                                         <br>
                                         <small class="text-muted">Qty: {{ $item->quantity }} × ₹{{ number_format($item->product->price, 2) }}</small>
                                     </div>
@@ -179,10 +248,23 @@
                             <span>Subtotal</span>
                             <span>₹{{ number_format($subtotal, 2) }}</span>
                         </div>
-                        <div class="d-flex justify-content-between mb-2">
-                            <span>Tax</span>
-                            <span>₹{{ number_format($tax, 2) }}</span>
-                        </div>
+                        @if(!empty($taxBreakdown))
+                            @foreach($taxBreakdown as $taxItem)
+                            <div class="d-flex justify-content-between mb-2">
+                                <span class="text-muted small">{{ $taxItem['name'] }} ({{ number_format($taxItem['percentage'], 2) }}%)</span>
+                                <span class="text-muted small">₹{{ number_format($taxItem['amount'], 2) }}</span>
+                            </div>
+                            @endforeach
+                            <div class="d-flex justify-content-between mb-2">
+                                <span>Total Tax</span>
+                                <span>₹{{ number_format($tax, 2) }}</span>
+                            </div>
+                        @else
+                            <div class="d-flex justify-content-between mb-2">
+                                <span>Tax</span>
+                                <span>₹{{ number_format($tax, 2) }}</span>
+                            </div>
+                        @endif
                         <hr>
                         <div class="d-flex justify-content-between mb-3">
                             <strong class="fs-5">Total</strong>

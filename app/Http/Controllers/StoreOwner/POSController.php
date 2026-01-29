@@ -183,7 +183,7 @@ class POSController extends Controller
                     'product_sku' => $item['product']->sku ?? '',
                     'price' => $item['product']->price,
                     'quantity' => $item['quantity'],
-                    'subtotal' => $item['subtotal'],
+                    'total' => $item['subtotal'],
                 ]);
 
                 // Reduce stock
@@ -235,7 +235,7 @@ class POSController extends Controller
             'qr_data' => 'required|string',
         ]);
 
-        $store = auth()->user()->store;
+        $store = auth()->user()->getEffectiveStore();
 
         // Use QRCodeService to validate the scanned QR data
         $result = $this->qrCodeService->verifyOrderQR($validated['qr_data'], $store->id);
@@ -279,11 +279,93 @@ class POSController extends Controller
     }
 
     /**
+     * Lookup order by order number (manual entry)
+     */
+    public function lookupOrder(Request $request)
+    {
+        $validated = $request->validate([
+            'order_number' => 'required|string',
+        ]);
+
+        $store = auth()->user()->getEffectiveStore();
+        
+        // Clean the order number (remove ORD prefix if entered, handle hyphen)
+        $orderNumber = strtoupper(trim($validated['order_number']));
+        
+        // Remove 'ORD' or 'ORD-' prefix if user entered it
+        $orderNumber = preg_replace('/^ORD-?/', '', $orderNumber);
+        
+        // Add the standard ORD- prefix
+        $orderNumber = 'ORD-' . $orderNumber;
+
+        // Find the order
+        $order = Order::with(['customer', 'items.product'])
+            ->where('store_id', $store->id)
+            ->where('order_number', $orderNumber)
+            ->first();
+
+        if (!$order) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Order not found. Please check the order number.',
+            ], 404);
+        }
+
+        // Check if order is already completed
+        if ($order->order_status === 'completed') {
+            return response()->json([
+                'success' => false,
+                'message' => 'This order has already been completed.',
+                'order' => [
+                    'order_number' => $order->order_number,
+                    'order_status' => $order->order_status,
+                ],
+            ]);
+        }
+
+        // Check if order is cancelled
+        if ($order->order_status === 'cancelled') {
+            return response()->json([
+                'success' => false,
+                'message' => 'This order has been cancelled.',
+                'order' => [
+                    'order_number' => $order->order_number,
+                    'order_status' => $order->order_status,
+                ],
+            ]);
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Order found',
+            'order' => [
+                'id' => $order->id,
+                'order_number' => $order->order_number,
+                'customer_name' => $order->customer ? $order->customer->name : 'Walk-in Customer',
+                'items' => $order->items->map(fn($item) => [
+                    'name' => $item->product_name,
+                    'quantity' => $item->quantity,
+                    'price' => $item->price,
+                    'subtotal' => $item->subtotal,
+                ]),
+                'subtotal' => $order->subtotal,
+                'tax' => $order->tax,
+                'discount' => $order->discount,
+                'total' => $order->total,
+                'payment_method' => $order->payment_method,
+                'payment_status' => $order->payment_status,
+                'order_status' => $order->order_status,
+                'created_at' => $order->created_at->format('M d, Y H:i'),
+            ],
+        ]);
+    }
+
+    /**
      * Mark order as paid (for counter payments)
      */
     public function markPaid(Request $request, Order $order)
     {
-        $store = auth()->user()->store;
+        $store = auth()->user()->getEffectiveStore();
 
         // Security: Verify store ownership
         if ($order->store_id !== $store->id) {
@@ -327,6 +409,12 @@ class POSController extends Controller
             'transaction_id' => $transactionId,
         ]);
 
+        // Add transaction to cash register if session is open
+        $cashSession = CashRegisterSession::getAnyOpenSession($store->id);
+        if ($cashSession) {
+            $cashSession->addTransaction('sale', $paymentMethod, $order->total, $order->id);
+        }
+
         return response()->json([
             'success' => true,
             'message' => 'Order marked as paid successfully.',
@@ -346,7 +434,7 @@ class POSController extends Controller
      */
     public function completeOrder(Request $request, Order $order)
     {
-        $store = auth()->user()->store;
+        $store = auth()->user()->getEffectiveStore();
 
         // Security: Verify store ownership
         if ($order->store_id !== $store->id) {
@@ -391,7 +479,7 @@ class POSController extends Controller
      */
     public function receipt(Order $order)
     {
-        $store = auth()->user()->store;
+        $store = auth()->user()->getEffectiveStore();
 
         if ($order->store_id !== $store->id) {
             abort(403);
@@ -409,24 +497,34 @@ class POSController extends Controller
      */
     public function searchCustomers(Request $request)
     {
-        $store = auth()->user()->getEffectiveStore();
-        $search = $request->input('q', '');
+        try {
+            $store = auth()->user()->getEffectiveStore();
+            
+            if (!$store) {
+                return response()->json(['customers' => [], 'error' => 'No store found']);
+            }
+            
+            $search = $request->input('q', '');
 
-        if (strlen($search) < 2) {
-            return response()->json(['customers' => []]);
+            if (strlen($search) < 2) {
+                return response()->json(['customers' => []]);
+            }
+
+            $customers = $store->customers()
+                ->where(function ($query) use ($search) {
+                    $query->where('name', 'like', "%{$search}%")
+                        ->orWhere('phone', 'like', "%{$search}%")
+                        ->orWhere('email', 'like', "%{$search}%");
+                })
+                ->select('id', 'name', 'phone', 'email')
+                ->limit(10)
+                ->get();
+
+            return response()->json(['customers' => $customers]);
+        } catch (\Exception $e) {
+            \Log::error('Customer search error: ' . $e->getMessage());
+            return response()->json(['customers' => [], 'error' => $e->getMessage()]);
         }
-
-        $customers = $store->customers()
-            ->where(function ($query) use ($search) {
-                $query->where('name', 'like', "%{$search}%")
-                    ->orWhere('phone', 'like', "%{$search}%")
-                    ->orWhere('email', 'like', "%{$search}%");
-            })
-            ->select('id', 'name', 'phone', 'email')
-            ->limit(10)
-            ->get();
-
-        return response()->json(['customers' => $customers]);
     }
 
     /**
@@ -434,35 +532,57 @@ class POSController extends Controller
      */
     public function createCustomer(Request $request)
     {
-        $store = auth()->user()->getEffectiveStore();
+        try {
+            $store = auth()->user()->getEffectiveStore();
+            
+            if (!$store) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'No store found',
+                ], 400);
+            }
 
-        $validated = $request->validate([
-            'name' => 'required|string|max:255',
-            'phone' => 'required|string|max:20',
-            'email' => 'nullable|email|max:255',
-        ]);
+            $validated = $request->validate([
+                'name' => 'required|string|max:255',
+                'phone' => 'nullable|string|max:20',
+                'email' => 'nullable|email|max:255',
+            ]);
 
-        // Check if customer with same phone already exists
-        $existing = $store->customers()->where('phone', $validated['phone'])->first();
-        if ($existing) {
+            // Check if customer with same phone already exists (only if phone provided)
+            if (!empty($validated['phone'])) {
+                $existing = $store->customers()->where('phone', $validated['phone'])->first();
+                if ($existing) {
+                    return response()->json([
+                        'success' => true,
+                        'message' => 'Customer already exists with this phone number.',
+                        'customer' => $existing,
+                    ]);
+                }
+            }
+
+            $customer = $store->customers()->create([
+                'name' => $validated['name'],
+                'phone' => $validated['phone'] ?? null,
+                'email' => $validated['email'] ?? null,
+                'is_manually_added' => true,
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Customer created successfully.',
+                'customer' => $customer,
+            ]);
+        } catch (\Illuminate\Validation\ValidationException $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Customer with this phone number already exists.',
-                'customer' => $existing,
+                'message' => 'Validation error: ' . implode(', ', $e->validator->errors()->all()),
             ], 422);
+        } catch (\Exception $e) {
+            \Log::error('Customer create error: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Error creating customer: ' . $e->getMessage(),
+            ], 500);
         }
-
-        $customer = $store->customers()->create([
-            'name' => $validated['name'],
-            'phone' => $validated['phone'],
-            'email' => $validated['email'] ?? null,
-            'is_manually_added' => true,
-        ]);
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Customer created successfully.',
-            'customer' => $customer,
-        ]);
     }
 }

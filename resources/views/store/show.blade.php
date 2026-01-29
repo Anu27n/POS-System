@@ -2,37 +2,110 @@
 
 @section('title', $store->name)
 
+@push('styles')
+<style>
+    :root {
+        --store-primary: {{ $store->primary_color ?? '#0d6efd' }};
+        --store-secondary: {{ $store->secondary_color ?? '#1E293B' }};
+        --store-accent: {{ $store->accent_color ?? '#10B981' }};
+    }
+    
+    @if($store->font_family)
+    @import url('https://fonts.googleapis.com/css2?family={{ str_replace(' ', '+', $store->font_family) }}:wght@400;500;600;700&display=swap');
+    body {
+        font-family: '{{ $store->font_family }}', sans-serif;
+    }
+    @endif
+
+    .store-header {
+        background: linear-gradient(135deg, var(--store-primary), color-mix(in srgb, var(--store-primary) 80%, black));
+    }
+    
+    .btn-store-primary {
+        background-color: var(--store-primary);
+        border-color: var(--store-primary);
+        color: white;
+    }
+    
+    .btn-store-primary:hover {
+        background-color: color-mix(in srgb, var(--store-primary) 85%, black);
+        border-color: color-mix(in srgb, var(--store-primary) 85%, black);
+        color: white;
+    }
+
+    .text-store-primary {
+        color: var(--store-primary);
+    }
+
+    .text-store-secondary {
+        color: var(--store-secondary);
+    }
+
+    .bg-store-primary {
+        background-color: var(--store-primary);
+    }
+
+    .badge-store {
+        background-color: var(--store-primary);
+    }
+
+    .list-group-item.active {
+        background-color: var(--store-primary);
+        border-color: var(--store-primary);
+    }
+
+    .card-header {
+        background-color: var(--store-primary);
+        color: white;
+    }
+
+    .product-price {
+        color: var(--store-primary);
+    }
+
+    .btn-success-custom {
+        background-color: var(--store-accent);
+        border-color: var(--store-accent);
+    }
+</style>
+@endpush
+
 @section('content')
 <!-- Store Header -->
-<div class="bg-light py-4 mb-4">
+<div class="store-header py-4 mb-4 text-white">
     <div class="container">
         <div class="row align-items-center">
             <div class="col-auto">
                 @if($store->logo)
                 <img src="{{ asset('storage/' . $store->logo) }}"
-                    alt="{{ $store->name }}" class="rounded-circle"
-                    style="width: 80px; height: 80px; object-fit: cover;">
+                    alt="{{ $store->name }}" class="rounded-circle bg-white p-1"
+                    style="width: 80px; height: 80px; object-fit: cover;"
+                    onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                <div class="bg-white bg-opacity-25 rounded-circle align-items-center justify-content-center"
+                    style="width: 80px; height: 80px; display: none;">
+                    <i class="bi bi-shop fs-1"></i>
+                </div>
                 @else
-                <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center"
+                <div class="bg-white bg-opacity-25 rounded-circle d-flex align-items-center justify-content-center"
                     style="width: 80px; height: 80px;">
                     <i class="bi bi-shop fs-1"></i>
                 </div>
                 @endif
             </div>
             <div class="col">
-                <h1 class="mb-1">{{ $store->name }}</h1>
-                <p class="text-muted mb-0">
-                    <span class="badge bg-secondary">{{ ucfirst($store->type) }} Store</span>
+                <h1 class="mb-1 text-white">{{ $store->name }}</h1>
+                <p class="mb-0 opacity-75">
+                    <span class="badge bg-white bg-opacity-25">{{ ucfirst($store->type) }} Store</span>
                     @if($store->address)
                     <i class="bi bi-geo-alt ms-2"></i> {{ $store->address }}
                     @endif
                 </p>
                 @if($store->description)
-                <p class="mt-2 mb-0">{{ $store->description }}</p>
+                <p class="mt-2 mb-0 opacity-90">{{ $store->description }}</p>
                 @endif
             </div>
             <div class="col-auto">
-                <a href="{{ route('cart.index', ['store' => $store->slug]) }}" class="btn btn-primary position-relative">
+                <a href="{{ route('cart.index', ['store' => $store->slug]) }}" class="btn btn-light position-relative">
                     <i class="bi bi-cart3 me-1"></i> Cart
                     <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger cart-count">
                         {{ $cartCount ?? 0 }}
@@ -98,50 +171,96 @@
                 @forelse($products as $product)
                 <div class="col-6 col-md-4">
                     <div class="card h-100 product-card">
-                        <a href="{{ route('store.product', [$store->slug, $product]) }}" class="text-decoration-none">
+                        @if($product->track_stock && $product->stock_quantity <= 0)
+                        <div class="bg-light d-flex align-items-center justify-content-center position-relative"
+                            style="height: 200px; cursor: not-allowed;">
                             @if($product->image)
                             <img src="{{ asset('storage/' . $product->image) }}"
                                 class="card-img-top" alt="{{ $product->name }}"
-                                style="height: 200px; object-fit: cover;">
+                                style="height: 200px; object-fit: cover; opacity: 0.5;">
                             @else
-                            <div class="bg-light d-flex align-items-center justify-content-center"
-                                style="height: 200px;">
-                                <i class="bi bi-box text-muted" style="font-size: 4rem;"></i>
-                            </div>
+                            <i class="bi bi-box text-muted" style="font-size: 4rem;"></i>
                             @endif
-                        </a>
+                            <span class="badge bg-secondary position-absolute" style="top: 50%; left: 50%; transform: translate(-50%, -50%);">Out of Stock</span>
+                        </div>
+                        @else
+                        <form action="{{ route('cart.add') }}" method="POST" class="add-to-cart-form h-100 d-flex flex-column">
+                            @csrf
+                            <input type="hidden" name="store_id" value="{{ $store->id }}">
+                            <input type="hidden" name="product_id" value="{{ $product->id }}">
+                            <input type="hidden" name="quantity" value="1">
+                            <div class="product-image-wrapper position-relative" style="cursor: pointer;" onclick="this.closest('form').requestSubmit();">
+                                @if($product->image)
+                                <img src="{{ asset('storage/' . $product->image) }}"
+                                    class="card-img-top" alt="{{ $product->name }}"
+                                    style="height: 200px; object-fit: cover;"
+                                    onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                                <div class="bg-light align-items-center justify-content-center"
+                                    style="height: 200px; display: none;">
+                                    <i class="bi bi-box text-muted" style="font-size: 4rem;"></i>
+                                </div>
+                                @else
+                                <div class="bg-light d-flex align-items-center justify-content-center"
+                                    style="height: 200px;">
+                                    <i class="bi bi-box text-muted" style="font-size: 4rem;"></i>
+                                </div>
+                                @endif
+                                <div class="position-absolute top-0 start-0 end-0 bottom-0 d-flex align-items-center justify-content-center hover-overlay" style="background: rgba(0,0,0,0); transition: all 0.2s;">
+                                    <span class="btn btn-store-primary btn-sm opacity-0 add-hint">
+                                        <i class="bi bi-cart-plus me-1"></i>Add to Cart
+                                    </span>
+                                </div>
+                            </div>
+                        @endif
                         @if($product->sale_price)
                         <span class="badge bg-danger position-absolute" style="top: 10px; right: 10px;">
                             Sale
                         </span>
                         @endif
-                        <div class="card-body">
-                            <h6 class="card-title mb-2">
-                                <a href="{{ route('store.product', [$store->slug, $product]) }}"
-                                    class="text-decoration-none text-dark">
-                                    {{ $product->name }}
-                                </a>
+                        <div class="card-body flex-grow-1">
+                            <h6 class="card-title mb-2 text-truncate" title="{{ $product->name }}">
+                                {{ $product->name }}
                             </h6>
                             <p class="card-text mb-2">
                                 @if($product->sale_price)
-                                <span class="text-decoration-line-through text-muted">₹{{ number_format($product->price, 2) }}</span>
-                                <span class="text-danger fw-bold">₹{{ number_format($product->sale_price, 2) }}</span>
+                                <span class="text-decoration-line-through text-muted">{{ \App\Helpers\CurrencyHelper::format($product->price, $store->currency ?? 'INR') }}</span>
+                                <span class="text-danger fw-bold">{{ \App\Helpers\CurrencyHelper::format($product->sale_price, $store->currency ?? 'INR') }}</span>
                                 @else
-                                <span class="fw-bold">₹{{ number_format($product->price, 2) }}</span>
+                                <span class="fw-bold product-price">{{ \App\Helpers\CurrencyHelper::format($product->price, $store->currency ?? 'INR') }}</span>
                                 @endif
                             </p>
+                            
+                            {{-- Product Variants/Details --}}
+                            @if($product->unit || $product->weight)
+                            <p class="card-text mb-1 small text-muted">
+                                @if($product->unit)
+                                <span class="me-2"><i class="bi bi-box-seam me-1"></i>{{ $product->unit }}</span>
+                                @endif
+                                @if($product->weight)
+                                <span><i class="bi bi-speedometer2 me-1"></i>{{ $product->weight }} kg</span>
+                                @endif
+                            </p>
+                            @endif
+                            
+                            @if($product->sizes)
+                            <p class="card-text mb-1 small">
+                                <strong>Sizes:</strong> <span class="text-muted">{{ $product->sizes }}</span>
+                            </p>
+                            @endif
+                            
+                            @if($product->colors)
+                            <p class="card-text mb-2 small">
+                                <strong>Colors:</strong> <span class="text-muted">{{ $product->colors }}</span>
+                            </p>
+                            @endif
+                            
                             @if($product->track_stock && $product->stock_quantity <= 0)
                                 <span class="badge bg-secondary">Out of Stock</span>
                                 @else
-                                <form action="{{ route('cart.add') }}" method="POST" class="add-to-cart-form">
-                                    @csrf
-                                    <input type="hidden" name="store_id" value="{{ $store->id }}">
-                                    <input type="hidden" name="product_id" value="{{ $product->id }}">
-                                    <input type="hidden" name="quantity" value="1">
-                                    <button type="submit" class="btn btn-primary btn-sm w-100">
-                                        <i class="bi bi-cart-plus me-1"></i>Add to Cart
-                                    </button>
-                                </form>
+                                <button type="submit" class="btn btn-store-primary btn-sm w-100">
+                                    <i class="bi bi-cart-plus me-1"></i>Add to Cart
+                                </button>
+                            </form>
                                 @endif
                         </div>
                     </div>
@@ -177,6 +296,43 @@
         transform: translateY(-5px);
         box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
     }
+    
+    .product-image-wrapper:hover .hover-overlay {
+        background: rgba(0,0,0,0.3) !important;
+    }
+    
+    .product-image-wrapper:hover .add-hint {
+        opacity: 1 !important;
+    }
+    
+    /* Mobile responsive improvements */
+    @media (max-width: 767px) {
+        .store-header {
+            padding: 15px 0 !important;
+        }
+        .store-header h1 {
+            font-size: 1.25rem;
+        }
+        .store-header .rounded-circle {
+            width: 50px !important;
+            height: 50px !important;
+        }
+        .product-card img, .product-image-wrapper > div {
+            height: 140px !important;
+        }
+        .card-body {
+            padding: 10px !important;
+        }
+        .card-title {
+            font-size: 0.9rem;
+        }
+        .product-price {
+            font-size: 0.95rem;
+        }
+        .col-lg-3 {
+            display: none;
+        }
+    }
 </style>
 
 <script>
@@ -210,13 +366,13 @@
 
                         // Show success state
                         btn.innerHTML = '<i class="bi bi-check me-1"></i>Added!';
-                        btn.classList.remove('btn-primary');
-                        btn.classList.add('btn-success');
+                        btn.classList.remove('btn-store-primary');
+                        btn.classList.add('btn-success-custom');
 
                         setTimeout(() => {
                             btn.innerHTML = originalText;
-                            btn.classList.remove('btn-success');
-                            btn.classList.add('btn-primary');
+                            btn.classList.remove('btn-success-custom');
+                            btn.classList.add('btn-store-primary');
                             btn.disabled = false;
                         }, 1500);
                     } else {

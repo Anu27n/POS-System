@@ -75,7 +75,7 @@
         All requirements passed! You can proceed with the installation.
     </div>
     <div class="d-grid">
-        <a href="{{ route('installer.database') }}" class="btn btn-primary btn-lg">
+        <a href="{{ route('installer.license') }}" class="btn btn-primary btn-lg">
             Continue <i class="bi bi-arrow-right ms-2"></i>
         </a>
     </div>

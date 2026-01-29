@@ -101,6 +101,34 @@
                         </div>
                     </div>
 
+                    <h6 class="mb-3">Subscription Plan</h6>
+                    
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <label for="plan_id" class="form-label">Subscription Plan</label>
+                            <select class="form-select @error('plan_id') is-invalid @enderror" id="plan_id" name="plan_id">
+                                <option value="">-- Keep Current Plan --</option>
+                                @foreach($plans as $plan)
+                                    <option value="{{ $plan->id }}" 
+                                        {{ $currentSubscription && $currentSubscription->plan_id == $plan->id ? 'selected' : '' }}>
+                                        {{ $plan->name }} - ₹{{ number_format($plan->price, 2) }}/{{ $plan->billing_cycle }}
+                                    </option>
+                                @endforeach
+                            </select>
+                            @error('plan_id')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                            @if($currentSubscription)
+                                <small class="text-muted">
+                                    Current: {{ $currentSubscription->plan->name ?? 'N/A' }} 
+                                    (Expires: {{ $currentSubscription->end_date ? \Carbon\Carbon::parse($currentSubscription->end_date)->format('M d, Y') : 'N/A' }})
+                                </small>
+                            @else
+                                <small class="text-warning">No active subscription</small>
+                            @endif
+                        </div>
+                    </div>
+
                     <div class="d-flex gap-2">
                         <button type="submit" class="btn btn-primary">Update Store</button>
                         <a href="{{ route('admin.stores.index') }}" class="btn btn-outline-secondary">Cancel</a>

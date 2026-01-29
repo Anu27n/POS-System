@@ -6,7 +6,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
-    <title>@yield('title', 'Store Dashboard') - POS System</title>
+    <title>@yield('title', 'Store Dashboard') - {{ $appSettings['app_name'] ?? 'POS System' }}</title>
+
+    @if(!empty($appSettings['app_favicon']))
+    <link rel="icon" type="image/png" href="{{ asset('storage/' . $appSettings['app_favicon']) }}">
+    @endif
 
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -298,6 +302,11 @@
             <a href="{{ route('store-owner.settings.index') }}" class="nav-link {{ request()->routeIs('store-owner.settings.index') ? 'active' : '' }}">
                 <i class="bi bi-gear"></i> Store Settings
             </a>
+            @if(auth()->user()->getEffectiveStore()->hasFeature('store_customization'))
+            <a href="{{ route('store-owner.customization.index') }}" class="nav-link {{ request()->routeIs('store-owner.customization.*') ? 'active' : '' }}">
+                <i class="bi bi-palette"></i> Customization
+            </a>
+            @endif
             <a href="{{ route('store-owner.tax-settings.index') }}" class="nav-link {{ request()->routeIs('store-owner.tax-settings.*') ? 'active' : '' }}">
                 <i class="bi bi-receipt-cutoff"></i> Tax Settings
             </a>
@@ -386,6 +395,23 @@
 
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <script>
+        // Global image error handler
+        document.addEventListener('DOMContentLoaded', function() {
+            document.querySelectorAll('img').forEach(function(img) {
+                if (!img.hasAttribute('onerror') || img.getAttribute('onerror') === '') {
+                    img.onerror = function() {
+                        this.onerror = null;
+                        const width = this.width || 200;
+                        const height = this.height || 200;
+                        this.src = `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='${width}' height='${height}'%3E%3Crect fill='%23f3f4f6' width='${width}' height='${height}'/%3E%3Ctext fill='%239ca3af' font-family='sans-serif' font-size='24' dy='10.5' font-weight='bold' x='50%25' y='50%25' text-anchor='middle'%3E📦%3C/text%3E%3C/svg%3E`;
+                    };
+                }
+            });
+        });
+    </script>
+    
     @stack('scripts')
 </body>
 

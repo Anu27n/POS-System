@@ -9,7 +9,7 @@
         <div class="card">
             <div class="card-body text-center">
                 @if($store->logo)
-                    <img src="{{ Storage::url($store->logo) }}" alt="{{ $store->name }}" 
+                    <img src="{{ asset('storage/' . $store->logo) }}" alt="{{ $store->name }}" 
                          class="rounded-circle mb-3" style="width: 100px; height: 100px; object-fit: cover;">
                 @else
                     <div class="bg-primary text-white rounded-circle d-inline-flex align-items-center justify-content-center mb-3" 

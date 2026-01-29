@@ -88,18 +88,27 @@
 
 @push('scripts')
 @if($method === 'razorpay')
+@php
+    $razorpaySettings = \App\Models\PaymentSetting::getGateway('razorpay');
+    $razorpayKey = $razorpaySettings && isset($razorpaySettings->credentials['key_id']) 
+        ? $razorpaySettings->credentials['key_id'] 
+        : config('services.razorpay.key', '');
+@endphp
 <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 <script>
     document.getElementById('razorpay-btn').onclick = function(e) {
         e.preventDefault();
 
+        var razorpayKey = "{{ $razorpayKey }}";
+        
+        if (!razorpayKey || razorpayKey === '') {
+            alert('Razorpay is not configured. Please contact the administrator.');
+            return;
+        }
+
         var options = {
-            "key": "{{ config('services.razorpay.key', 'rzp_test_xxx') }}", // Replace with actual key
-            "amount": {
-                {
-                    ($plan - > price * 1.18) * 100
-                }
-            }, // Amount in paise
+            "key": razorpayKey,
+            "amount": {{ ($plan->price * 1.18) * 100 }}, // Amount in paise
             "currency": "INR",
             "name": "{{ config('app.name') }}",
             "description": "{{ $plan->name }} Plan - {{ ucfirst($plan->billing_cycle) }}",
@@ -130,9 +139,21 @@
     }
 </script>
 @else
+@php
+    $stripeSettings = \App\Models\PaymentSetting::getGateway('stripe');
+    $stripeKey = $stripeSettings && isset($stripeSettings->credentials['publishable_key']) 
+        ? $stripeSettings->credentials['publishable_key'] 
+        : config('services.stripe.key', '');
+@endphp
 <script src="https://js.stripe.com/v3/"></script>
 <script>
-    var stripe = Stripe("{{ config('services.stripe.key', 'pk_test_xxx') }}");
+    var stripeKey = "{{ $stripeKey }}";
+    
+    if (!stripeKey || stripeKey === '') {
+        alert('Stripe is not configured. Please contact the administrator.');
+    }
+    
+    var stripe = Stripe(stripeKey);
     var elements = stripe.elements();
 
     var style = {

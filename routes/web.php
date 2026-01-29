@@ -18,9 +18,11 @@ use Illuminate\Support\Facades\Route;
 |--------------------------------------------------------------------------
 */
 
-Route::prefix('install')->group(function () {
+Route::prefix('install')->withoutMiddleware(\App\Http\Middleware\CheckInstallation::class)->group(function () {
     Route::get('/', [InstallerController::class, 'index'])->name('installer.index');
     Route::get('/requirements', [InstallerController::class, 'requirements'])->name('installer.requirements');
+    Route::get('/license', [InstallerController::class, 'license'])->name('installer.license');
+    Route::post('/license', [InstallerController::class, 'licenseStore'])->name('installer.license.store');
     Route::get('/database', [InstallerController::class, 'database'])->name('installer.database');
     Route::post('/database', [InstallerController::class, 'databaseStore'])->name('installer.database.store');
     Route::get('/migrations', [InstallerController::class, 'migrations'])->name('installer.migrations');
@@ -37,6 +39,24 @@ Route::prefix('install')->group(function () {
 */
 
 Route::get('/', [HomeController::class, 'index'])->name('home');
+
+// Debug route for testing sessions
+Route::get('/test-session', function() {
+    $count = session('test_count', 0);
+    session(['test_count' => $count + 1]);
+    return response()->json([
+        'session_driver' => config('session.driver'),
+        'test_count' => session('test_count'),
+        'session_id' => session()->getId(),
+        'auth_check' => auth()->check(),
+        'auth_user' => auth()->user(),
+        'cookie_config' => [
+            'secure' => config('session.secure'),
+            'same_site' => config('session.same_site'),
+            'domain' => config('session.domain'),
+        ]
+    ]);
+});
 
 // Pricing page
 Route::get('/pricing', [PricingController::class, 'index'])->name('pricing');
@@ -57,6 +77,12 @@ Route::middleware('guest')->group(function () {
     Route::post('/login', [AuthController::class, 'login']);
     Route::get('/register', [AuthController::class, 'showRegisterForm'])->name('register');
     Route::post('/register', [AuthController::class, 'register']);
+    
+    // Password Reset Routes
+    Route::get('/forgot-password', [AuthController::class, 'showForgotPasswordForm'])->name('password.request');
+    Route::post('/forgot-password', [AuthController::class, 'sendResetLink'])->name('password.email');
+    Route::get('/reset-password/{token}', [AuthController::class, 'showResetPasswordForm'])->name('password.reset');
+    Route::post('/reset-password', [AuthController::class, 'resetPassword'])->name('password.update');
 });
 
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout')->middleware('auth');
@@ -82,6 +108,18 @@ Route::delete('/cart', [CartController::class, 'clear'])->name('cart.clear');
 Route::get('/checkout', [CheckoutController::class, 'index'])->name('checkout.index');
 Route::post('/checkout', [CheckoutController::class, 'process'])->name('checkout.process');
 Route::get('/order/{order}/confirmation', [CheckoutController::class, 'confirmation'])->name('order.confirmation');
+
+/*
+|--------------------------------------------------------------------------
+| Payment Routes (Order Payments)
+|--------------------------------------------------------------------------
+*/
+
+Route::get('/payment/razorpay/{orderNumber}', [App\Http\Controllers\PaymentController::class, 'razorpay'])->name('payment.razorpay');
+Route::post('/payment/razorpay/callback', [App\Http\Controllers\PaymentController::class, 'razorpayCallback'])->name('payment.razorpay.callback');
+Route::get('/payment/razorpay/failed', [App\Http\Controllers\PaymentController::class, 'razorpayFailed'])->name('payment.razorpay.failed');
+Route::get('/payment/stripe/{orderNumber}', [App\Http\Controllers\PaymentController::class, 'stripe'])->name('payment.stripe');
+Route::post('/payment/stripe/callback', [App\Http\Controllers\PaymentController::class, 'stripeCallback'])->name('payment.stripe.callback');
 
 Route::middleware('auth')->group(function () {
     // Customer orders
@@ -115,6 +153,17 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin'])->grou
     // Payment settings
     Route::get('/settings/payment', [Admin\PaymentSettingController::class, 'index'])->name('settings.payment');
     Route::post('/settings/payment', [Admin\PaymentSettingController::class, 'update'])->name('settings.payment.update');
+
+    // Customization settings
+    Route::get('/settings/customization', [Admin\CustomizationController::class, 'index'])->name('settings.customization');
+    Route::post('/settings/customization', [Admin\CustomizationController::class, 'update'])->name('settings.customization.update');
+    Route::get('/settings/customization/remove-logo', [Admin\CustomizationController::class, 'removeLogo'])->name('settings.customization.remove-logo');
+    Route::get('/settings/customization/remove-favicon', [Admin\CustomizationController::class, 'removeFavicon'])->name('settings.customization.remove-favicon');
+
+    // SMTP & Email settings
+    Route::get('/settings/smtp', [Admin\SmtpSettingController::class, 'index'])->name('settings.smtp');
+    Route::post('/settings/smtp', [Admin\SmtpSettingController::class, 'update'])->name('settings.smtp.update');
+    Route::post('/settings/smtp/test', [Admin\SmtpSettingController::class, 'test'])->name('settings.smtp.test');
 
     // Reports
     Route::get('/reports/sales', [Admin\ReportController::class, 'sales'])->name('reports.sales');
@@ -179,6 +228,12 @@ Route::prefix('store-owner')->name('store-owner.')->middleware(['auth', 'role:st
     Route::get('/settings', [StoreOwner\StoreSettingController::class, 'index'])->name('settings.index');
     Route::put('/settings', [StoreOwner\StoreSettingController::class, 'update'])->name('settings.update');
 
+    // Store customization (plan-based feature)
+    Route::get('/customization', [StoreOwner\CustomizationController::class, 'index'])->name('customization.index');
+    Route::put('/customization', [StoreOwner\CustomizationController::class, 'update'])->name('customization.update');
+    Route::get('/customization/remove-logo', [StoreOwner\CustomizationController::class, 'removeLogo'])->name('customization.remove-logo');
+    Route::get('/customization/reset-colors', [StoreOwner\CustomizationController::class, 'resetColors'])->name('customization.reset-colors');
+
     // Payment settings
     Route::get('/payment-settings', [StoreOwner\PaymentSettingsController::class, 'index'])->name('payment-settings.index');
     Route::put('/payment-settings', [StoreOwner\PaymentSettingsController::class, 'update'])->name('payment-settings.update');
@@ -214,4 +269,5 @@ Route::prefix('store-owner')->name('store-owner.')->middleware(['auth', 'role:st
     // POS Customer search API
     Route::get('/pos/customers/search', [StoreOwner\POSController::class, 'searchCustomers'])->name('pos.customers.search');
     Route::post('/pos/customers/create', [StoreOwner\POSController::class, 'createCustomer'])->name('pos.customers.create');
+    Route::get('/pos/order/lookup', [StoreOwner\POSController::class, 'lookupOrder'])->name('pos.order.lookup');
 });

@@ -252,27 +252,23 @@
                     </tr>
                     <tr class="text-info">
                         <td>+ Cash In</td>
-                        <td class="text-end">{{ \App\Helpers\CurrencyHelper::format($session->transactions()->where('type', 'cash_in')->sum('amount')) }}</td>
+                        <td class="text-end">{{ \App\Helpers\CurrencyHelper::format($session->total_cash_in ?? 0) }}</td>
                     </tr>
                     <tr class="text-danger">
                         <td>- Cash Out</td>
-                        <td class="text-end">{{ \App\Helpers\CurrencyHelper::format($session->transactions()->where('type', 'cash_out')->sum('amount')) }}</td>
+                        <td class="text-end">{{ \App\Helpers\CurrencyHelper::format($session->total_cash_out ?? 0) }}</td>
                     </tr>
-                    <tr class="text-danger">
-                        <td>- Refunds (Cash)</td>
-                        <td class="text-end">{{ \App\Helpers\CurrencyHelper::format($session->transactions()->where('type', 'refund')->where('payment_method', 'cash')->sum('amount')) }}</td>
-                    </tr>
-                    <tr class="table-light fw-bold">
-                        <td>Expected Cash</td>
+                    <tr class="table-primary fw-bold">
+                        <td>= Actual Closing Cash (Auto)</td>
                         <td class="text-end">{{ \App\Helpers\CurrencyHelper::format($session->expected_cash) }}</td>
                     </tr>
-                    @if($session->closed_at)
-                    <tr class="table-secondary">
-                        <td>Actual Closing</td>
-                        <td class="text-end">{{ \App\Helpers\CurrencyHelper::format($session->closing_cash) }}</td>
-                    </tr>
-                    @endif
                 </table>
+                @if($session->closed_at)
+                <div class="alert alert-success mt-3 mb-0">
+                    <i class="bi bi-check-circle me-1"></i>
+                    <strong>Session Closed:</strong> The closing cash was automatically calculated to prevent discrepancies.
+                </div>
+                @endif
             </div>
         </div>
     </div>

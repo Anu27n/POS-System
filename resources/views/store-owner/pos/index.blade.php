@@ -8,6 +8,56 @@
     .pos-container {
         height: calc(100vh - 140px);
     }
+    
+    /* Mobile: Stack cart below products */
+    @media (max-width: 991px) {
+        .pos-container {
+            height: auto;
+        }
+        .pos-container > .col-lg-8,
+        .pos-container > .col-lg-4 {
+            height: auto;
+        }
+        .pos-container > .col-lg-4 {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            z-index: 1040;
+            max-height: 50vh;
+            padding: 0;
+        }
+        .pos-container > .col-lg-4 .card {
+            border-radius: 16px 16px 0 0;
+            box-shadow: 0 -4px 20px rgba(0,0,0,0.15);
+        }
+        .pos-container > .col-lg-4 .cart-items {
+            max-height: 25vh;
+        }
+        .pos-container > .col-lg-8 {
+            padding-bottom: 200px;
+        }
+        .products-grid {
+            height: auto !important;
+            max-height: 60vh;
+        }
+        /* Mobile cart toggle */
+        .mobile-cart-toggle {
+            display: block !important;
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 1050;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            font-size: 1.5rem;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+        }
+        .cart-section.collapsed {
+            transform: translateY(calc(100% - 60px));
+        }
+    }
 
     .products-grid {
         height: 100%;
@@ -18,16 +68,39 @@
         cursor: pointer;
         transition: transform 0.2s, box-shadow 0.2s;
         height: 100%;
+        -webkit-tap-highlight-color: transparent;
+        user-select: none;
     }
 
-    .product-card:hover {
+    .product-card:hover,
+    .product-card:active {
         transform: translateY(-2px);
         box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    }
+    
+    .product-card:active {
+        transform: scale(0.98);
     }
 
     .product-card img {
         height: 120px;
         object-fit: cover;
+    }
+    
+    @media (max-width: 575px) {
+        .product-card img {
+            height: 80px;
+        }
+        .product-card .card-body {
+            padding: 8px !important;
+        }
+        .product-card .card-title {
+            font-size: 0.75rem;
+            margin-bottom: 4px !important;
+        }
+        .product-card .card-text {
+            font-size: 0.85rem;
+        }
     }
 
     .cart-section {
@@ -107,6 +180,10 @@
         font-size: 1rem;
         border-radius: 8px;
     }
+    
+    .mobile-cart-toggle {
+        display: none;
+    }
 </style>
 @endpush
 
@@ -165,17 +242,21 @@
                                 data-name="{{ strtolower($product->name) }}"
                                 data-sku="{{ strtolower($product->sku ?? '') }}"
                                 data-barcode="{{ strtolower($product->barcode ?? '') }}">
-                                <div class="card product-card"
-                                    onclick="addToCart({{ json_encode([
-                                         'id' => $product->id,
-                                         'name' => $product->name,
-                                         'price' => $product->price,
-                                         'image' => $product->image ? asset('storage/' . $product->image) : null,
-                                         'stock' => $product->stock_quantity,
-                                         'track_stock' => $product->track_inventory,
-                                     ]) }})">
+                                <div class="card product-card" style="cursor: pointer;"
+                                    data-product='{{ json_encode([
+                                         "id" => $product->id,
+                                         "name" => $product->name,
+                                         "price" => $product->price,
+                                         "image" => $product->image ? asset("storage/" . $product->image) : null,
+                                         "stock" => $product->stock_quantity,
+                                         "track_stock" => $product->track_inventory,
+                                     ]) }}'>
                                     @if($product->image)
-                                    <img src="{{ asset('storage/' . $product->image) }}" class="card-img-top" alt="{{ $product->name }}">
+                                    <img src="{{ asset('storage/' . $product->image) }}" class="card-img-top" alt="{{ $product->name }}"
+                                        onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                                    <div class="bg-light align-items-center justify-content-center" style="height: 120px; display: none;">
+                                        <i class="bi bi-box text-muted fs-1"></i>
+                                    </div>
                                     @else
                                     <div class="bg-light d-flex align-items-center justify-content-center" style="height: 120px;">
                                         <i class="bi bi-box text-muted fs-1"></i>
@@ -186,7 +267,7 @@
                                             {{ $product->name }}
                                         </h6>
                                         <p class="card-text mb-0 fw-bold text-primary">
-                                            ₹{{ number_format($product->price, 2) }}
+                                            {{ \App\Helpers\CurrencyHelper::format($product->price, $store->currency ?? 'INR') }}
                                         </p>
                                         @if($product->track_inventory)
                                         <small class="text-muted">Stock: {{ $product->stock_quantity }}</small>
@@ -237,23 +318,23 @@
                     <div class="cart-summary">
                         <div class="d-flex justify-content-between mb-2">
                             <span>Subtotal:</span>
-                            <span id="cartSubtotal">₹0.00</span>
+                            <span id="cartSubtotal">{{ \App\Helpers\CurrencyHelper::getCurrencySymbol($store->currency ?? 'INR') }}0.00</span>
                         </div>
                         <div class="d-flex justify-content-between mb-2">
                             <span>Tax (<span id="taxRate">{{ $taxRate ?? 0 }}</span>%):</span>
-                            <span id="cartTax">₹0.00</span>
+                            <span id="cartTax">{{ \App\Helpers\CurrencyHelper::getCurrencySymbol($store->currency ?? 'INR') }}0.00</span>
                         </div>
                         <div class="d-flex justify-content-between mb-3">
                             <span>Discount:</span>
                             <div class="input-group input-group-sm" style="width: 100px;">
-                                <span class="input-group-text">₹</span>
+                                <span class="input-group-text">{{ \App\Helpers\CurrencyHelper::getCurrencySymbol($store->currency ?? 'INR') }}</span>
                                 <input type="number" class="form-control" id="discountAmount" value="0" min="0" step="0.01">
                             </div>
                         </div>
                         <hr>
                         <div class="d-flex justify-content-between mb-3">
                             <strong class="fs-5">Total:</strong>
-                            <strong class="fs-5" id="cartTotal">₹0.00</strong>
+                            <strong class="fs-5" id="cartTotal">{{ \App\Helpers\CurrencyHelper::getCurrencySymbol($store->currency ?? 'INR') }}0.00</strong>
                         </div>
 
                         <div class="mb-3">
@@ -307,6 +388,24 @@
                             </div>
                             <div id="scannerStatus" class="text-center mt-3 small">
                                 Click "Start Camera" to begin scanning
+                            </div>
+                        </div>
+                        
+                        <!-- Manual Order Number Entry -->
+                        <div class="card mt-4">
+                            <div class="card-header bg-secondary text-white">
+                                <h6 class="mb-0"><i class="bi bi-keyboard me-2"></i>Manual Order Lookup</h6>
+                            </div>
+                            <div class="card-body">
+                                <p class="text-muted small mb-2">Enter order number if camera scanning doesn't work:</p>
+                                <div class="input-group">
+                                    <span class="input-group-text">ORD</span>
+                                    <input type="text" class="form-control" id="manualOrderNumber" placeholder="e.g., 20260125001" maxlength="20">
+                                    <button class="btn btn-primary" type="button" onclick="lookupOrderManually()">
+                                        <i class="bi bi-search me-1"></i>Find
+                                    </button>
+                                </div>
+                                <div id="manualLookupStatus" class="mt-2 small"></div>
                             </div>
                         </div>
                     </div>
@@ -482,31 +581,43 @@
     let html5QrcodeScanner = null;
     let isScanning = false;
     let currentScannedOrder = null;
-    const taxRate = {
-        {
-            $taxRate ?? 0
-        }
-    };
+    const taxRate = {{ $taxRate ?? 0 }};
+    const currencySymbol = '{{ \App\Helpers\CurrencyHelper::getCurrencySymbol($store->currency ?? "INR") }}';
 
     // =====================
     // QR SCANNER FUNCTIONS
     // =====================
 
     function startScanner() {
+        const qrReaderElement = document.getElementById("qr-reader");
+        const statusElement = document.getElementById('scannerStatus');
+        
+        if (!qrReaderElement) {
+            console.error('qr-reader element not found');
+            statusElement.innerHTML = '<span class="text-danger">Scanner element not found</span>';
+            return;
+        }
+
+        // Check if Html5Qrcode is loaded
+        if (typeof Html5Qrcode === 'undefined') {
+            console.error('Html5Qrcode library not loaded');
+            statusElement.innerHTML = '<span class="text-danger">QR Scanner library not loaded. Please refresh the page.</span>';
+            return;
+        }
+
+        statusElement.innerHTML = '<span class="text-info"><i class="bi bi-hourglass-split me-1"></i>Requesting camera access...</span>';
+
         const config = {
             fps: 10,
-            qrbox: {
-                width: 250,
-                height: 250
-            },
+            qrbox: { width: 250, height: 250 },
             aspectRatio: 1.0,
         };
 
+        // Create new scanner instance
         html5QrcodeScanner = new Html5Qrcode("qr-reader");
 
-        html5QrcodeScanner.start({
-                facingMode: "environment"
-            },
+        html5QrcodeScanner.start(
+            { facingMode: "environment" },
             config,
             onScanSuccess,
             onScanError
@@ -514,9 +625,17 @@
             isScanning = true;
             document.getElementById('startScanBtn').classList.add('d-none');
             document.getElementById('stopScanBtn').classList.remove('d-none');
-            document.getElementById('scannerStatus').innerHTML = '<span class="text-success"><i class="bi bi-record-circle me-1"></i>Camera active - Position QR code in frame</span>';
+            statusElement.innerHTML = '<span class="text-success"><i class="bi bi-record-circle me-1"></i>Camera active - Position QR code in frame</span>';
         }).catch(err => {
-            document.getElementById('scannerStatus').innerHTML = `<span class="text-danger">Error: ${err}</span>`;
+            console.error('Camera error:', err);
+            let errorMsg = err.toString();
+            if (errorMsg.includes('NotAllowedError') || errorMsg.includes('Permission')) {
+                statusElement.innerHTML = '<span class="text-danger"><i class="bi bi-exclamation-triangle me-1"></i>Camera permission denied. Please allow camera access and try again.</span>';
+            } else if (errorMsg.includes('NotFoundError') || errorMsg.includes('no camera')) {
+                statusElement.innerHTML = '<span class="text-danger"><i class="bi bi-exclamation-triangle me-1"></i>No camera found. Use Manual Order Lookup below.</span>';
+            } else {
+                statusElement.innerHTML = '<span class="text-danger"><i class="bi bi-exclamation-triangle me-1"></i>Camera Error: ' + errorMsg + '</span>';
+            }
         });
     }
 
@@ -535,6 +654,9 @@
         // Stop scanning after successful scan
         stopScanner();
 
+        console.log('QR Scanned! Raw data:', decodedText);
+        console.log('Decoded result:', decodedResult);
+
         document.getElementById('scannerStatus').innerHTML = '<span class="text-info"><i class="bi bi-hourglass-split me-1"></i>Verifying order...</span>';
 
         // Send to server for verification
@@ -548,8 +670,12 @@
                     qr_data: decodedText
                 })
             })
-            .then(response => response.json())
+            .then(response => {
+                console.log('Response status:', response.status);
+                return response.json();
+            })
             .then(data => {
+                console.log('Server response:', data);
                 if (data.success) {
                     displayScannedOrder(data.order);
                     document.getElementById('scannerStatus').innerHTML = '<span class="text-success"><i class="bi bi-check-circle me-1"></i>Order verified successfully!</span>';
@@ -559,6 +685,7 @@
                 }
             })
             .catch(error => {
+                console.error('Network error:', error);
                 showScanError('Failed to verify QR code. Please try again.');
                 document.getElementById('scannerStatus').innerHTML = '<span class="text-danger">Network error</span>';
             });
@@ -566,7 +693,50 @@
 
     function onScanError(errorMessage) {
         // Ignore scan errors (continuous scanning will produce many)
+        // Uncomment to debug: console.log('Scan error:', errorMessage);
     }
+
+    // Manual order lookup function
+    function lookupOrderManually() {
+        const orderInput = document.getElementById('manualOrderNumber');
+        const statusDiv = document.getElementById('manualLookupStatus');
+        const orderNumber = orderInput.value.trim();
+
+        if (!orderNumber) {
+            statusDiv.innerHTML = '<span class="text-danger">Please enter an order number</span>';
+            return;
+        }
+
+        statusDiv.innerHTML = '<span class="text-info"><i class="bi bi-hourglass-split me-1"></i>Looking up order...</span>';
+
+        fetch(`{{ route("store-owner.pos.order.lookup") }}?order_number=${encodeURIComponent(orderNumber)}`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    displayScannedOrder(data.order);
+                    statusDiv.innerHTML = '<span class="text-success"><i class="bi bi-check-circle me-1"></i>Order found!</span>';
+                    orderInput.value = '';
+                } else {
+                    showScanError(data.message);
+                    statusDiv.innerHTML = `<span class="text-danger"><i class="bi bi-x-circle me-1"></i>${data.message}</span>`;
+                }
+            })
+            .catch(error => {
+                statusDiv.innerHTML = '<span class="text-danger">Network error. Please try again.</span>';
+            });
+    }
+
+    // Allow Enter key to trigger lookup
+    document.addEventListener('DOMContentLoaded', function() {
+        const orderInput = document.getElementById('manualOrderNumber');
+        if (orderInput) {
+            orderInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    lookupOrderManually();
+                }
+            });
+        }
+    });
 
     function displayScannedOrder(order) {
         currentScannedOrder = order;
@@ -782,6 +952,52 @@
     // CART FUNCTIONS
     // =====================
 
+    // Product card click handler with touch support
+    document.getElementById('productsGrid').addEventListener('click', function(e) {
+        console.log('Click detected on:', e.target);
+        const productCard = e.target.closest('.product-card');
+        console.log('Product card found:', productCard);
+        if (productCard && productCard.dataset.product) {
+            e.preventDefault();
+            e.stopPropagation();
+            try {
+                console.log('Product data:', productCard.dataset.product);
+                const product = JSON.parse(productCard.dataset.product);
+                console.log('Parsed product:', product);
+                addToCart(product);
+                // Visual feedback
+                productCard.style.transform = 'scale(0.95)';
+                setTimeout(() => {
+                    productCard.style.transform = '';
+                }, 150);
+            } catch (err) {
+                console.error('Error parsing product data:', err);
+                alert('Error adding product: ' + err.message);
+            }
+        } else {
+            console.log('No product card or data-product attribute found');
+        }
+    });
+
+    // Touch support for mobile
+    document.getElementById('productsGrid').addEventListener('touchend', function(e) {
+        const productCard = e.target.closest('.product-card');
+        if (productCard && productCard.dataset.product) {
+            e.preventDefault();
+            try {
+                const product = JSON.parse(productCard.dataset.product);
+                addToCart(product);
+                // Visual feedback
+                productCard.style.transform = 'scale(0.95)';
+                setTimeout(() => {
+                    productCard.style.transform = '';
+                }, 150);
+            } catch (err) {
+                console.error('Error parsing product data:', err);
+            }
+        }
+    }, { passive: false });
+
     // Category Filter
     document.querySelectorAll('.category-filter').forEach(btn => {
         btn.addEventListener('click', function() {
@@ -823,7 +1039,7 @@
             cart.push({
                 productId: product.id,
                 name: product.name,
-                price: product.price,
+                price: parseFloat(product.price),
                 quantity: 1
             });
         }
@@ -852,7 +1068,7 @@
                     <div class="d-flex justify-content-between align-items-start">
                         <div class="flex-grow-1">
                             <h6 class="mb-0">${item.name}</h6>
-                            <div class="text-primary">₹${item.price.toFixed(2)}</div>
+                            <div class="text-primary">${currencySymbol}${item.price.toFixed(2)}</div>
                         </div>
                         <div class="d-flex align-items-center gap-2">
                             <button class="btn btn-outline-secondary qty-btn" onclick="updateQty(${index}, -1)">-</button>
@@ -863,7 +1079,7 @@
                             </button>
                         </div>
                     </div>
-                    <div class="text-end fw-bold">₹${(item.price * item.quantity).toFixed(2)}</div>
+                    <div class="text-end fw-bold">${currencySymbol}${(item.price * item.quantity).toFixed(2)}</div>
                 </div>
             `;
             });
@@ -901,9 +1117,9 @@
         const tax = (subtotal - discount) * (taxRate / 100);
         const total = subtotal - discount + tax;
 
-        document.getElementById('cartSubtotal').textContent = '₹' + subtotal.toFixed(2);
-        document.getElementById('cartTax').textContent = '₹' + tax.toFixed(2);
-        document.getElementById('cartTotal').textContent = '₹' + total.toFixed(2);
+        document.getElementById('cartSubtotal').textContent = currencySymbol + subtotal.toFixed(2);
+        document.getElementById('cartTax').textContent = currencySymbol + tax.toFixed(2);
+        document.getElementById('cartTotal').textContent = currencySymbol + total.toFixed(2);
     }
 
     document.getElementById('discountAmount').addEventListener('input', updateTotals);
@@ -985,46 +1201,7 @@
     // Initialize
     updateCartDisplay();
 
-    // Customer Search Functionality
-    let customerSearchTimeout;
-    const customerSearchInput = document.getElementById('customerSearchInput');
-    const customerSearchResults = document.getElementById('customerSearchResults');
-
-    if (customerSearchInput) {
-        customerSearchInput.addEventListener('input', function() {
-            clearTimeout(customerSearchTimeout);
-            const query = this.value.trim();
-
-            if (query.length < 2) {
-                customerSearchResults.innerHTML = '<div class="text-muted text-center py-3">Type at least 2 characters to search</div>';
-                return;
-            }
-
-            customerSearchResults.innerHTML = '<div class="text-center py-3"><span class="spinner-border spinner-border-sm"></span> Searching...</div>';
-
-            customerSearchTimeout = setTimeout(() => {
-                fetch(`{{ route('store-owner.pos.customers.search') }}?q=${encodeURIComponent(query)}`)
-                    .then(response => response.json())
-                    .then(data => {
-                        if (data.customers.length === 0) {
-                            customerSearchResults.innerHTML = '<div class="text-muted text-center py-3">No customers found</div>';
-                            return;
-                        }
-
-                        customerSearchResults.innerHTML = data.customers.map(customer => `
-                            <div class="customer-result p-2 border-bottom" style="cursor:pointer" onclick="selectCustomer(${customer.id}, '${customer.name}', '${customer.phone || ''}')">
-                                <div class="fw-semibold">${customer.name}</div>
-                                <small class="text-muted">${customer.phone || ''} ${customer.email ? '• ' + customer.email : ''}</small>
-                            </div>
-                        `).join('');
-                    })
-                    .catch(error => {
-                        customerSearchResults.innerHTML = '<div class="text-danger text-center py-3">Error searching customers</div>';
-                    });
-            }, 300);
-        });
-    }
-
+    // Customer Search and Form will be initialized after modal is ready
     function selectCustomer(id, name, phone) {
         document.getElementById('selectedCustomerId').value = id;
         document.getElementById('selectedCustomerDisplay').innerHTML = `
@@ -1037,46 +1214,6 @@
     function clearSelectedCustomer() {
         document.getElementById('selectedCustomerId').value = '';
         document.getElementById('selectedCustomerDisplay').innerHTML = '<span class="text-muted">Walk-in Customer</span>';
-    }
-
-    // New Customer Form
-    const newCustomerForm = document.getElementById('newCustomerForm');
-    if (newCustomerForm) {
-        newCustomerForm.addEventListener('submit', function(e) {
-            e.preventDefault();
-
-            const formData = new FormData(this);
-            const submitBtn = this.querySelector('button[type="submit"]');
-            submitBtn.disabled = true;
-            submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Creating...';
-
-            fetch('{{ route('
-                    store - owner.pos.customers.create ') }}', {
-                        method: 'POST',
-                        headers: {
-                            'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                            'Accept': 'application/json'
-                        },
-                        body: formData
-                    })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        selectCustomer(data.customer.id, data.customer.name, data.customer.phone);
-                        this.reset();
-                        document.getElementById('searchCustomerTab').click();
-                    } else {
-                        alert('Error: ' + (data.message || 'Failed to create customer'));
-                    }
-                })
-                .catch(error => {
-                    alert('Error creating customer');
-                })
-                .finally(() => {
-                    submitBtn.disabled = false;
-                    submitBtn.innerHTML = '<i class="bi bi-person-plus me-1"></i> Add Customer';
-                });
-        });
     }
 </script>
 
@@ -1137,6 +1274,102 @@
         </div>
     </div>
 </div>
+
+<!-- Customer Search and Form Script - Must be after modal HTML -->
+<script>
+(function() {
+    // Customer Search Functionality
+    let customerSearchTimeout;
+    const customerSearchInput = document.getElementById('customerSearchInput');
+    const customerSearchResults = document.getElementById('customerSearchResults');
+
+    if (customerSearchInput) {
+        customerSearchInput.addEventListener('input', function() {
+            clearTimeout(customerSearchTimeout);
+            const query = this.value.trim();
+
+            if (query.length < 2) {
+                customerSearchResults.innerHTML = '<div class="text-muted text-center py-3">Type at least 2 characters to search</div>';
+                return;
+            }
+
+            customerSearchResults.innerHTML = '<div class="text-center py-3"><span class="spinner-border spinner-border-sm"></span> Searching...</div>';
+
+            customerSearchTimeout = setTimeout(() => {
+                fetch(`{{ route('store-owner.pos.customers.search') }}?q=${encodeURIComponent(query)}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.customers.length === 0) {
+                            customerSearchResults.innerHTML = '<div class="text-muted text-center py-3">No customers found</div>';
+                            return;
+                        }
+
+                        customerSearchResults.innerHTML = data.customers.map(customer => `
+                            <div class="customer-result p-2 border-bottom" style="cursor:pointer" onclick="selectCustomer(${customer.id}, '${escapeHtml(customer.name)}', '${escapeHtml(customer.phone || '')}')">
+                                <div class="fw-semibold">${escapeHtml(customer.name)}</div>
+                                <small class="text-muted">${escapeHtml(customer.phone || '')} ${customer.email ? '• ' + escapeHtml(customer.email) : ''}</small>
+                            </div>
+                        `).join('');
+                    })
+                    .catch(error => {
+                        console.error('Customer search error:', error);
+                        customerSearchResults.innerHTML = '<div class="text-danger text-center py-3">Error searching customers</div>';
+                    });
+            }, 300);
+        });
+    }
+
+    // Helper function to escape HTML
+    function escapeHtml(text) {
+        if (!text) return '';
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+
+    // New Customer Form
+    const newCustomerForm = document.getElementById('newCustomerForm');
+    if (newCustomerForm) {
+        newCustomerForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            const formData = new FormData(this);
+            const submitBtn = this.querySelector('button[type="submit"]');
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Creating...';
+
+            fetch('{{ route('store-owner.pos.customers.create') }}', {
+                method: 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                    'Accept': 'application/json'
+                },
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    selectCustomer(data.customer.id, data.customer.name, data.customer.phone);
+                    this.reset();
+                    const modal = bootstrap.Modal.getInstance(document.getElementById('customerModal'));
+                    if (modal) modal.hide();
+                    alert('Customer added successfully!');
+                } else {
+                    alert('Error: ' + (data.message || 'Failed to create customer'));
+                }
+            })
+            .catch(error => {
+                console.error('Customer create error:', error);
+                alert('Error creating customer');
+            })
+            .finally(() => {
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = '<i class="bi bi-person-plus me-1"></i> Add Customer';
+            });
+        });
+    }
+})();
+</script>
 
 <!-- Cash Register Modal (shown when no session is open) -->
 @if(!isset($cashRegisterSession))

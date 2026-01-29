@@ -26,7 +26,8 @@
         background: var(--primary-dark);
         position: relative;
         overflow: hidden;
-        padding-top: 80px;
+        padding-top: 0px;
+        margin-top: -1px; /* Remove any gap between navbar and hero */
     }
 
     .hero-modern::before {
@@ -465,6 +466,8 @@
         display: flex;
         align-items: center;
         gap: 24px;
+        flex-wrap: wrap;
+        justify-content: center;
     }
 
     .payment-icon {
@@ -478,6 +481,45 @@
         color: #94a3b8;
         font-weight: 600;
         font-size: 0.75rem;
+        flex-shrink: 0;
+    }
+    
+    /* Payment strip mobile */
+    @media (max-width: 768px) {
+        .payment-strip {
+            padding: 15px 20px;
+            margin-top: 30px;
+            gap: 15px;
+            flex-direction: column;
+        }
+        .payment-label {
+            font-size: 0.8rem;
+            text-align: center;
+        }
+        .payment-icons {
+            gap: 12px;
+        }
+        .payment-icon {
+            width: 45px;
+            height: 28px;
+            font-size: 0.65rem;
+        }
+    }
+    
+    @media (max-width: 480px) {
+        .payment-strip {
+            padding: 12px 15px;
+            margin-top: 20px;
+            gap: 10px;
+        }
+        .payment-icons {
+            gap: 8px;
+        }
+        .payment-icon {
+            width: 40px;
+            height: 26px;
+            font-size: 0.6rem;
+        }
     }
 
     /* Features Section */
@@ -1100,6 +1142,59 @@
             gap: 20px;
         }
     }
+    
+    /* Mobile view improvements */
+    @media (max-width: 575px) {
+        .hero-modern {
+            min-height: auto;
+            padding-top: 60px;
+            padding-bottom: 40px;
+        }
+        
+        .hero-title {
+            font-size: 1.75rem;
+        }
+        
+        .hero-description {
+            font-size: 1rem;
+        }
+        
+        .features-section,
+        .how-it-works-section,
+        .pricing-section,
+        .testimonials-section,
+        .cta-section {
+            padding: 50px 0;
+        }
+        
+        .section-title {
+            font-size: 1.5rem;
+        }
+        
+        .dashboard-preview {
+            padding: 12px;
+        }
+        
+        .floating-card {
+            display: none;
+        }
+        
+        .btn-glow, .btn-ghost {
+            padding: 12px 24px;
+            font-size: 0.9rem;
+            width: 100%;
+        }
+        
+        .hero-buttons {
+            flex-direction: column;
+            width: 100%;
+        }
+        
+        .hero-trust {
+            flex-direction: column;
+            gap: 12px;
+        }
+    }
 </style>
 
 <!-- Hero Section -->
@@ -1267,7 +1362,7 @@
             <div class="section-label">Features</div>
             <h2 class="section-title">Everything You Need to Succeed</h2>
             <p class="section-subtitle mx-auto">
-                Powerful tools designed specifically for Indian retailers, restaurants, and service businesses.
+                Powerful tools designed specifically for Indian retailers and service businesses.
             </p>
         </div>
 
@@ -1391,19 +1486,11 @@
             <div class="section-label">Who It's For</div>
             <h2 class="section-title">Built for Every Business</h2>
             <p class="section-subtitle mx-auto">
-                Whether you run a restaurant, retail store, or service business — we've got you covered.
+                Whether you run a retail store, grocery shop, or service business — we've got you covered.
             </p>
         </div>
 
         <div class="business-grid">
-            <div class="business-card">
-                <div class="business-icon">
-                    <i class="bi bi-cup-hot"></i>
-                </div>
-                <h3 class="business-title">Restaurants & Cafes</h3>
-                <p class="business-text">Table ordering, kitchen display, and dine-in management</p>
-            </div>
-
             <div class="business-card">
                 <div class="business-icon">
                     <i class="bi bi-shop-window"></i>
@@ -1426,6 +1513,14 @@
                 </div>
                 <h3 class="business-title">Salons & Spas</h3>
                 <p class="business-text">Service booking, staff schedules, and package billing</p>
+            </div>
+
+            <div class="business-card">
+                <div class="business-icon">
+                    <i class="bi bi-phone"></i>
+                </div>
+                <h3 class="business-title">Electronics & Mobile</h3>
+                <p class="business-text">Serial number tracking, warranty management, and repairs</p>
             </div>
         </div>
     </div>
@@ -1556,7 +1651,7 @@
             <div class="col-md-3">
                 <div class="business-card">
                     @if($store->logo)
-                    <img src="{{ Storage::url($store->logo) }}" alt="{{ $store->name }}"
+                    <img src="{{ asset('storage/' . $store->logo) }}" alt="{{ $store->name }}"
                         class="rounded-circle mb-3" style="width: 70px; height: 70px; object-fit: cover;">
                     @else
                     <div class="business-icon" style="background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%); color: white;">

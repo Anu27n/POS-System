@@ -1,11 +1,13 @@
 @extends('installer.layout')
 
 @section('title', 'Database')
-@section('subtitle', 'Step 2: Database Configuration')
+@section('subtitle', 'Step 3: Database Configuration')
 @section('show-steps', true)
 @section('step1-class', 'completed')
 @section('line1-class', 'completed')
-@section('step2-class', 'active')
+@section('step2-class', 'completed')
+@section('line2-class', 'completed')
+@section('step3-class', 'active')
 
 @section('content')
 <h5 class="mb-4">Database Configuration</h5>
@@ -57,7 +59,7 @@
     </div>
     
     <div class="d-flex justify-content-between mt-4">
-        <a href="{{ route('installer.requirements') }}" class="btn btn-outline-secondary">
+        <a href="{{ route('installer.license') }}" class="btn btn-outline-secondary">
             <i class="bi bi-arrow-left me-2"></i>Back
         </a>
         <button type="submit" class="btn btn-primary">

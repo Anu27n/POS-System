@@ -157,6 +157,14 @@ class Order extends Model
             'transaction_id' => $transactionId,
             'paid_at' => now(),
         ]);
+
+        // Add transaction to cash register if session is open (for online payments)
+        if ($this->payment_method === 'online') {
+            $cashSession = CashRegisterSession::getAnyOpenSession($this->store_id);
+            if ($cashSession) {
+                $cashSession->addTransaction('sale', 'online', $this->total, $this->id);
+            }
+        }
     }
 
     /**

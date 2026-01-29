@@ -2,6 +2,78 @@
 
 @section('title', 'Shopping Cart')
 
+@push('styles')
+<style>
+    /* Mobile responsive cart styles */
+    @media (max-width: 767px) {
+        /* Cart item layout */
+        .d-flex.align-items-center.p-3 {
+            flex-wrap: wrap;
+            padding: 0.75rem !important;
+        }
+        .d-flex.align-items-center.p-3 > .me-3 {
+            margin-right: 0.75rem !important;
+        }
+        .d-flex.align-items-center.p-3 > .me-3 img,
+        .d-flex.align-items-center.p-3 > .me-3 > div {
+            width: 60px !important;
+            height: 60px !important;
+        }
+        .d-flex.align-items-center.p-3 > .flex-grow-1 h6 {
+            font-size: 0.9rem;
+        }
+        .d-flex.align-items-center.p-3 > .flex-grow-1 div {
+            font-size: 0.85rem;
+        }
+        /* Quantity controls and subtotal on mobile */
+        .d-flex.align-items-center.p-3 > .d-flex.align-items-center.gap-2 {
+            margin-top: 0.5rem;
+            order: 3;
+        }
+        .d-flex.align-items-center.p-3 > .text-end.ms-4 {
+            margin-left: auto !important;
+            margin-top: 0;
+            min-width: auto !important;
+        }
+        /* Order summary sticky */
+        .col-lg-4 .card {
+            position: relative !important;
+        }
+        /* Cart header */
+        .card-header h5 {
+            font-size: 1rem;
+        }
+        /* Buttons */
+        .btn-outline-danger.btn-sm {
+            font-size: 0.75rem;
+            padding: 0.25rem 0.5rem;
+        }
+        .btn-outline-secondary.btn-sm {
+            padding: 0.25rem 0.5rem;
+        }
+        /* Total section */
+        .fs-5 {
+            font-size: 1rem !important;
+        }
+    }
+    
+    @media (max-width: 575px) {
+        .d-flex.align-items-center.p-3 > .me-3 img,
+        .d-flex.align-items-center.p-3 > .me-3 > div {
+            width: 50px !important;
+            height: 50px !important;
+        }
+        .d-flex.align-items-center.p-3 > .flex-grow-1 h6 {
+            font-size: 0.85rem;
+        }
+        .btn-primary.btn-lg {
+            font-size: 0.9rem;
+            padding: 0.5rem 1rem;
+        }
+    }
+</style>
+@endpush
+
 @section('content')
 <div class="container py-4">
     <h1 class="mb-4">Shopping Cart</h1>
@@ -42,6 +114,14 @@
                         <!-- Product Details -->
                         <div class="flex-grow-1">
                             <h6 class="mb-1">{{ $item->product->name ?? 'Product' }}</h6>
+                            @if($item->product && ($item->product->sizes || $item->product->colors || $item->product->unit || $item->product->weight))
+                            <small class="text-muted d-block mb-1">
+                                @if($item->product->sizes)<span class="me-2">Sizes: {{ $item->product->sizes }}</span>@endif
+                                @if($item->product->colors)<span class="me-2">Colors: {{ $item->product->colors }}</span>@endif
+                                @if($item->product->unit)<span class="me-2">{{ $item->product->unit }}</span>@endif
+                                @if($item->product->weight)<span>{{ $item->product->weight }} kg</span>@endif
+                            </small>
+                            @endif
                             <div class="text-primary fw-semibold">₹{{ number_format($item->price, 2) }}</div>
                         </div>
 
@@ -99,10 +179,23 @@
                         <span>Subtotal ({{ $cart->items->sum('quantity') }} items)</span>
                         <span>₹{{ number_format($subtotal, 2) }}</span>
                     </div>
-                    <div class="d-flex justify-content-between mb-2">
-                        <span>Tax ({{ $cart->store->tax_rate ?? 0 }}%)</span>
-                        <span>₹{{ number_format($tax, 2) }}</span>
-                    </div>
+                    @if(!empty($taxBreakdown))
+                        @foreach($taxBreakdown as $taxItem)
+                        <div class="d-flex justify-content-between mb-2">
+                            <span class="text-muted small">{{ $taxItem['name'] }} ({{ number_format($taxItem['percentage'], 2) }}%)</span>
+                            <span class="text-muted small">₹{{ number_format($taxItem['amount'], 2) }}</span>
+                        </div>
+                        @endforeach
+                        <div class="d-flex justify-content-between mb-2">
+                            <span>Total Tax</span>
+                            <span>₹{{ number_format($tax, 2) }}</span>
+                        </div>
+                    @else
+                        <div class="d-flex justify-content-between mb-2">
+                            <span>Tax</span>
+                            <span>₹{{ number_format($tax, 2) }}</span>
+                        </div>
+                    @endif
                     <hr>
                     <div class="d-flex justify-content-between mb-3">
                         <strong class="fs-5">Total</strong>
@@ -149,7 +242,7 @@
             <i class="bi bi-cart-x fs-1 text-muted mb-3 d-block"></i>
             <h4>Your cart is empty</h4>
             <p class="text-muted mb-4">Start shopping by browsing our stores</p>
-            <a href="{{ route('home') }}" class="btn btn-primary">
+            <a href="{{ route('home') }}#stores" class="btn btn-primary">
                 <i class="bi bi-shop me-1"></i>Browse Stores
             </a>
         </div>

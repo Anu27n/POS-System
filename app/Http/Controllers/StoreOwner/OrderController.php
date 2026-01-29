@@ -14,7 +14,7 @@ class OrderController extends Controller
      */
     public function index(Request $request)
     {
-        $store = auth()->user()->store;
+        $store = auth()->user()->getEffectiveStore();
         $query = $store->orders()->with('customer');
 
         if ($request->filled('search')) {
@@ -93,7 +93,8 @@ class OrderController extends Controller
      */
     private function authorizeOrder(Order $order): void
     {
-        if ($order->store_id !== auth()->user()->store->id) {
+        $store = auth()->user()->getEffectiveStore();
+        if (!$store || $order->store_id !== $store->id) {
             abort(403);
         }
     }

@@ -17,15 +17,23 @@ class Product extends Model
         'name',
         'slug',
         'sku',
+        'barcode',
         'description',
         'price',
         'compare_price',
+        'cost_price',
+        'tax_rate',
         'stock_quantity',
         'low_stock_threshold',
         'image',
         'gallery',
         'status',
         'track_inventory',
+        'is_featured',
+        'sizes',
+        'colors',
+        'unit',
+        'weight',
     ];
 
     protected $casts = [
@@ -33,7 +41,25 @@ class Product extends Model
         'compare_price' => 'decimal:2',
         'gallery' => 'array',
         'track_inventory' => 'boolean',
+        'is_featured' => 'boolean',
     ];
+
+    /**
+     * Accessor for sale_price - maps to compare_price
+     * The compare_price field stores the sale/discounted price
+     */
+    public function getSalePriceAttribute()
+    {
+        return $this->compare_price;
+    }
+
+    /**
+     * Mutator for sale_price - stores in compare_price
+     */
+    public function setSalePriceAttribute($value)
+    {
+        $this->attributes['compare_price'] = $value;
+    }
 
     protected static function boot()
     {

@@ -1,7 +1,7 @@
 @extends('installer.layout')
 
 @section('title', 'Admin Account')
-@section('subtitle', 'Step 4: Create Admin Account')
+@section('subtitle', 'Step 5: Create Admin Account')
 @section('show-steps', true)
 @section('step1-class', 'completed')
 @section('line1-class', 'completed')
@@ -9,7 +9,9 @@
 @section('line2-class', 'completed')
 @section('step3-class', 'completed')
 @section('line3-class', 'completed')
-@section('step4-class', 'active')
+@section('step4-class', 'completed')
+@section('line4-class', 'completed')
+@section('step5-class', 'active')
 
 @section('content')
 <h5 class="mb-4">Create Admin Account</h5>

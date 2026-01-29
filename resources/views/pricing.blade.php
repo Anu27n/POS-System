@@ -62,12 +62,12 @@
                         Get Started
                     </a>
                     @else
-                    <a href="{{ route('register') }}" class="btn btn-outline-secondary w-100 btn-lg">
+                    <a href="{{ route('register', ['register_as' => 'store_owner', 'plan' => $plan->id]) }}" class="btn btn-outline-secondary w-100 btn-lg">
                         Register as Store Owner
                     </a>
                     @endif
                     @else
-                    <a href="{{ route('register') }}" class="btn btn-{{ $plan->is_popular ? 'primary' : 'outline-primary' }} w-100 btn-lg">
+                    <a href="{{ route('register', ['register_as' => 'store_owner', 'plan' => $plan->id]) }}" class="btn btn-{{ $plan->is_popular ? 'primary' : 'outline-primary' }} w-100 btn-lg">
                         Get Started
                     </a>
                     @endauth
