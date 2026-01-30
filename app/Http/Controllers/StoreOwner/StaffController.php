@@ -119,6 +119,9 @@ class StaffController extends Controller
             'permissions' => 'nullable|array',
             'permissions.*' => Rule::in(array_keys(Staff::PERMISSIONS)),
             'is_active' => 'boolean',
+            'create_account' => 'boolean',
+            'reset_password' => 'boolean',
+            'password' => 'nullable|min:8|confirmed|required_if:create_account,1|required_if:reset_password,1',
         ]);
 
         $staff->update([
@@ -130,14 +133,40 @@ class StaffController extends Controller
             'is_active' => $request->boolean('is_active', true),
         ]);
 
+        // Create user account if requested and staff doesn't have one
+        if ($request->boolean('create_account') && !$staff->user && !empty($validated['email'])) {
+            $user = User::create([
+                'name' => $validated['name'],
+                'email' => $validated['email'],
+                'password' => Hash::make($validated['password']),
+                'role' => 'staff',
+                'phone' => $validated['phone'] ?? null,
+                'staff_id' => $staff->id,
+                'works_at_store_id' => $store->id,
+                'is_active' => $request->boolean('is_active', true),
+            ]);
+
+            $staff->update(['user_id' => $user->id]);
+
+            return redirect()->route('store-owner.staff.index')
+                ->with('success', 'Staff member updated and login account created successfully.');
+        }
+
         // Update associated user if exists
         if ($staff->user) {
-            $staff->user->update([
+            $updateData = [
                 'name' => $validated['name'],
                 'email' => $validated['email'] ?? $staff->user->email,
                 'phone' => $validated['phone'] ?? null,
                 'is_active' => $request->boolean('is_active', true),
-            ]);
+            ];
+
+            // Reset password if requested
+            if ($request->boolean('reset_password') && !empty($validated['password'])) {
+                $updateData['password'] = Hash::make($validated['password']);
+            }
+
+            $staff->user->update($updateData);
         }
 
         return redirect()->route('store-owner.staff.index')

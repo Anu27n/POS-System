@@ -93,6 +93,8 @@
                 <div class="step @yield('step4-class', '')">4</div>
                 <div class="step-line @yield('line4-class', '')"></div>
                 <div class="step @yield('step5-class', '')">5</div>
+                <div class="step-line @yield('line5-class', '')"></div>
+                <div class="step @yield('step6-class', '')">6</div>
             </div>
         </div>
         @endif

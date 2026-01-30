@@ -222,16 +222,28 @@
                                         <span class="fw-semibold">{{ $item->product->name ?? 'Product' }}</span>
                                         @if($item->product && ($item->product->sizes || $item->product->colors))
                                         <br><small class="text-muted">
-                                            @if($item->product->sizes)Sizes: {{ $item->product->sizes }}@endif
-                                            @if($item->product->sizes && $item->product->colors) | @endif
-                                            @if($item->product->colors)Colors: {{ $item->product->colors }}@endif
+                                            @if($item->product->sizes)
+                                                Sizes: {{ $item->product->sizes }}
+                                            @endif
+                                            @if($item->product->sizes && $item->product->colors)
+                                                |
+                                            @endif
+                                            @if($item->product->colors)
+                                                Colors: {{ $item->product->colors }}
+                                            @endif
                                         </small>
                                         @endif
                                         @if($item->product && ($item->product->unit || $item->product->weight))
                                         <br><small class="text-muted">
-                                            @if($item->product->unit){{ $item->product->unit }}@endif
-                                            @if($item->product->unit && $item->product->weight) | @endif
-                                            @if($item->product->weight){{ $item->product->weight }} kg@endif
+                                            @if($item->product->unit)
+                                                {{ $item->product->unit }}
+                                            @endif
+                                            @if($item->product->unit && $item->product->weight)
+                                                |
+                                            @endif
+                                            @if($item->product->weight)
+                                                {{ $item->product->weight }} kg
+                                            @endif
                                         </small>
                                         @endif
                                         <br>

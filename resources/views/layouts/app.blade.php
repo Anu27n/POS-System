@@ -334,9 +334,9 @@
         }
         
         .user-popup-menu {
-            position: absolute;
-            top: calc(100% + 10px);
-            right: 0;
+            position: fixed;
+            top: 60px;
+            right: 20px;
             width: 320px;
             background: #fff;
             border-radius: 16px;
@@ -345,8 +345,10 @@
             visibility: hidden;
             transform: translateY(-10px) scale(0.98);
             transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-            z-index: 9999;
-            overflow: hidden;
+            z-index: 99999;
+            overflow: visible;
+            max-height: calc(100vh - 80px);
+            overflow-y: auto;
         }
         
         .user-popup-menu.show {
@@ -479,12 +481,27 @@
         @media (max-width: 768px) {
             .user-popup-menu {
                 width: 290px;
-                right: -10px;
+                right: 10px;
+                left: 10px;
+                width: auto;
             }
             
             .user-popup-menu::before {
                 right: 20px;
             }
+        }
+        
+        /* Ensure navbar doesn't clip popup */
+        .navbar {
+            overflow: visible !important;
+        }
+        
+        .navbar-collapse {
+            overflow: visible !important;
+        }
+        
+        .user-menu-container {
+            position: static !important;
         }
     </style>
     @stack('styles')
@@ -626,7 +643,8 @@
         </div>
     </nav>
 
-    <!-- Flash Messages -->
+    <!-- Flash Messages - Only show container when there are messages -->
+    @if(session('success') || session('error') || session('info'))
     <div class="container mt-3">
         @if(session('success'))
         <div class="alert alert-success alert-dismissible fade show" role="alert">
@@ -647,6 +665,7 @@
         </div>
         @endif
     </div>
+    @endif
 
     <!-- Main Content -->
     <main>

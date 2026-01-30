@@ -13,10 +13,18 @@ return new class extends Migration
     {
         // Add customization fields to stores table
         Schema::table('stores', function (Blueprint $table) {
-            $table->string('primary_color', 7)->nullable()->after('logo');
-            $table->string('secondary_color', 7)->nullable()->after('primary_color');
-            $table->string('accent_color', 7)->nullable()->after('secondary_color');
-            $table->string('font_family')->nullable()->after('accent_color');
+            if (!Schema::hasColumn('stores', 'primary_color')) {
+                $table->string('primary_color', 7)->nullable()->after('logo');
+            }
+            if (!Schema::hasColumn('stores', 'secondary_color')) {
+                $table->string('secondary_color', 7)->nullable()->after('primary_color');
+            }
+            if (!Schema::hasColumn('stores', 'accent_color')) {
+                $table->string('accent_color', 7)->nullable()->after('secondary_color');
+            }
+            if (!Schema::hasColumn('stores', 'font_family')) {
+                $table->string('font_family')->nullable()->after('accent_color');
+            }
         });
     }
 
