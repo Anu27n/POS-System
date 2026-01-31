@@ -74,8 +74,38 @@
                                         {{ ucfirst($subscription->status) }}
                                     </span>
                                 </td>
-                                <td>{{ $subscription->starts_at ? $subscription->starts_at->format('M d, Y') : 'N/A' }}</td>
-                                <td>{{ $subscription->ends_at ? $subscription->ends_at->format('M d, Y') : 'N/A' }}</td>
+                                <td>
+                                    {{ $subscription->starts_at ? $subscription->starts_at->format('M d, Y') : ($subscription->created_at ? $subscription->created_at->format('M d, Y') : 'N/A') }}
+                                </td>
+                                <td>
+                                    @if($subscription->ends_at)
+                                        {{ $subscription->ends_at->format('M d, Y') }}
+                                    @elseif($subscription->plan)
+                                        @php
+                                            $baseDate = $subscription->starts_at ?? $subscription->created_at;
+                                            $cycle = $subscription->plan->billing_cycle;
+                                        @endphp
+                                        @if($baseDate)
+                                            @if($cycle == 'daily')
+                                                {{ $baseDate->copy()->addDay()->format('M d, Y') }}
+                                            @elseif($cycle == 'weekly')
+                                                {{ $baseDate->copy()->addWeek()->format('M d, Y') }}
+                                            @elseif($cycle == 'monthly')
+                                                {{ $baseDate->copy()->addMonth()->format('M d, Y') }}
+                                            @elseif($cycle == 'quarterly')
+                                                {{ $baseDate->copy()->addMonths(3)->format('M d, Y') }}
+                                            @elseif($cycle == 'yearly')
+                                                {{ $baseDate->copy()->addYear()->format('M d, Y') }}
+                                            @else
+                                                Lifetime
+                                            @endif
+                                        @else
+                                            N/A
+                                        @endif
+                                    @else
+                                        N/A
+                                    @endif
+                                </td>
                             </tr>
                             @empty
                             <tr>

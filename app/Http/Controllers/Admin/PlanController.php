@@ -47,12 +47,16 @@ class PlanController extends Controller
             'is_popular' => 'boolean',
             'is_active' => 'boolean',
             'sort_order' => 'nullable|integer',
+            'tax_enabled' => 'boolean',
+            'tax_percentage' => 'nullable|numeric|min:0|max:100',
         ]);
 
         $validated['slug'] = Str::slug($validated['name']);
         $validated['features'] = $request->input('features', []);
         $validated['is_popular'] = $request->boolean('is_popular');
         $validated['is_active'] = $request->boolean('is_active', true);
+        $validated['tax_enabled'] = $request->boolean('tax_enabled');
+        $validated['tax_percentage'] = $validated['tax_enabled'] ? ($request->input('tax_percentage') ?? 0) : 0;
 
         Plan::create($validated);
 
@@ -97,12 +101,16 @@ class PlanController extends Controller
             'is_popular' => 'boolean',
             'is_active' => 'boolean',
             'sort_order' => 'nullable|integer',
+            'tax_enabled' => 'boolean',
+            'tax_percentage' => 'nullable|numeric|min:0|max:100',
         ]);
 
         $validated['slug'] = Str::slug($validated['name']);
         $validated['features'] = $request->input('features', []);
         $validated['is_popular'] = $request->boolean('is_popular');
         $validated['is_active'] = $request->boolean('is_active', true);
+        $validated['tax_enabled'] = $request->boolean('tax_enabled');
+        $validated['tax_percentage'] = $validated['tax_enabled'] ? ($request->input('tax_percentage') ?? 0) : 0;
 
         $plan->update($validated);
 

@@ -66,21 +66,28 @@ class CartController extends Controller
 
         $quantity = $validated['quantity'] ?? 1;
 
-        // Check stock
-        if ($product->track_inventory && $product->stock_quantity < $quantity) {
-            if ($request->wantsJson()) {
-                return response()->json(['success' => false, 'message' => 'Not enough stock available.']);
-            }
-            return back()->with('error', 'Not enough stock available.');
+        $cart = $this->getOrCreateCart($store);
+        $existingItem = $cart->items()->where('product_id', $product->id)->first();
+        $existingQty = $existingItem ? $existingItem->quantity : 0;
+        $totalQty = $existingQty + $quantity;
+
+        // Check stock logic
+        if ($product->track_inventory && $totalQty > $product->stock_quantity) {
+             $availableToAdd = max(0, $product->stock_quantity - $existingQty);
+             $message = "You already have {$existingQty} in cart. Only {$availableToAdd} more items available.";
+             
+             if ($existingQty >= $product->stock_quantity) {
+                 $message = "You have reached the maximum stock limit ({$product->stock_quantity}) for this item.";
+             }
+
+             if ($request->wantsJson()) {
+                 return response()->json(['success' => false, 'message' => $message]);
+             }
+             return back()->with('error', $message);
         }
 
-        $cart = $this->getOrCreateCart($store);
-
-        // Check if item already exists - use updateOrCreate to avoid unique constraint violation
-        $existingItem = $cart->items()->where('product_id', $product->id)->first();
-
         if ($existingItem) {
-            $existingItem->quantity += $quantity;
+            $existingItem->quantity = $totalQty;
             $existingItem->save();
         } else {
             $cart->items()->create([
@@ -114,7 +121,7 @@ class CartController extends Controller
         } else {
             // Check stock
             if ($cartItem->product && $cartItem->product->track_inventory && $validated['quantity'] > $cartItem->product->stock_quantity) {
-                return back()->with('error', 'Not enough stock available.');
+                 return back()->with('error', "Only {$cartItem->product->stock_quantity} items available in stock.");
             }
 
             $cartItem->quantity = $validated['quantity'];

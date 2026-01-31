@@ -4,11 +4,15 @@
 @section('page-title', 'Categories')
 
 @section('content')
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <div></div>
-    <a href="{{ route('store-owner.categories.create') }}" class="btn btn-primary">
-        <i class="bi bi-plus-lg me-1"></i>Add Category
-    </a>
+<div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
+    <div>
+        <!-- Search/Filter placeholder -->
+    </div>
+    <div class="d-flex justify-content-end w-100 w-md-auto">
+        <a href="{{ route('store-owner.categories.create') }}" class="btn btn-primary text-nowrap">
+            <i class="bi bi-plus-lg me-1"></i>Add Category
+        </a>
+    </div>
 </div>
 
 <div class="card">

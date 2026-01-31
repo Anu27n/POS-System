@@ -68,11 +68,11 @@
             
             <!-- Stock Status -->
             <div class="mb-4">
-                @if($product->track_stock)
+                @if($product->track_inventory)
                     @if($product->stock_quantity > 0)
                         <span class="text-success"><i class="bi bi-check-circle me-1"></i>In Stock ({{ $product->stock_quantity }} available)</span>
                     @else
-                        <span class="text-danger"><i class="bi bi-x-circle me-1"></i>Out of Stock</span>
+                        <span class="badge bg-danger fs-6"><i class="bi bi-x-circle me-1"></i>Out of Stock</span>
                     @endif
                 @else
                     <span class="text-success"><i class="bi bi-check-circle me-1"></i>Available</span>
@@ -80,7 +80,7 @@
             </div>
             
             <!-- Add to Cart Form -->
-            @if(!$product->track_stock || $product->stock_quantity > 0)
+            @if(!$product->track_inventory || $product->stock_quantity > 0)
                 <form action="{{ route('cart.add') }}" method="POST" id="addToCartForm">
                     @csrf
                     <input type="hidden" name="store_id" value="{{ $store->id }}">
@@ -127,7 +127,7 @@
                             <button type="button" class="btn btn-outline-secondary" onclick="changeQty(-1)">-</button>
                             <input type="number" class="form-control text-center" name="quantity" 
                                    id="quantity" value="1" min="1" 
-                                   max="{{ $product->track_stock ? $product->stock_quantity : 999 }}">
+                                   max="{{ $product->track_inventory ? $product->stock_quantity : 999 }}">
                             <button type="button" class="btn btn-outline-secondary" onclick="changeQty(1)">+</button>
                         </div>
                     </div>
@@ -143,12 +143,15 @@
                     </div>
                 </form>
             @else
-                <div class="alert alert-warning">
-                    <i class="bi bi-exclamation-triangle me-2"></i>
-                    This product is currently out of stock.
+                <div class="alert alert-danger d-flex align-items-center">
+                    <i class="bi bi-x-circle-fill fs-4 me-3"></i>
+                    <div>
+                        <h5 class="alert-heading mb-1">Out of Stock</h5>
+                        <p class="mb-0">This product is currently unavailable. Please check back later.</p>
+                    </div>
                 </div>
-                <a href="{{ route('store.show', $store->slug) }}" class="btn btn-outline-primary">
-                    Continue Shopping
+                <a href="{{ route('store.show', $store->slug) }}" class="btn btn-outline-primary mt-2">
+                    <i class="bi bi-arrow-left me-2"></i>Continue Shopping
                 </a>
             @endif
             

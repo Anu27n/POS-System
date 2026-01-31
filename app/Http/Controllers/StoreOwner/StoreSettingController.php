@@ -24,8 +24,9 @@ class StoreSettingController extends Controller
     public function index()
     {
         $store = auth()->user()->getEffectiveStore();
+        $subscription = $store->activeSubscription()->with('plan')->first();
 
-        return view('store-owner.settings.index', compact('store'));
+        return view('store-owner.settings.index', compact('store', 'subscription'));
     }
 
     /**

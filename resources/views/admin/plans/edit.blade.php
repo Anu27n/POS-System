@@ -65,6 +65,25 @@
                         </div>
                     </div>
 
+                    <div class="row mb-3">
+                         <div class="col-md-6">
+                            <div class="form-check pt-4">
+                                <input class="form-check-input" type="checkbox" id="tax_enabled" name="tax_enabled" value="1" {{ old('tax_enabled', $plan->tax_enabled) ? 'checked' : '' }} onchange="toggleTaxInput()">
+                                <label class="form-check-label" for="tax_enabled">
+                                    <strong>Enable Tax</strong>
+                                    <small class="text-muted d-block">Apply tax on this plan subscription</small>
+                                </label>
+                            </div>
+                        </div>
+                        <div class="col-md-6" id="tax-input-container" style="display: none;">
+                            <label for="tax_percentage" class="form-label">Tax Percentage (%)</label>
+                            <input type="number" step="0.01" class="form-control @error('tax_percentage') is-invalid @enderror" id="tax_percentage" name="tax_percentage" value="{{ old('tax_percentage', $plan->tax_percentage) }}" min="0" max="100">
+                             @error('tax_percentage')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                        </div>
+                    </div>
+
                     <div class="row mb-4">
                         <div class="col-md-6">
                             <div class="form-check">
@@ -156,3 +175,15 @@
     </div>
 </div>
 @endsection
+
+@push('scripts')
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        window.toggleTaxInput = function() {
+            const isEnabled = document.getElementById('tax_enabled').checked;
+            document.getElementById('tax-input-container').style.display = isEnabled ? 'block' : 'none';
+        }
+        toggleTaxInput(); // Initial State
+    });
+</script>
+@endpush

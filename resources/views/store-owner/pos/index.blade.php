@@ -9,53 +9,38 @@
         height: calc(100vh - 140px);
     }
     
-    /* Mobile: Stack cart below products */
+    /* Mobile Styles */
     @media (max-width: 991px) {
         .pos-container {
             height: auto;
         }
-        .pos-container > .col-lg-8,
-        .pos-container > .col-lg-4 {
-            height: auto;
-        }
-        .pos-container > .col-lg-4 {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            z-index: 1040;
-            max-height: 50vh;
-            padding: 0;
-        }
-        .pos-container > .col-lg-4 .card {
-            border-radius: 16px 16px 0 0;
-            box-shadow: 0 -4px 20px rgba(0,0,0,0.15);
-        }
-        .pos-container > .col-lg-4 .cart-items {
-            max-height: 25vh;
-        }
-        .pos-container > .col-lg-8 {
-            padding-bottom: 200px;
-        }
+        
         .products-grid {
-            height: auto !important;
-            max-height: 60vh;
+            max-height: 50vh; /* Limit product height on mobile to make cart reachable */
+            overflow-y: auto;
+            border-bottom: 1px solid #dee2e6;
+            margin-bottom: 1rem;
         }
-        /* Mobile cart toggle */
+
+        .product-card img {
+            height: 80px;
+        }
+        
+        .product-card .card-body {
+            padding: 8px !important;
+        }
+
+        .product-card .card-title {
+            font-size: 0.75rem;
+            margin-bottom: 4px !important;
+        }
+
+        .product-card .card-text {
+            font-size: 0.85rem;
+        }
+
         .mobile-cart-toggle {
-            display: block !important;
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            z-index: 1050;
-            width: 60px;
-            height: 60px;
-            border-radius: 50%;
-            font-size: 1.5rem;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
-        }
-        .cart-section.collapsed {
-            transform: translateY(calc(100% - 60px));
+            display: none !important; /* Hide FAB if we are stacking */
         }
     }
 
@@ -87,21 +72,7 @@
         object-fit: cover;
     }
     
-    @media (max-width: 575px) {
-        .product-card img {
-            height: 80px;
-        }
-        .product-card .card-body {
-            padding: 8px !important;
-        }
-        .product-card .card-title {
-            font-size: 0.75rem;
-            margin-bottom: 4px !important;
-        }
-        .product-card .card-text {
-            font-size: 0.85rem;
-        }
-    }
+
 
     .cart-section {
         height: 100%;
@@ -192,17 +163,17 @@
 <ul class="nav nav-tabs mb-4" id="posTabs" role="tablist">
     <li class="nav-item" role="presentation">
         <button class="nav-link active" id="products-tab" data-bs-toggle="tab" data-bs-target="#products-panel" type="button">
-            <i class="bi bi-grid me-2"></i>Quick Sale
+            <i class="bi bi-grid me-md-2"></i><span class="d-none d-md-inline">Quick Sale</span>
         </button>
     </li>
     <li class="nav-item" role="presentation">
         <button class="nav-link" id="scanner-tab" data-bs-toggle="tab" data-bs-target="#scanner-panel" type="button">
-            <i class="bi bi-qr-code-scan me-2"></i>Scan Order QR
+            <i class="bi bi-qr-code-scan me-md-2"></i><span class="d-none d-md-inline">Scan Order QR</span>
         </button>
     </li>
     <li class="nav-item" role="presentation">
         <button class="nav-link" id="pending-tab" data-bs-toggle="tab" data-bs-target="#pending-panel" type="button">
-            <i class="bi bi-clock-history me-2"></i>Pending Orders
+            <i class="bi bi-clock-history me-md-2"></i><span class="d-none d-md-inline">Pending Orders</span>
             @if($pendingOrders->count() > 0)
             <span class="badge bg-danger ms-1">{{ $pendingOrders->count() }}</span>
             @endif
@@ -291,10 +262,14 @@
             </div>
 
             <!-- Cart Section -->
-            <div class="col-lg-4">
+
+
+            <div class="col-lg-4" id="cartContainer">
                 <div class="card h-100 cart-section">
                     <div class="card-header d-flex justify-content-between align-items-center">
-                        <h5 class="mb-0"><i class="bi bi-cart3 me-2"></i>Current Order</h5>
+                        <h5 class="mb-0">
+                            <i class="bi bi-cart3 me-2"></i>Current Order
+                        </h5>
                         <button class="btn btn-sm btn-outline-danger" onclick="clearCart()">
                             <i class="bi bi-trash"></i> Clear
                         </button>
@@ -556,12 +531,12 @@
                                 </td>
                                 <td>{{ $order->created_at->format('M d, H:i') }}</td>
                                 <td>
-                                    <button class="btn btn-sm btn-primary" onclick="viewPendingOrder({{ $order->id }})">
+                                    <button class="btn btn-sm btn-primary" onclick="viewPendingOrder({{ $order->id }})" title="View Details">
                                         <i class="bi bi-eye"></i>
                                     </button>
                                     @if($order->payment_status !== 'paid')
-                                    <button class="btn btn-sm btn-success" onclick="markOrderPaid({{ $order->id }})">
-                                        <i class="bi bi-check-lg"></i> Mark Paid
+                                    <button class="btn btn-sm btn-success" onclick="markOrderPaid({{ $order->id }})" title="Mark Paid">
+                                        <i class="bi bi-check-lg"></i> <span class="d-none d-md-inline">Mark Paid</span>
                                     </button>
                                     @endif
                                 </td>
@@ -1224,6 +1199,32 @@
         document.getElementById('selectedCustomerId').value = '';
         document.getElementById('selectedCustomerDisplay').innerHTML = '<span class="text-muted">Walk-in Customer</span>';
     }
+
+    // Toggle Cart on Mobile
+    function toggleCart() {
+        const cartContainer = document.querySelector('.pos-container > .col-lg-4');
+        const backdrop = document.querySelector('.cart-backdrop');
+        
+        if (cartContainer.classList.contains('show-cart')) {
+            cartContainer.classList.remove('show-cart');
+            backdrop.classList.remove('show');
+        } else {
+            cartContainer.classList.add('show-cart');
+            backdrop.classList.add('show');
+        }
+    }
+    
+    // Update badge count
+    const originalUpdateCartDisplay = updateCartDisplay;
+    updateCartDisplay = function() {
+        originalUpdateCartDisplay();
+        const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
+        const badge = document.getElementById('mobileCartCount');
+        if (badge) {
+            badge.textContent = totalItems;
+            badge.style.display = totalItems > 0 ? 'flex' : 'none';
+        }
+    };
 </script>
 
 <!-- Customer Selection Modal -->

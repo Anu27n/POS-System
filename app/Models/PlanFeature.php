@@ -58,6 +58,7 @@ class PlanFeature extends Model
         ['name' => 'Payment Gateway', 'slug' => 'payment_gateway', 'category' => 'integrations', 'description' => 'Razorpay/Stripe integration'],
         ['name' => 'Email Notifications', 'slug' => 'email_notifications', 'category' => 'integrations', 'description' => 'Send order confirmations via email'],
         ['name' => 'Export Data', 'slug' => 'export_data', 'category' => 'advanced', 'description' => 'Export reports to CSV/Excel'],
+        ['name' => 'Tax Management / Custom GST', 'slug' => 'tax_management', 'category' => 'advanced', 'description' => 'Enable/Disable taxes and configure custom GST settings'],
     ];
 
     protected static function boot()

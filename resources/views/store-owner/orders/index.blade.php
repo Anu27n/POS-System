@@ -4,23 +4,27 @@
 @section('page-title', 'Orders')
 
 @section('content')
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <form class="d-flex gap-2">
-        <input type="search" class="form-control" name="search" 
-               placeholder="Search order #..." value="{{ request('search') }}">
-        <select class="form-select" name="status" style="width: auto;">
-            <option value="">All Status</option>
-            <option value="pending" {{ request('status') == 'pending' ? 'selected' : '' }}>Pending</option>
-            <option value="confirmed" {{ request('status') == 'confirmed' ? 'selected' : '' }}>Confirmed</option>
-            <option value="processing" {{ request('status') == 'processing' ? 'selected' : '' }}>Processing</option>
-            <option value="completed" {{ request('status') == 'completed' ? 'selected' : '' }}>Completed</option>
-            <option value="cancelled" {{ request('status') == 'cancelled' ? 'selected' : '' }}>Cancelled</option>
-        </select>
-        <button type="submit" class="btn btn-outline-primary">Filter</button>
-    </form>
-    <a href="{{ route('store-owner.pos.index') }}" class="btn btn-primary">
-        <i class="bi bi-plus-lg me-1"></i>New Order (POS)
-    </a>
+<div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
+    <div class="w-100 w-md-auto">
+        <form class="d-flex flex-wrap flex-md-nowrap gap-2">
+            <input type="search" class="form-control" name="search" style="min-width: 150px;"
+                   placeholder="Search order #..." value="{{ request('search') }}">
+            <select class="form-select flex-shrink-0" name="status" style="width: auto; min-width: 130px;">
+                <option value="">All Status</option>
+                <option value="pending" {{ request('status') == 'pending' ? 'selected' : '' }}>Pending</option>
+                <option value="confirmed" {{ request('status') == 'confirmed' ? 'selected' : '' }}>Confirmed</option>
+                <option value="processing" {{ request('status') == 'processing' ? 'selected' : '' }}>Processing</option>
+                <option value="completed" {{ request('status') == 'completed' ? 'selected' : '' }}>Completed</option>
+                <option value="cancelled" {{ request('status') == 'cancelled' ? 'selected' : '' }}>Cancelled</option>
+            </select>
+            <button type="submit" class="btn btn-outline-primary">Filter</button>
+        </form>
+    </div>
+    <div class="d-flex justify-content-end w-100 w-md-auto">
+        <a href="{{ route('store-owner.pos.index') }}" class="btn btn-primary text-nowrap">
+            <i class="bi bi-plus-lg me-1"></i>New Order (POS)
+        </a>
+    </div>
 </div>
 
 <div class="card">

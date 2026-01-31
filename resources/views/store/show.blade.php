@@ -171,7 +171,7 @@
                 @forelse($products as $product)
                 <div class="col-6 col-md-4">
                     <div class="card h-100 product-card">
-                        @if($product->track_stock && $product->stock_quantity <= 0)
+                        @if($product->track_inventory && $product->stock_quantity <= 0)
                         <div class="bg-light d-flex align-items-center justify-content-center position-relative"
                             style="height: 200px; cursor: not-allowed;">
                             @if($product->image)
@@ -254,14 +254,14 @@
                             </p>
                             @endif
                             
-                            @if($product->track_stock && $product->stock_quantity <= 0)
-                                <span class="badge bg-secondary">Out of Stock</span>
-                                @else
+                            @if($product->track_inventory && $product->stock_quantity <= 0)
+                                <span class="badge bg-secondary w-100 py-2">Out of Stock</span>
+                            @else
                                 <button type="submit" class="btn btn-store-primary btn-sm w-100">
                                     <i class="bi bi-cart-plus me-1"></i>Add to Cart
                                 </button>
                             </form>
-                                @endif
+                            @endif
                         </div>
                     </div>
                 </div>

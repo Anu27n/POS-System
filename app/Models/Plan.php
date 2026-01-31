@@ -22,6 +22,8 @@ class Plan extends Model
         'is_popular',
         'is_active',
         'sort_order',
+        'tax_enabled',
+        'tax_percentage',
     ];
 
     protected $casts = [
@@ -29,6 +31,8 @@ class Plan extends Model
         'features' => 'array',
         'is_popular' => 'boolean',
         'is_active' => 'boolean',
+        'tax_enabled' => 'boolean',
+        'tax_percentage' => 'decimal:2',
     ];
 
     protected static function boot()

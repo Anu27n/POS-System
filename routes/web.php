@@ -115,9 +115,9 @@ Route::get('/order/{order}/confirmation', [CheckoutController::class, 'confirmat
 |--------------------------------------------------------------------------
 */
 
+Route::get('/payment/razorpay/failed', [App\Http\Controllers\PaymentController::class, 'razorpayFailed'])->name('payment.razorpay.failed');
 Route::get('/payment/razorpay/{orderNumber}', [App\Http\Controllers\PaymentController::class, 'razorpay'])->name('payment.razorpay');
 Route::post('/payment/razorpay/callback', [App\Http\Controllers\PaymentController::class, 'razorpayCallback'])->name('payment.razorpay.callback');
-Route::get('/payment/razorpay/failed', [App\Http\Controllers\PaymentController::class, 'razorpayFailed'])->name('payment.razorpay.failed');
 Route::get('/payment/stripe/{orderNumber}', [App\Http\Controllers\PaymentController::class, 'stripe'])->name('payment.stripe');
 Route::post('/payment/stripe/callback', [App\Http\Controllers\PaymentController::class, 'stripeCallback'])->name('payment.stripe.callback');
 
@@ -203,64 +203,72 @@ Route::prefix('store-owner')->name('store-owner.')->middleware(['auth', 'role:st
     Route::post('/stores', [StoreOwner\StoreCreateController::class, 'store'])->name('stores.store');
 
     // Category management
-    Route::resource('categories', StoreOwner\CategoryController::class)->except(['show']);
+    Route::resource('categories', StoreOwner\CategoryController::class)->except(['show'])->middleware(['permission:manage_categories', 'plan.feature:category_management']);
 
     // Product management
-    Route::resource('products', StoreOwner\ProductController::class);
-    Route::post('/products/{product}/update-stock', [StoreOwner\ProductController::class, 'updateStock'])->name('products.update-stock');
+    Route::resource('products', StoreOwner\ProductController::class)->middleware(['permission:manage_products', 'plan.feature:product_management']);
+    Route::post('/products/{product}/update-stock', [StoreOwner\ProductController::class, 'updateStock'])->name('products.update-stock')->middleware(['permission:manage_products', 'plan.feature:stock_tracking']);
 
     // Order management
-    Route::get('/orders', [StoreOwner\OrderController::class, 'index'])->name('orders.index');
-    Route::get('/orders/{order}', [StoreOwner\OrderController::class, 'show'])->name('orders.show');
-    Route::patch('/orders/{order}/status', [StoreOwner\OrderController::class, 'updateStatus'])->name('orders.update-status');
-    Route::get('/orders/{order}/receipt', [StoreOwner\OrderController::class, 'receipt'])->name('orders.receipt');
+    Route::middleware('permission:view_orders')->group(function() {
+        Route::get('/orders', [StoreOwner\OrderController::class, 'index'])->name('orders.index');
+        Route::get('/orders/{order}', [StoreOwner\OrderController::class, 'show'])->name('orders.show');
+        Route::get('/orders/{order}/receipt', [StoreOwner\OrderController::class, 'receipt'])->name('orders.receipt');
+    });
+    Route::patch('/orders/{order}/status', [StoreOwner\OrderController::class, 'updateStatus'])->name('orders.update-status')->middleware('permission:manage_orders');
 
     // POS
-    Route::get('/pos', [StoreOwner\POSController::class, 'index'])->name('pos.index');
-    Route::post('/pos/process', [StoreOwner\POSController::class, 'process'])->name('pos.process');
-    Route::post('/pos/scan', [StoreOwner\POSController::class, 'scan'])->name('pos.scan');
-    Route::post('/pos/{order}/mark-paid', [StoreOwner\POSController::class, 'markPaid'])->name('pos.mark-paid');
-    Route::post('/pos/{order}/complete', [StoreOwner\POSController::class, 'completeOrder'])->name('pos.complete-order');
+    Route::middleware(['permission:use_pos', 'plan.feature:pos_terminal'])->group(function() {
+        Route::get('/pos', [StoreOwner\POSController::class, 'index'])->name('pos.index');
+        Route::post('/pos/process', [StoreOwner\POSController::class, 'process'])->name('pos.process');
+        Route::post('/pos/scan', [StoreOwner\POSController::class, 'scan'])->name('pos.scan');
+        Route::post('/pos/{order}/mark-paid', [StoreOwner\POSController::class, 'markPaid'])->name('pos.mark-paid');
+        Route::post('/pos/{order}/complete', [StoreOwner\POSController::class, 'completeOrder'])->name('pos.complete-order');
+    });
 
     // Customer management
-    Route::resource('customers', StoreOwner\CustomerController::class);
+    Route::resource('customers', StoreOwner\CustomerController::class)->middleware(['permission:manage_customers', 'plan.feature:customer_database']);
 
     // Staff management
-    Route::resource('staff', StoreOwner\StaffController::class);
-    Route::post('/staff/{staff}/toggle-status', [StoreOwner\StaffController::class, 'toggleStatus'])->name('staff.toggle-status');
+    Route::resource('staff', StoreOwner\StaffController::class)->middleware(['permission:manage_staff', 'plan.feature:staff_accounts']);
+    Route::post('/staff/{staff}/toggle-status', [StoreOwner\StaffController::class, 'toggleStatus'])->name('staff.toggle-status')->middleware(['permission:manage_staff', 'plan.feature:staff_accounts']);
 
     // Store settings
-    Route::get('/settings', [StoreOwner\StoreSettingController::class, 'index'])->name('settings.index');
-    Route::put('/settings', [StoreOwner\StoreSettingController::class, 'update'])->name('settings.update');
+    Route::get('/settings', [StoreOwner\StoreSettingController::class, 'index'])->name('settings.index')->middleware('permission:manage_settings');
+    Route::put('/settings', [StoreOwner\StoreSettingController::class, 'update'])->name('settings.update')->middleware('permission:manage_settings');
 
     // Store customization (plan-based feature)
-    Route::get('/customization', [StoreOwner\CustomizationController::class, 'index'])->name('customization.index');
-    Route::put('/customization', [StoreOwner\CustomizationController::class, 'update'])->name('customization.update');
-    Route::get('/customization/remove-logo', [StoreOwner\CustomizationController::class, 'removeLogo'])->name('customization.remove-logo');
-    Route::get('/customization/reset-colors', [StoreOwner\CustomizationController::class, 'resetColors'])->name('customization.reset-colors');
+    Route::get('/customization', [StoreOwner\CustomizationController::class, 'index'])->name('customization.index')->middleware(['permission:manage_settings', 'plan.feature:store_customization']);
+    Route::put('/customization', [StoreOwner\CustomizationController::class, 'update'])->name('customization.update')->middleware(['permission:manage_settings', 'plan.feature:store_customization']);
+    Route::get('/customization/remove-logo', [StoreOwner\CustomizationController::class, 'removeLogo'])->name('customization.remove-logo')->middleware(['permission:manage_settings', 'plan.feature:store_customization']);
+    Route::get('/customization/reset-colors', [StoreOwner\CustomizationController::class, 'resetColors'])->name('customization.reset-colors')->middleware(['permission:manage_settings', 'plan.feature:store_customization']);
 
     // Payment settings
-    Route::get('/payment-settings', [StoreOwner\PaymentSettingsController::class, 'index'])->name('payment-settings.index');
-    Route::put('/payment-settings', [StoreOwner\PaymentSettingsController::class, 'update'])->name('payment-settings.update');
+    Route::get('/payment-settings', [StoreOwner\PaymentSettingsController::class, 'index'])->name('payment-settings.index')->middleware('permission:manage_settings');
+    Route::put('/payment-settings', [StoreOwner\PaymentSettingsController::class, 'update'])->name('payment-settings.update')->middleware('permission:manage_settings');
 
     // QR Code management
-    Route::get('/qr-code', [StoreOwner\QRCodeController::class, 'index'])->name('qr-code.index');
-    Route::post('/qr-code/generate', [StoreOwner\QRCodeController::class, 'generate'])->name('qr-code.generate');
-    Route::get('/qr-code/download', [StoreOwner\QRCodeController::class, 'download'])->name('qr-code.download');
+    Route::get('/qr-code', [StoreOwner\QRCodeController::class, 'index'])->name('qr-code.index')->middleware('plan.feature:qr_ordering');
+    Route::post('/qr-code/generate', [StoreOwner\QRCodeController::class, 'generate'])->name('qr-code.generate')->middleware('plan.feature:qr_ordering');
+    Route::get('/qr-code/download', [StoreOwner\QRCodeController::class, 'download'])->name('qr-code.download')->middleware('plan.feature:qr_ordering');
 
     // Reports
-    Route::get('/reports/sales', [StoreOwner\ReportController::class, 'sales'])->name('reports.sales');
-    Route::get('/reports/inventory', [StoreOwner\ReportController::class, 'inventory'])->name('reports.inventory');
-    Route::get('/reports/tax', [StoreOwner\TaxReportController::class, 'index'])->name('reports.tax');
-    Route::get('/reports/tax/export', [StoreOwner\TaxReportController::class, 'export'])->name('reports.tax.export');
+    Route::middleware('permission:view_reports')->group(function() {
+        Route::get('/reports/sales', [StoreOwner\ReportController::class, 'sales'])->name('reports.sales')->middleware('plan.feature:sales_reports');
+        Route::get('/reports/inventory', [StoreOwner\ReportController::class, 'inventory'])->name('reports.inventory')->middleware('plan.feature:inventory_reports');
+        Route::get('/reports/tax', [StoreOwner\TaxReportController::class, 'index'])->name('reports.tax')->middleware('plan.feature:tax_reports');
+        Route::get('/reports/tax/export', [StoreOwner\TaxReportController::class, 'export'])->name('reports.tax.export')->middleware('plan.feature:tax_reports');
+    });
 
     // Tax settings
-    Route::get('/tax-settings', [StoreOwner\TaxSettingController::class, 'index'])->name('tax-settings.index');
-    Route::put('/tax-settings', [StoreOwner\TaxSettingController::class, 'updateSettings'])->name('tax-settings.update');
-    Route::post('/tax-settings/tax', [StoreOwner\TaxSettingController::class, 'storeTax'])->name('tax-settings.store-tax');
-    Route::put('/tax-settings/tax/{tax}', [StoreOwner\TaxSettingController::class, 'updateTax'])->name('tax-settings.update-tax');
-    Route::delete('/tax-settings/tax/{tax}', [StoreOwner\TaxSettingController::class, 'destroyTax'])->name('tax-settings.destroy-tax');
-    Route::post('/tax-settings/tax/{tax}/toggle', [StoreOwner\TaxSettingController::class, 'toggleTax'])->name('tax-settings.toggle-tax');
+    Route::middleware(['permission:manage_settings', 'plan.feature:tax_management'])->group(function() {
+        Route::get('/tax-settings', [StoreOwner\TaxSettingController::class, 'index'])->name('tax-settings.index');
+        Route::put('/tax-settings', [StoreOwner\TaxSettingController::class, 'updateSettings'])->name('tax-settings.update');
+        Route::post('/tax-settings/tax', [StoreOwner\TaxSettingController::class, 'storeTax'])->name('tax-settings.store-tax');
+        Route::put('/tax-settings/tax/{tax}', [StoreOwner\TaxSettingController::class, 'updateTax'])->name('tax-settings.update-tax');
+        Route::delete('/tax-settings/tax/{tax}', [StoreOwner\TaxSettingController::class, 'destroyTax'])->name('tax-settings.destroy-tax');
+        Route::post('/tax-settings/tax/{tax}/toggle', [StoreOwner\TaxSettingController::class, 'toggleTax'])->name('tax-settings.toggle-tax');
+    });
 
     // Cash Register
     Route::get('/cash-register', [StoreOwner\CashRegisterController::class, 'index'])->name('cash-register.index');
@@ -268,8 +276,8 @@ Route::prefix('store-owner')->name('store-owner.')->middleware(['auth', 'role:st
     Route::post('/cash-register/{session}/close', [StoreOwner\CashRegisterController::class, 'close'])->name('cash-register.close');
     Route::post('/cash-register/{session}/add-cash', [StoreOwner\CashRegisterController::class, 'addCash'])->name('cash-register.add-cash');
     Route::get('/cash-register/check-session', [StoreOwner\CashRegisterController::class, 'checkSession'])->name('cash-register.check-session');
-    Route::get('/cash-register/reports', [StoreOwner\CashRegisterController::class, 'reports'])->name('cash-register.reports');
-    Route::get('/cash-register/{session}', [StoreOwner\CashRegisterController::class, 'show'])->name('cash-register.show');
+    Route::get('/cash-register/reports', [StoreOwner\CashRegisterController::class, 'reports'])->name('cash-register.reports')->middleware(['permission:view_reports', 'plan.feature:cash_register']);
+    Route::get('/cash-register/{session}', [StoreOwner\CashRegisterController::class, 'show'])->name('cash-register.show')->middleware('plan.feature:cash_register');
 
     // POS Customer search API
     Route::get('/pos/customers/search', [StoreOwner\POSController::class, 'searchCustomers'])->name('pos.customers.search');

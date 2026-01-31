@@ -24,15 +24,23 @@
                             <span>Plan Price</span>
                             <span>{{ \App\Helpers\CurrencyHelper::format($plan->price) }}</span>
                         </div>
+                        @if($plan->tax_enabled && $plan->tax_percentage > 0)
                         <div class="d-flex justify-content-between mb-2">
-                            <span>Tax (18% GST)</span>
-                            <span>{{ \App\Helpers\CurrencyHelper::format($plan->price * 0.18) }}</span>
+                            <span>Tax (GST {{ $plan->tax_percentage + 0 }}%)</span>
+                            <span>{{ \App\Helpers\CurrencyHelper::format(($plan->price * $plan->tax_percentage) / 100) }}</span>
                         </div>
                         <hr>
                         <div class="d-flex justify-content-between">
                             <strong>Total Amount</strong>
-                            <strong class="text-primary fs-5" id="amount">{{ \App\Helpers\CurrencyHelper::format($plan->price * 1.18) }}</strong>
+                            <strong class="text-primary fs-5" id="amount">{{ \App\Helpers\CurrencyHelper::format($plan->price + (($plan->price * $plan->tax_percentage) / 100)) }}</strong>
                         </div>
+                        @else
+                        <hr>
+                        <div class="d-flex justify-content-between">
+                            <strong>Total Amount</strong>
+                            <strong class="text-primary fs-5" id="amount">{{ \App\Helpers\CurrencyHelper::format($plan->price) }}</strong>
+                        </div>
+                        @endif
                     </div>
 
                     @if($method === 'razorpay')
@@ -62,7 +70,7 @@
                             </div>
 
                             <button type="submit" id="stripe-btn" class="btn btn-primary btn-lg w-100">
-                                <i class="bi bi-lock me-2"></i>Pay {{ \App\Helpers\CurrencyHelper::format($plan->price * 1.18) }}
+                                <i class="bi bi-lock me-2"></i>Pay {{ \App\Helpers\CurrencyHelper::format($plan->tax_enabled ? ($plan->price + ($plan->price * $plan->tax_percentage / 100)) : $plan->price) }}
                             </button>
                         </form>
                     </div>
@@ -107,7 +115,7 @@
 
         var options = {
             "key": razorpayKey,
-            "amount": {{ ($plan->price * 1.18) * 100 }}, // Amount in paise
+            "amount": {{ ($plan->tax_enabled ? ($plan->price + ($plan->price * $plan->tax_percentage / 100)) : $plan->price) * 100 }}, // Amount in paise
             "currency": "INR",
             "name": "{{ config('app.name') }}",
             "description": "{{ $plan->name }} Plan - {{ ucfirst($plan->billing_cycle) }}",
@@ -200,7 +208,7 @@
             var displayError = document.getElementById('card-errors');
             displayError.textContent = error.message;
             btn.disabled = false;
-            btn.innerHTML = '<i class="bi bi-lock me-2"></i>Pay {{ \App\Helpers\CurrencyHelper::format($plan->price * 1.18) }}';
+            btn.innerHTML = '<i class="bi bi-lock me-2"></i>Pay {{ \App\Helpers\CurrencyHelper::format($plan->tax_enabled ? ($plan->price + ($plan->price * $plan->tax_percentage / 100)) : $plan->price) }}';
         } else {
             document.getElementById('stripe_token').value = token.id;
             form.submit();

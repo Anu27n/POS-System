@@ -4,12 +4,12 @@
 @section('page-title', 'Products')
 
 @section('content')
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <div>
-        <form class="d-flex gap-2">
-            <input type="search" class="form-control" name="search" 
+<div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
+    <div class="w-100 w-md-auto">
+        <form class="d-flex flex-wrap flex-md-nowrap gap-2">
+            <input type="search" class="form-control" name="search" style="min-width: 150px;"
                    placeholder="Search products..." value="{{ request('search') }}">
-            <select class="form-select" name="category" style="width: auto;">
+            <select class="form-select flex-shrink-0" name="category" style="width: auto; min-width: 120px;">
                 <option value="">All Categories</option>
                 @foreach($categories as $category)
                     <option value="{{ $category->id }}" {{ request('category') == $category->id ? 'selected' : '' }}>
@@ -20,9 +20,11 @@
             <button type="submit" class="btn btn-outline-primary">Filter</button>
         </form>
     </div>
-    <a href="{{ route('store-owner.products.create') }}" class="btn btn-primary">
-        <i class="bi bi-plus-lg me-1"></i>Add Product
-    </a>
+    <div class="d-flex justify-content-end w-100 w-md-auto">
+        <a href="{{ route('store-owner.products.create') }}" class="btn btn-primary text-nowrap">
+            <i class="bi bi-plus-lg me-1"></i>Add Product
+        </a>
+    </div>
 </div>
 
 <div class="card">

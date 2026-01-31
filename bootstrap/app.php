@@ -27,6 +27,8 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->web(append: [DebugSession::class, CheckInstallation::class]);
         $middleware->alias([
             'role' => RoleMiddleware::class,
+            'permission' => \App\Http\Middleware\CheckStaffPermission::class,
+            'plan.feature' => \App\Http\Middleware\CheckPlanFeature::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

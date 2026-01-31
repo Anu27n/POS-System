@@ -29,7 +29,10 @@ class CheckStaffPermission
 
         // Check if user is staff
         if (!$user->isStaff()) {
-            abort(403, 'You do not have permission to access this resource.');
+            if ($request->expectsJson()) {
+                abort(403, 'You do not have permission to access this resource.');
+            }
+            return redirect()->route('login')->with('error', 'Access denied.');
         }
 
         // Check if staff has any of the required permissions
@@ -41,6 +44,11 @@ class CheckStaffPermission
             return $next($request);
         }
 
-        abort(403, 'You do not have the required permissions.');
+        if ($request->expectsJson()) {
+            abort(403, 'You do not have the required permissions.');
+        }
+
+        return redirect()->route('store-owner.dashboard')
+            ->with('error', 'You do not have permission to access that feature.');
     }
 }

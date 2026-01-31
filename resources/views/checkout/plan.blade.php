@@ -56,15 +56,23 @@
                                 <span>Subtotal</span>
                                 <span>{{ \App\Helpers\CurrencyHelper::format($plan->price) }}</span>
                             </div>
+                            @if($plan->tax_enabled && $plan->tax_percentage > 0)
                             <div class="d-flex justify-content-between mb-2">
-                                <span>Tax (GST 18%)</span>
-                                <span>{{ \App\Helpers\CurrencyHelper::format($plan->price * 0.18) }}</span>
+                                <span>Tax (GST {{ $plan->tax_percentage + 0 }}%)</span>
+                                <span>{{ \App\Helpers\CurrencyHelper::format(($plan->price * $plan->tax_percentage) / 100) }}</span>
                             </div>
                             <hr>
                             <div class="d-flex justify-content-between">
                                 <strong>Total</strong>
-                                <strong class="text-primary fs-4">{{ \App\Helpers\CurrencyHelper::format($plan->price * 1.18) }}</strong>
+                                <strong class="text-primary fs-4">{{ \App\Helpers\CurrencyHelper::format($plan->price + (($plan->price * $plan->tax_percentage) / 100)) }}</strong>
                             </div>
+                            @else
+                            <hr>
+                            <div class="d-flex justify-content-between">
+                                <strong>Total</strong>
+                                <strong class="text-primary fs-4">{{ \App\Helpers\CurrencyHelper::format($plan->price) }}</strong>
+                            </div>
+                            @endif
                         </div>
                     </div>
 

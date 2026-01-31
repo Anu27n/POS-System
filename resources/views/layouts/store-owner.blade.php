@@ -334,12 +334,12 @@
                 @php $effectiveStore = auth()->user()->getEffectiveStore(); @endphp
                 @if($effectiveStore)
                 @if(auth()->user()->isStoreOwner() || auth()->user()->hasAnyStaffPermission(['use_pos', 'process_payments']))
-                <a href="{{ route('store-owner.pos.index') }}" class="btn btn-primary btn-sm">
-                    <i class="bi bi-display me-1"></i>POS
+                <a href="{{ route('store-owner.pos.index') }}" class="btn btn-primary btn-sm" title="POS">
+                    <i class="bi bi-display me-1"></i><span class="d-none d-sm-inline">POS</span>
                 </a>
                 @endif
-                <a href="{{ route('store.show', $effectiveStore->slug) }}" class="btn btn-outline-primary btn-sm" target="_blank">
-                    <i class="bi bi-eye me-1"></i>View Store
+                <a href="{{ route('store.show', $effectiveStore->slug) }}" class="btn btn-outline-primary btn-sm" target="_blank" title="View Store">
+                    <i class="bi bi-eye me-1"></i><span class="d-none d-sm-inline">View Store</span>
                 </a>
                 @endif
                 <div class="dropdown">

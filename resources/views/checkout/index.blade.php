@@ -247,9 +247,16 @@
                                         </small>
                                         @endif
                                         <br>
-                                        <small class="text-muted">Qty: {{ $item->quantity }} × ₹{{ number_format($item->product->price, 2) }}</small>
+                                        <small class="text-muted">Qty: {{ $item->quantity }} × 
+                                            @if($item->product->sale_price && $item->product->sale_price < $item->product->price)
+                                                <span class="text-decoration-line-through text-danger me-1">₹{{ number_format($item->product->price, 2) }}</span>
+                                                <span class="text-success">₹{{ number_format($item->product->sale_price, 2) }}</span>
+                                            @else
+                                                ₹{{ number_format($item->product->price, 2) }}
+                                            @endif
+                                        </small>
                                     </div>
-                                    <span>₹{{ number_format($item->product->price * $item->quantity, 2) }}</span>
+                                    <span>₹{{ number_format($item->price * $item->quantity, 2) }}</span>
                                 </div>
                             </li>
                             @endforeach

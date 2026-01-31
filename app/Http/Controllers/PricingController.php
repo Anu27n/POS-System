@@ -7,10 +7,47 @@ use App\Models\PlanFeature;
 use App\Models\Store;
 use App\Models\Subscription;
 use Illuminate\Http\Request;
+
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 
 class PricingController extends Controller
 {
+    /**
+     * Helper to create store from session data
+     */
+    private function createStoreFromSession()
+    {
+        $data = session('store_registration_data');
+        if (!$data) {
+            return null;
+        }
+
+        // Generate unique slug
+        $slug = Str::slug($data['name']);
+        $originalSlug = $slug;
+        $counter = 1;
+        while (Store::where('slug', $slug)->exists()) {
+            $slug = $originalSlug . '-' . $counter++;
+        }
+
+        $store = Store::create([
+            'user_id' => auth()->id(),
+            'name' => $data['name'],
+            'slug' => $slug,
+            'type' => $data['type'],
+            'description' => $data['description'] ?? null,
+            'address' => $data['address'] ?? null,
+            'phone' => $data['phone'] ?? null,
+            'email' => $data['email'] ?? null,
+            'currency' => $data['currency'],
+            'status' => 'active',
+        ]);
+
+        session()->forget('store_registration_data');
+        return $store;
+    }
+
     /**
      * Display pricing plans
      */
@@ -49,14 +86,24 @@ class PricingController extends Controller
                 ->with('error', 'You need to register as a store owner to purchase a plan.');
         }
 
+        // Check if user has a store OR has registration data in session
         $store = $user->store;
-        if (!$store) {
-            return redirect()->route('store-owner.dashboard')
-                ->with('error', 'Please create your store first before purchasing a plan.');
+        
+        // If no store and no session data, redirect to create store
+        if (!$store && !session()->has('store_registration_data')) {
+            return redirect()->route('store-owner.stores.create')
+                ->with('error', 'Please create your store details first.');
         }
 
-        // Check for existing active subscription
-        $existingSubscription = $store->activeSubscription;
+        // Check for existing active subscription (only if store exists)
+        $existingSubscription = $store ? $store->activeSubscription : null;
+
+        // If using session data, we pass a dummy/partial store object or null to view if needed
+        // But the view likely expects a store object. Let's see if we can get by with just null if the view handles it.
+        // Or we can construct a temporary object.
+        if (!$store && session()->has('store_registration_data')) {
+            $store = new Store(session('store_registration_data'));
+        }
 
         return view('checkout.plan', compact('plan', 'store', 'existingSubscription'));
     }
@@ -69,7 +116,11 @@ class PricingController extends Controller
         $user = auth()->user();
         $store = $user->store;
 
-        if (!$store) {
+        // If no store, try to create from session (only for free plans logic here, 
+        // for paid plans we might wait until payment callback OR create here if we want to associate payment source immediately)
+        // Actually, for consistency, let's create the store context if needed.
+        
+        if (!$store && !session()->has('store_registration_data')) {
             return redirect()->route('pricing')
                 ->with('error', 'You need a store to subscribe to a plan.');
         }
@@ -98,6 +149,16 @@ class PricingController extends Controller
     {
         DB::beginTransaction();
         try {
+            // If store doesn't exist, create it now
+            if (!$store->exists) {
+                $createdStore = $this->createStoreFromSession();
+                if ($createdStore) {
+                    $store = $createdStore;
+                } else {
+                    throw new \Exception('Failed to create store from session.');
+                }
+            }
+
             // Cancel existing subscription if any
             $store->subscriptions()->where('status', 'active')->update(['status' => 'cancelled']);
 
@@ -146,7 +207,11 @@ class PricingController extends Controller
         $store = auth()->user()->store;
 
         if (!$store) {
-            return redirect()->route('pricing')->with('error', 'Store not found.');
+            if (session()->has('store_registration_data')) {
+                $store = new Store(session('store_registration_data'));
+            } else {
+                return redirect()->route('pricing')->with('error', 'Store not found.');
+            }
         }
 
         return view('checkout.payment', compact('plan', 'store', 'method'));
@@ -158,6 +223,15 @@ class PricingController extends Controller
     public function razorpayCallback(Request $request, Plan $plan)
     {
         $store = auth()->user()->store;
+        $isNewStore = false;
+
+        // Only create store if it doesn't exist
+        if (!$store && session()->has('store_registration_data')) {
+             // We will create it inside the transaction
+             $isNewStore = true;
+        } elseif (!$store) {
+             return redirect()->route('pricing')->with('error', 'Store not found session expired.');
+        }
 
         $validated = $request->validate([
             'razorpay_payment_id' => 'required|string',
@@ -170,7 +244,19 @@ class PricingController extends Controller
 
         DB::beginTransaction();
         try {
+            if ($isNewStore) {
+                $store = $this->createStoreFromSession();
+                if (!$store) {
+                    throw new \Exception('Failed to create store from session.');
+                }
+            }
+
             $store->subscriptions()->where('status', 'active')->update(['status' => 'cancelled']);
+
+            $amount = $plan->price;
+            if ($plan->tax_enabled && $plan->tax_percentage > 0) {
+                $amount += ($plan->price * $plan->tax_percentage) / 100;
+            }
 
             $subscription = Subscription::create([
                 'store_id' => $store->id,
@@ -180,13 +266,13 @@ class PricingController extends Controller
                 'ends_at' => $this->calculateEndDate($plan->billing_cycle),
                 'payment_method' => 'razorpay',
                 'transaction_id' => $validated['razorpay_payment_id'],
-                'amount_paid' => $plan->price,
+                'amount_paid' => $amount,
             ]);
 
             // Create payment record
             $subscription->payments()->create([
                 'store_id' => $store->id,
-                'amount' => $plan->price,
+                'amount' => $amount,
                 'currency' => 'INR',
                 'payment_method' => 'razorpay',
                 'transaction_id' => $validated['razorpay_payment_id'],
@@ -211,8 +297,11 @@ class PricingController extends Controller
     public function stripeCallback(Request $request, Plan $plan)
     {
         $store = auth()->user()->store;
+        $isNewStore = false;
 
-        if (!$store) {
+        if (!$store && session()->has('store_registration_data')) {
+            $isNewStore = true;
+        } elseif (!$store) {
             return redirect()->route('pricing')->with('error', 'Store not found.');
         }
 
@@ -231,7 +320,19 @@ class PricingController extends Controller
 
         DB::beginTransaction();
         try {
+             if ($isNewStore) {
+                $store = $this->createStoreFromSession();
+                if (!$store) {
+                    throw new \Exception('Failed to create store from session.');
+                }
+            }
+
             $store->subscriptions()->where('status', 'active')->update(['status' => 'cancelled']);
+
+            $amount = $plan->price;
+            if ($plan->tax_enabled && $plan->tax_percentage > 0) {
+                $amount += ($plan->price * $plan->tax_percentage) / 100;
+            }
 
             $subscription = Subscription::create([
                 'store_id' => $store->id,
@@ -241,13 +342,13 @@ class PricingController extends Controller
                 'ends_at' => $this->calculateEndDate($plan->billing_cycle),
                 'payment_method' => 'stripe',
                 'transaction_id' => 'stripe_' . $validated['stripe_token'],
-                'amount_paid' => $plan->price,
+                'amount_paid' => $amount,
             ]);
 
             // Create payment record
             $subscription->payments()->create([
                 'store_id' => $store->id,
-                'amount' => $plan->price,
+                'amount' => $amount,
                 'currency' => 'INR',
                 'payment_method' => 'stripe',
                 'transaction_id' => 'stripe_' . $validated['stripe_token'],

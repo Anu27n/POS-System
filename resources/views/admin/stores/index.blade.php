@@ -4,12 +4,12 @@
 @section('page-title', 'Store Management')
 
 @section('content')
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <div>
-        <form class="d-flex gap-2" method="GET">
+<div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
+    <div class="w-100 w-md-auto">
+        <form class="d-flex flex-wrap flex-md-nowrap gap-2" method="GET">
             <input type="text" name="search" class="form-control" placeholder="Search stores..." 
-                   value="{{ request('search') }}" style="width: 250px;">
-            <select name="status" class="form-select" style="width: 150px;">
+                   value="{{ request('search') }}" style="min-width: 200px;">
+            <select name="status" class="form-select flex-shrink-0" style="width: auto; min-width: 120px;">
                 <option value="">All Status</option>
                 <option value="active" {{ request('status') === 'active' ? 'selected' : '' }}>Active</option>
                 <option value="inactive" {{ request('status') === 'inactive' ? 'selected' : '' }}>Inactive</option>
@@ -17,9 +17,11 @@
             <button type="submit" class="btn btn-outline-primary">Filter</button>
         </form>
     </div>
-    <a href="{{ route('admin.stores.create') }}" class="btn btn-primary">
-        <i class="bi bi-plus-lg me-1"></i>Add Store
-    </a>
+    <div class="d-flex justify-content-end w-100 w-md-auto">
+        <a href="{{ route('admin.stores.create') }}" class="btn btn-primary text-nowrap">
+            <i class="bi bi-plus-lg me-1"></i>Add Store
+        </a>
+    </div>
 </div>
 
 <div class="card">
