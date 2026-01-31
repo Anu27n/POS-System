@@ -82,19 +82,38 @@ class AuthController extends Controller
                 'auth_id' => auth()->id(),
             ]);
 
-            // Redirect based on role
-            $redirectTo = match ($user->role) {
+            // Check if user is coming from pricing flow with a plan
+            $planId = $request->input('plan');
+            $redirectTo = $request->input('redirect_to');
+
+            if ($redirectTo === 'pricing' && $planId) {
+                // If user is a store owner, redirect to plan checkout
+                if ($user->isStoreOwner() && $user->store) {
+                    return redirect()->route('pricing.checkout', ['plan' => $planId]);
+                }
+                // If user is a store owner without a store, redirect to dashboard to create store first
+                if ($user->isStoreOwner() && !$user->store) {
+                    return redirect()->route('store-owner.dashboard')
+                        ->with('info', 'Please complete your store setup first, then you can subscribe to a plan.');
+                }
+                // If user is not a store owner but came from pricing, just go to pricing page
+                return redirect()->route('pricing')
+                    ->with('info', 'To subscribe to a plan, you need to register as a store owner.');
+            }
+
+            // Default redirect based on role
+            $defaultRedirect = match ($user->role) {
                 'admin' => route('admin.dashboard'),
                 'store_owner', 'staff' => route('store-owner.dashboard'),
                 default => route('home'),
             };
 
             \Log::info('Redirecting user', [
-                'redirect_to' => $redirectTo,
+                'redirect_to' => $defaultRedirect,
                 'auth_id' => auth()->id(),
             ]);
 
-            return redirect()->intended($redirectTo);
+            return redirect()->intended($defaultRedirect);
         }
 
         \Log::warning('Authentication failed', ['email' => $loginField]);

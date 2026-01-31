@@ -5,6 +5,7 @@ namespace App\Http\Controllers\StoreOwner;
 use App\Http\Controllers\Controller;
 use App\Models\Store;
 use App\Services\QRCodeService;
+use App\Helpers\StorageHelper;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 
@@ -49,9 +50,9 @@ class StoreSettingController extends Controller
         if ($request->hasFile('logo')) {
             // Delete old logo
             if ($store->logo) {
-                Storage::disk('public')->delete($store->logo);
+                StorageHelper::delete($store->logo);
             }
-            $validated['logo'] = $request->file('logo')->store('stores', 'public');
+            $validated['logo'] = StorageHelper::store($request->file('logo'), 'stores');
         }
 
         // Map is_active to status
@@ -82,6 +83,7 @@ class StoreSettingController extends Controller
         // Save QR code as PNG
         $filename = 'qrcodes/store-' . $store->id . '.png';
         Storage::disk('public')->put($filename, $pngBinary);
+        StorageHelper::copyToPublic($filename); // Sync to public storage
 
         $store->update(['qr_code' => $filename]);
 

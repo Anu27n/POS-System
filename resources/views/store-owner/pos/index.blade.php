@@ -246,7 +246,9 @@
                                     data-product='{{ json_encode([
                                          "id" => $product->id,
                                          "name" => $product->name,
-                                         "price" => $product->price,
+                                         "price" => $product->sale_price ?? $product->price,
+                                         "original_price" => $product->price,
+                                         "sale_price" => $product->sale_price,
                                          "image" => $product->image ? asset("storage/" . $product->image) : null,
                                          "stock" => $product->stock_quantity,
                                          "track_stock" => $product->track_inventory,
@@ -266,9 +268,16 @@
                                         <h6 class="card-title mb-1 text-truncate" title="{{ $product->name }}">
                                             {{ $product->name }}
                                         </h6>
+                                        @if($product->sale_price && $product->sale_price < $product->price)
+                                        <p class="card-text mb-0">
+                                            <span class="text-muted text-decoration-line-through small">{{ \App\Helpers\CurrencyHelper::format($product->price, $store->currency ?? 'INR') }}</span>
+                                            <span class="fw-bold text-success">{{ \App\Helpers\CurrencyHelper::format($product->sale_price, $store->currency ?? 'INR') }}</span>
+                                        </p>
+                                        @else
                                         <p class="card-text mb-0 fw-bold text-primary">
                                             {{ \App\Helpers\CurrencyHelper::format($product->price, $store->currency ?? 'INR') }}
                                         </p>
+                                        @endif
                                         @if($product->track_inventory)
                                         <small class="text-muted">Stock: {{ $product->stock_quantity }}</small>
                                         @endif

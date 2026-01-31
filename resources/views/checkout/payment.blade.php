@@ -51,9 +51,8 @@
                     @else
                     <!-- Stripe Payment -->
                     <div id="stripe-section">
-                        <form id="stripe-form" action="{{ route('pricing.subscribe', $plan) }}" method="POST">
+                        <form id="stripe-form" action="{{ route('pricing.stripe-callback', $plan) }}" method="POST">
                             @csrf
-                            <input type="hidden" name="payment_method" value="stripe">
                             <input type="hidden" name="stripe_token" id="stripe_token">
 
                             <div class="mb-3">

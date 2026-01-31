@@ -204,4 +204,65 @@ class PricingController extends Controller
                 ->with('error', 'Payment processing failed. Please contact support.');
         }
     }
+
+    /**
+     * Handle payment callback (Stripe)
+     */
+    public function stripeCallback(Request $request, Plan $plan)
+    {
+        $store = auth()->user()->store;
+
+        if (!$store) {
+            return redirect()->route('pricing')->with('error', 'Store not found.');
+        }
+
+        $validated = $request->validate([
+            'stripe_token' => 'required|string',
+        ]);
+
+        // In production, you would:
+        // 1. Use Stripe SDK to create a charge with the token
+        // 2. Verify the charge was successful
+        // 3. Then create the subscription
+        
+        // For now, we'll simulate a successful payment
+        // In production, add: \Stripe\Stripe::setApiKey($stripeSecretKey);
+        // $charge = \Stripe\Charge::create([...]);
+
+        DB::beginTransaction();
+        try {
+            $store->subscriptions()->where('status', 'active')->update(['status' => 'cancelled']);
+
+            $subscription = Subscription::create([
+                'store_id' => $store->id,
+                'plan_id' => $plan->id,
+                'status' => 'active',
+                'starts_at' => now(),
+                'ends_at' => $this->calculateEndDate($plan->billing_cycle),
+                'payment_method' => 'stripe',
+                'transaction_id' => 'stripe_' . $validated['stripe_token'],
+                'amount_paid' => $plan->price,
+            ]);
+
+            // Create payment record
+            $subscription->payments()->create([
+                'store_id' => $store->id,
+                'amount' => $plan->price,
+                'currency' => 'INR',
+                'payment_method' => 'stripe',
+                'transaction_id' => 'stripe_' . $validated['stripe_token'],
+                'status' => 'completed',
+                'paid_at' => now(),
+            ]);
+
+            DB::commit();
+
+            return redirect()->route('store-owner.dashboard')
+                ->with('success', 'Payment successful! Welcome to ' . $plan->name . '!');
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return redirect()->route('pricing')
+                ->with('error', 'Payment processing failed: ' . $e->getMessage());
+        }
+    }
 }

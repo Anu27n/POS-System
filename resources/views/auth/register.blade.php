@@ -92,7 +92,8 @@
 
                     <div class="text-center mt-4">
                         <p class="text-muted mb-0">
-                            Already have an account? <a href="{{ route('login') }}">Sign In</a>
+                            Already have an account? 
+                            <a href="{{ route('login', ['redirect_to' => 'pricing', 'plan' => $plan ?? null, 'register_as' => $registerAs ?? null]) }}">Sign In</a>
                         </p>
                     </div>
                 </div>

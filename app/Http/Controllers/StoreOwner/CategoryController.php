@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\StoreOwner;
 
 use App\Http\Controllers\Controller;
+use App\Helpers\StorageHelper;
 use App\Models\Category;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -44,7 +45,7 @@ class CategoryController extends Controller
         $store = auth()->user()->getEffectiveStore();
 
         if ($request->hasFile('image')) {
-            $validated['image'] = $request->file('image')->store('categories', 'public');
+            $validated['image'] = StorageHelper::store($request->file('image'), 'categories');
         }
 
         $validated['store_id'] = $store->id;
@@ -84,9 +85,9 @@ class CategoryController extends Controller
         if ($request->hasFile('image')) {
             // Delete old image
             if ($category->image) {
-                Storage::disk('public')->delete($category->image);
+                StorageHelper::delete($category->image);
             }
-            $validated['image'] = $request->file('image')->store('categories', 'public');
+            $validated['image'] = StorageHelper::store($request->file('image'), 'categories');
         }
 
         $validated['is_active'] = $request->boolean('is_active', true);
@@ -105,7 +106,7 @@ class CategoryController extends Controller
         $this->authorizeCategory($category);
 
         if ($category->image) {
-            Storage::disk('public')->delete($category->image);
+            StorageHelper::delete($category->image);
         }
 
         $category->delete();

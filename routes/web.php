@@ -131,6 +131,7 @@ Route::middleware('auth')->group(function () {
     Route::post('/pricing/{plan}/subscribe', [PricingController::class, 'subscribe'])->name('pricing.subscribe');
     Route::get('/pricing/{plan}/payment', [PricingController::class, 'payment'])->name('pricing.payment');
     Route::post('/pricing/{plan}/razorpay-callback', [PricingController::class, 'razorpayCallback'])->name('pricing.razorpay-callback');
+    Route::post('/pricing/{plan}/stripe-callback', [PricingController::class, 'stripeCallback'])->name('pricing.stripe-callback');
 });
 
 /*
@@ -196,6 +197,10 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin'])->grou
 
 Route::prefix('store-owner')->name('store-owner.')->middleware(['auth', 'role:store_owner,staff'])->group(function () {
     Route::get('/dashboard', [StoreOwner\DashboardController::class, 'index'])->name('dashboard');
+
+    // Store creation for new store owners
+    Route::get('/stores/create', [StoreOwner\StoreCreateController::class, 'create'])->name('stores.create');
+    Route::post('/stores', [StoreOwner\StoreCreateController::class, 'store'])->name('stores.store');
 
     // Category management
     Route::resource('categories', StoreOwner\CategoryController::class)->except(['show']);

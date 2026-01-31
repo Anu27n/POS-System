@@ -273,13 +273,95 @@ class InstallerController extends Controller
             Artisan::call('migrate', ['--force' => true]);
 
             // Create storage symlink for public file access (QR codes, images, etc.)
-            if (!file_exists(public_path('storage'))) {
-                Artisan::call('storage:link');
-            }
+            $this->createStorageLink();
 
             return redirect()->route('installer.admin');
         } catch (\Exception $e) {
             return back()->withErrors(['migration' => 'Migration failed: ' . $e->getMessage()]);
+        }
+    }
+
+    /**
+     * Create storage symlink with multiple fallback methods for shared hosting.
+     * Shared hosting often doesn't support symlinks, so we try multiple approaches.
+     */
+    private function createStorageLink(): void
+    {
+        $publicStoragePath = public_path('storage');
+        $targetPath = storage_path('app/public');
+
+        // If symlink already exists and works, skip
+        if (is_link($publicStoragePath) && is_dir($publicStoragePath)) {
+            return;
+        }
+
+        // If it's a regular directory (from a previous failed attempt), remove it
+        if (is_dir($publicStoragePath) && !is_link($publicStoragePath)) {
+            // Check if it's empty or just has .gitkeep
+            $files = array_diff(scandir($publicStoragePath), ['.', '..', '.gitkeep']);
+            if (empty($files)) {
+                @rmdir($publicStoragePath);
+            }
+        }
+
+        // If it's a file (not a symlink), remove it
+        if (file_exists($publicStoragePath) && !is_link($publicStoragePath) && !is_dir($publicStoragePath)) {
+            @unlink($publicStoragePath);
+        }
+
+        // Method 1: Try using artisan command
+        try {
+            Artisan::call('storage:link');
+            if (is_link($publicStoragePath)) {
+                return;
+            }
+        } catch (\Exception $e) {
+            // Artisan method failed, try alternatives
+        }
+
+        // Method 2: Try creating symlink directly (works on most Linux hosts)
+        if (!file_exists($publicStoragePath)) {
+            try {
+                if (function_exists('symlink')) {
+                    @symlink($targetPath, $publicStoragePath);
+                    if (is_link($publicStoragePath)) {
+                        return;
+                    }
+                }
+            } catch (\Exception $e) {
+                // Symlink failed, try next method
+            }
+        }
+
+        // Method 3: Try relative symlink (sometimes works better on shared hosting)
+        if (!file_exists($publicStoragePath)) {
+            try {
+                $relativePath = '../storage/app/public';
+                $currentDir = getcwd();
+                chdir(public_path());
+                @symlink($relativePath, 'storage');
+                chdir($currentDir);
+                if (is_link($publicStoragePath)) {
+                    return;
+                }
+            } catch (\Exception $e) {
+                // Relative symlink failed
+            }
+        }
+
+        // Method 4: Create .htaccess redirect as fallback (for Apache servers)
+        if (!file_exists($publicStoragePath)) {
+            // Create the directory
+            @mkdir($publicStoragePath, 0755, true);
+            
+            // Create an .htaccess file that redirects to the actual storage
+            $htaccessContent = "RewriteEngine On\n";
+            $htaccessContent .= "RewriteCond %{REQUEST_FILENAME} !-f\n";
+            $htaccessContent .= "RewriteCond %{REQUEST_FILENAME} !-d\n";
+            $htaccessContent .= "RewriteRule ^(.*)$ /storage/app/public/$1 [L,QSA]\n";
+            
+            // Note: This fallback may not work on all setups
+            // The best solution is for the client to create the symlink via cPanel
         }
     }
 

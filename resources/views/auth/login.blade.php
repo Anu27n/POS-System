@@ -16,6 +16,16 @@
 
                     <form method="POST" action="{{ route('login') }}">
                         @csrf
+                        
+                        @if(request('redirect_to'))
+                        <input type="hidden" name="redirect_to" value="{{ request('redirect_to') }}">
+                        @endif
+                        @if(request('plan'))
+                        <input type="hidden" name="plan" value="{{ request('plan') }}">
+                        @endif
+                        @if(request('register_as'))
+                        <input type="hidden" name="register_as" value="{{ request('register_as') }}">
+                        @endif
 
                         <div class="mb-3">
                             <label for="email" class="form-label">Email or Phone Number</label>

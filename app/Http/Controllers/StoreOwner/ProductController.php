@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\StoreOwner;
 
+use App\Helpers\StorageHelper;
 use App\Http\Controllers\Controller;
 use App\Models\Product;
 use Illuminate\Http\Request;
@@ -79,7 +80,7 @@ class ProductController extends Controller
         $store = auth()->user()->getEffectiveStore();
 
         if ($request->hasFile('image')) {
-            $validated['image'] = $request->file('image')->store('products', 'public');
+            $validated['image'] = StorageHelper::store($request->file('image'), 'products');
         }
 
         // Map form fields to model fields
@@ -167,9 +168,9 @@ class ProductController extends Controller
         if ($request->hasFile('image')) {
             // Delete old image
             if ($product->image) {
-                Storage::disk('public')->delete($product->image);
+                StorageHelper::delete($product->image);
             }
-            $validated['image'] = $request->file('image')->store('products', 'public');
+            $validated['image'] = StorageHelper::store($request->file('image'), 'products');
         }
 
         // Map form fields to model fields
@@ -212,7 +213,7 @@ class ProductController extends Controller
         $this->authorizeProduct($product);
 
         if ($product->image) {
-            Storage::disk('public')->delete($product->image);
+            StorageHelper::delete($product->image);
         }
 
         $product->delete();

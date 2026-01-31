@@ -117,11 +117,14 @@ class POSController extends Controller
                     throw new \Exception("Not enough stock for {$product->name}");
                 }
 
-                $itemTotal = $product->price * $quantity;
+                // Use sale_price if available, otherwise regular price
+                $itemPrice = $product->sale_price ?? $product->price;
+                $itemTotal = $itemPrice * $quantity;
                 $subtotal += $itemTotal;
 
                 $orderItems[] = [
                     'product' => $product,
+                    'price' => $itemPrice, // Store the actual price used
                     'quantity' => $quantity,
                     'subtotal' => $itemTotal,
                 ];
@@ -181,7 +184,7 @@ class POSController extends Controller
                     'product_id' => $item['product']->id,
                     'product_name' => $item['product']->name,
                     'product_sku' => $item['product']->sku ?? '',
-                    'price' => $item['product']->price,
+                    'price' => $item['price'], // Use the calculated price (with sale_price if applicable)
                     'quantity' => $item['quantity'],
                     'total' => $item['subtotal'],
                 ]);

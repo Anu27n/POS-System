@@ -89,7 +89,7 @@ class PaymentController extends Controller
     public function razorpayFailed(Request $request)
     {
         $orderId = session('payment_order_id');
-        $order = Order::find($orderId);
+        $order = Order::with('store')->find($orderId);
 
         if ($order) {
             $order->update(['payment_status' => 'failed']);
@@ -97,8 +97,15 @@ class PaymentController extends Controller
 
         session()->forget('payment_order_id');
 
-        return redirect()->route('order.confirmation', $order ?? '/')
-            ->with('error', 'Payment failed. Please try again or contact support.');
+        // Get error details from Razorpay (passed via query params by JS)
+        $errorDescription = $request->input('description', 'Payment was declined or cancelled.');
+        $errorReason = $request->input('reason', 'unknown');
+
+        return view('orders.payment-failed', [
+            'order' => $order,
+            'message' => $errorDescription,
+            'reason' => $errorReason,
+        ]);
     }
 
     /**

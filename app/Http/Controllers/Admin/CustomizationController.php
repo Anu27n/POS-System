@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\SystemSetting;
+use App\Helpers\StorageHelper;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 
@@ -47,20 +48,20 @@ class CustomizationController extends Controller
         // Handle logo upload
         if ($request->hasFile('app_logo')) {
             $oldLogo = SystemSetting::get('app_logo');
-            if ($oldLogo && Storage::disk('public')->exists($oldLogo)) {
-                Storage::disk('public')->delete($oldLogo);
+            if ($oldLogo) {
+                StorageHelper::delete($oldLogo);
             }
-            $logoPath = $request->file('app_logo')->store('branding', 'public');
+            $logoPath = StorageHelper::store($request->file('app_logo'), 'branding');
             SystemSetting::set('app_logo', $logoPath, 'customization');
         }
 
         // Handle favicon upload
         if ($request->hasFile('app_favicon')) {
             $oldFavicon = SystemSetting::get('app_favicon');
-            if ($oldFavicon && Storage::disk('public')->exists($oldFavicon)) {
-                Storage::disk('public')->delete($oldFavicon);
+            if ($oldFavicon) {
+                StorageHelper::delete($oldFavicon);
             }
-            $faviconPath = $request->file('app_favicon')->store('branding', 'public');
+            $faviconPath = StorageHelper::store($request->file('app_favicon'), 'branding');
             SystemSetting::set('app_favicon', $faviconPath, 'customization');
         }
 
@@ -81,8 +82,8 @@ class CustomizationController extends Controller
     public function removeLogo()
     {
         $logo = SystemSetting::get('app_logo');
-        if ($logo && Storage::disk('public')->exists($logo)) {
-            Storage::disk('public')->delete($logo);
+        if ($logo) {
+            StorageHelper::delete($logo);
         }
         SystemSetting::set('app_logo', '', 'customization');
 
@@ -95,8 +96,8 @@ class CustomizationController extends Controller
     public function removeFavicon()
     {
         $favicon = SystemSetting::get('app_favicon');
-        if ($favicon && Storage::disk('public')->exists($favicon)) {
-            Storage::disk('public')->delete($favicon);
+        if ($favicon) {
+            StorageHelper::delete($favicon);
         }
         SystemSetting::set('app_favicon', '', 'customization');
 

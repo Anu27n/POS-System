@@ -161,14 +161,17 @@ class CheckoutController extends Controller
 
             // Create order items and reduce stock
             foreach ($cart->items as $item) {
+                // Use CartItem price accessor which correctly handles sale_price
+                $itemPrice = $item->price; // This uses sale_price if available
+                
                 OrderItem::create([
                     'order_id' => $order->id,
                     'product_id' => $item->product_id,
                     'product_name' => $item->product->name,
                     'product_sku' => $item->product->sku ?? '',
-                    'price' => $item->product->price,
+                    'price' => $itemPrice,
                     'quantity' => $item->quantity,
-                    'total' => $item->product->price * $item->quantity,
+                    'total' => $itemPrice * $item->quantity,
                 ]);
 
                 // Reduce stock

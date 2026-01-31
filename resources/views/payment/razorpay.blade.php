@@ -141,8 +141,15 @@ document.addEventListener('DOMContentLoaded', function() {
     var rzp = new Razorpay(options);
     
     rzp.on('payment.failed', function (response){
-        // Redirect to failure page
-        window.location.href = '{{ route("payment.razorpay.failed") }}';
+        // Redirect to failure page with error details
+        let failUrl = '{{ route("payment.razorpay.failed") }}';
+        let errorDescription = response.error?.description || 'Payment failed';
+        let errorReason = response.error?.reason || 'unknown';
+        
+        failUrl += '?description=' + encodeURIComponent(errorDescription);
+        failUrl += '&reason=' + encodeURIComponent(errorReason);
+        
+        window.location.href = failUrl;
     });
 
     document.getElementById('rzp-button').onclick = function(e) {
