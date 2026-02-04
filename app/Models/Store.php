@@ -123,6 +123,22 @@ class Store extends Model
     }
 
     /**
+     * Get the repair jobs for the store
+     */
+    public function repairJobs(): HasMany
+    {
+        return $this->hasMany(RepairJob::class);
+    }
+
+    /**
+     * Get technicians for the store
+     */
+    public function technicians(): HasMany
+    {
+        return $this->staff()->whereIn('role', ['technician', 'senior_technician']);
+    }
+
+    /**
      * Get the public URL for the store
      */
     public function getPublicUrlAttribute(): string

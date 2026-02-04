@@ -1,85 +1,116 @@
 @extends('layouts.store-owner')
 
-@section('title', 'Store Dashboard')
+@section('title', 'Repair Shop Dashboard')
 @section('page-title', 'Dashboard')
 
 @section('content')
-<!-- Stats Cards -->
+<!-- Repair Job Stats Cards -->
 <div class="row g-4 mb-4">
     <div class="col-md-3">
         <div class="card stat-card">
             <div class="card-body">
-                <div class="stat-label">Today's Sales</div>
-                <div class="stat-value">₹{{ number_format($todaySales, 2) }}</div>
-                <small class="text-muted">{{ $todayOrders }} orders</small>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-3">
-        <div class="card stat-card" style="border-left-color: #059669;">
-            <div class="card-body">
-                <div class="stat-label">This Month</div>
-                <div class="stat-value">₹{{ number_format($monthSales, 2) }}</div>
-                <small class="text-muted">{{ $monthOrders }} orders</small>
+                <div class="stat-label">Open Jobs</div>
+                <div class="stat-value text-primary">{{ $openJobs }}</div>
+                <small class="text-muted">Active repairs</small>
             </div>
         </div>
     </div>
     <div class="col-md-3">
         <div class="card stat-card" style="border-left-color: #d97706;">
             <div class="card-body">
-                <div class="stat-label">Pending Orders</div>
-                <div class="stat-value">{{ $pendingOrders }}</div>
-                <small class="text-muted">Needs attention</small>
+                <div class="stat-label">Due Today</div>
+                <div class="stat-value">{{ $jobsDueToday }}</div>
+                @if($overdueJobs > 0)
+                <small class="text-danger"><i class="bi bi-exclamation-triangle"></i> {{ $overdueJobs }} overdue</small>
+                @else
+                <small class="text-muted">On schedule</small>
+                @endif
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card stat-card" style="border-left-color: #059669;">
+            <div class="card-body">
+                <div class="stat-label">Completed Today</div>
+                <div class="stat-value text-success">{{ $completedToday }}</div>
+                <small class="text-muted">₹{{ number_format($todayRepairRevenue, 0) }} revenue</small>
             </div>
         </div>
     </div>
     <div class="col-md-3">
         <div class="card stat-card" style="border-left-color: #7c3aed;">
             <div class="card-body">
-                <div class="stat-label">Products</div>
-                <div class="stat-value">{{ $totalProducts }}</div>
-                <small class="text-muted">{{ $lowStockProducts }} low stock</small>
+                <div class="stat-label">This Month Revenue</div>
+                <div class="stat-value">₹{{ number_format($monthRepairRevenue, 0) }}</div>
+                <small class="text-muted">From repairs</small>
             </div>
         </div>
     </div>
 </div>
 
 <div class="row g-4">
-    <!-- Store QR Code -->
+    <!-- Left Column -->
     <div class="col-lg-4">
-        <div class="card">
+        <!-- Technician Workload -->
+        <div class="card mb-4">
             <div class="card-header">
-                <h6 class="mb-0">Store QR Code</h6>
+                <h6 class="mb-0"><i class="bi bi-people me-2"></i>Technician Workload</h6>
             </div>
-            <div class="card-body text-center">
-                @if($store)
-                <div class="mb-3" style="max-width: 200px; margin: 0 auto;">
-                    <img src="{{ $qrCode }}" alt="Store QR Code" class="img-fluid">
-                </div>
-                <p class="text-muted mb-3">Scan to view your store</p>
-                <div class="d-grid gap-2">
-                    <a href="{{ route('store.show', $store->slug) }}"
-                        target="_blank" class="btn btn-outline-primary btn-sm">
-                        <i class="bi bi-eye me-1"></i>View Store
-                    </a>
-                    <button class="btn btn-outline-secondary btn-sm" onclick="printQR()">
-                        <i class="bi bi-printer me-1"></i>Print QR
-                    </button>
-                </div>
+            <div class="card-body p-0">
+                @if($technicians->count() > 0)
+                <ul class="list-group list-group-flush">
+                    @foreach($technicians as $tech)
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        <div>
+                            <span class="fw-medium">{{ $tech->name }}</span>
+                            <br>
+                            <small class="text-muted">{{ $tech->phone ?? 'No phone' }}</small>
+                        </div>
+                        <span class="badge bg-{{ $tech->active_jobs > 5 ? 'danger' : ($tech->active_jobs > 2 ? 'warning' : 'success') }} rounded-pill">
+                            {{ $tech->active_jobs }} jobs
+                        </span>
+                    </li>
+                    @endforeach
+                </ul>
                 @else
-                <div class="text-muted py-4">
-                    <i class="bi bi-shop fs-1 d-block mb-2"></i>
-                    No store assigned
+                <div class="text-center py-4 text-muted">
+                    <i class="bi bi-person-plus fs-1 d-block mb-2"></i>
+                    No technicians assigned
+                    <a href="{{ route('store-owner.staff.create') }}" class="d-block mt-2">Add Technician</a>
                 </div>
                 @endif
             </div>
         </div>
 
+        <!-- Jobs by Status -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h6 class="mb-0"><i class="bi bi-pie-chart me-2"></i>Jobs by Status</h6>
+            </div>
+            <div class="card-body">
+                @php
+                    $statuses = [
+                        'received' => ['label' => 'Received', 'color' => 'secondary'],
+                        'in_progress' => ['label' => 'In Progress', 'color' => 'primary'],
+                        'repaired' => ['label' => 'Repaired', 'color' => 'info'],
+                        'delivered' => ['label' => 'Delivered', 'color' => 'success'],
+                        'cancelled' => ['label' => 'Cancelled', 'color' => 'danger'],
+                    ];
+                @endphp
+                @foreach($statuses as $key => $status)
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <span class="badge bg-{{ $status['color'] }}">{{ $status['label'] }}</span>
+                    <span class="fw-bold">{{ $jobsByStatus[$key] ?? 0 }}</span>
+                </div>
+                @endforeach
+            </div>
+        </div>
+
         <!-- Low Stock Alert -->
         @if($lowStockItems->count() > 0)
-        <div class="card mt-4">
+        <div class="card">
             <div class="card-header bg-warning text-dark">
-                <h6 class="mb-0"><i class="bi bi-exclamation-triangle me-1"></i>Low Stock Alert</h6>
+                <h6 class="mb-0"><i class="bi bi-exclamation-triangle me-1"></i>Low Stock Parts</h6>
             </div>
             <div class="card-body p-0">
                 <ul class="list-group list-group-flush">
@@ -95,12 +126,12 @@
         @endif
     </div>
 
-    <!-- Recent Orders -->
+    <!-- Right Column - Recent Jobs -->
     <div class="col-lg-8">
         <div class="card">
             <div class="card-header d-flex justify-content-between align-items-center">
-                <h6 class="mb-0">Recent Orders</h6>
-                <a href="{{ route('store-owner.orders.index') }}" class="btn btn-sm btn-outline-primary">
+                <h6 class="mb-0"><i class="bi bi-tools me-2"></i>Recent Repair Jobs</h6>
+                <a href="{{ route('store-owner.repair-jobs.index') }}" class="btn btn-sm btn-outline-primary">
                     View All
                 </a>
             </div>
@@ -109,46 +140,60 @@
                     <table class="table table-hover mb-0">
                         <thead>
                             <tr>
-                                <th>Order #</th>
+                                <th>Ticket #</th>
                                 <th>Customer</th>
-                                <th>Items</th>
-                                <th>Total</th>
+                                <th>Device</th>
+                                <th>Technician</th>
                                 <th>Status</th>
-                                <th>Actions</th>
+                                <th>Due</th>
+                                <th></th>
                             </tr>
                         </thead>
                         <tbody>
-                            @forelse($recentOrders as $order)
+                            @forelse($recentJobs as $job)
                             <tr>
                                 <td>
-                                    <span class="fw-semibold">#{{ $order->order_number }}</span>
+                                    <span class="fw-semibold">#{{ $job->ticket_number }}</span>
                                     <br>
-                                    <small class="text-muted">{{ $order->created_at->diffForHumans() }}</small>
+                                    <small class="text-muted">{{ $job->created_at->diffForHumans() }}</small>
                                 </td>
-                                <td>{{ $order->user->name ?? 'Guest' }}</td>
-                                <td>{{ $order->items->count() }}</td>
-                                <td>₹{{ number_format($order->total_amount, 2) }}</td>
+                                <td>{{ $job->customer->name ?? $job->customer_name ?? 'N/A' }}</td>
                                 <td>
-                                    @switch($order->status)
-                                    @case('pending')
-                                    <span class="badge bg-warning">Pending</span>
-                                    @break
-                                    @case('confirmed')
-                                    <span class="badge bg-info">Confirmed</span>
-                                    @break
-                                    @case('processing')
-                                    <span class="badge bg-primary">Processing</span>
-                                    @break
-                                    @case('completed')
-                                    <span class="badge bg-success">Completed</span>
-                                    @break
-                                    @case('cancelled')
-                                    <span class="badge bg-danger">Cancelled</span>
-                                    @break
-                                    @endswitch
+                                    <span class="badge bg-light text-dark">{{ ucfirst($job->device_type) }}</span>
+                                    <br>
+                                    <small>{{ Str::limit($job->device_model, 15) }}</small>
+                                </td>
+                                <td>{{ $job->technician->name ?? 'Unassigned' }}</td>
+                                <td>
+                                    @php
+                                        $statusColors = [
+                                            'received' => 'secondary',
+                                            'in_progress' => 'primary',
+                                            'repaired' => 'info',
+                                            'delivered' => 'success',
+                                            'cancelled' => 'danger',
+                                        ];
+                                    @endphp
+                                    <span class="badge bg-{{ $statusColors[$job->status] ?? 'secondary' }}">
+                                        {{ ucwords(str_replace('_', ' ', $job->status)) }}
+                                    </span>
                                 </td>
                                 <td>
-                                    <a href="{{ route('store-owner.orders.show', $order) }}"
+                                    @if($job->expected_delivery_at)
+                                        @if($job->expected_delivery_at->isPast() && !in_array($job->status, ['delivered', 'cancelled']))
+                                        <span class="text-danger">
+                                            <i class="bi bi-exclamation-circle"></i>
+                                            {{ $job->expected_delivery_at->format('M d') }}
+                                        </span>
+                                        @else
+                                        {{ $job->expected_delivery_at->format('M d') }}
+                                        @endif
+                                    @else
+                                    <span class="text-muted">-</span>
+                                    @endif
+                                </td>
+                                <td>
+                                    <a href="{{ route('store-owner.repair-jobs.show', $job) }}"
                                         class="btn btn-sm btn-outline-primary">
                                         <i class="bi bi-eye"></i>
                                     </a>
@@ -156,7 +201,14 @@
                             </tr>
                             @empty
                             <tr>
-                                <td colspan="6" class="text-center py-4 text-muted">No orders yet</td>
+                                <td colspan="7" class="text-center py-4 text-muted">
+                                    <i class="bi bi-tools fs-1 d-block mb-2"></i>
+                                    No repair jobs yet
+                                    <br>
+                                    <a href="{{ route('store-owner.repair-jobs.create') }}" class="btn btn-primary mt-2">
+                                        <i class="bi bi-plus-lg me-1"></i>Create First Job
+                                    </a>
+                                </td>
                             </tr>
                             @endforelse
                         </tbody>
@@ -168,18 +220,18 @@
         <!-- Quick Actions -->
         <div class="row g-3 mt-3">
             <div class="col-md-4">
-                <a href="{{ route('store-owner.pos.index') }}" class="card text-decoration-none h-100">
+                <a href="{{ route('store-owner.repair-jobs.create') }}" class="card text-decoration-none h-100">
                     <div class="card-body text-center py-4">
-                        <i class="bi bi-cash-register fs-1 text-primary mb-2 d-block"></i>
-                        <h6 class="mb-0">Open POS</h6>
+                        <i class="bi bi-plus-circle fs-1 text-primary mb-2 d-block"></i>
+                        <h6 class="mb-0">New Repair Job</h6>
                     </div>
                 </a>
             </div>
             <div class="col-md-4">
                 <a href="{{ route('store-owner.products.create') }}" class="card text-decoration-none h-100">
                     <div class="card-body text-center py-4">
-                        <i class="bi bi-plus-circle fs-1 text-success mb-2 d-block"></i>
-                        <h6 class="mb-0">Add Product</h6>
+                        <i class="bi bi-box-seam fs-1 text-success mb-2 d-block"></i>
+                        <h6 class="mb-0">Add Spare Part</h6>
                     </div>
                 </a>
             </div>
@@ -194,30 +246,4 @@
         </div>
     </div>
 </div>
-
-<script>
-    function printQR() {
-        const qrImage = document.querySelector('img[alt="Store QR Code"]');
-        const printWindow = window.open('', '_blank');
-        printWindow.document.write(`
-        <html>
-            <head>
-                <title>Store QR Code</title>
-                <style>
-                    body { text-align: center; padding: 50px; }
-                    img { max-width: 300px; }
-                    h2 { margin-bottom: 20px; }
-                </style>
-            </head>
-            <body>
-                <h2>{{ $store->name ?? 'Store' }}</h2>
-                <img src="${qrImage.src}" alt="QR Code">
-                <p>Scan to order</p>
-            </body>
-        </html>
-    `);
-        printWindow.document.close();
-        printWindow.print();
-    }
-</script>
 @endsection

@@ -36,6 +36,8 @@ class Staff extends Model
         'manager' => 'Manager',
         'inventory_manager' => 'Inventory Manager',
         'supervisor' => 'Supervisor',
+        'technician' => 'Technician',
+        'senior_technician' => 'Senior Technician',
     ];
 
     /**
@@ -55,6 +57,13 @@ class Staff extends Model
         'view_reports' => 'View Reports',
         'manage_staff' => 'Manage Staff',
         'manage_settings' => 'Manage Store Settings',
+        // Repair-specific permissions
+        'view_repair_jobs' => 'View Repair Jobs',
+        'manage_repair_jobs' => 'Manage Repair Jobs',
+        'view_assigned_jobs' => 'View Assigned Jobs',
+        'update_job_status' => 'Update Job Status',
+        'add_repair_parts' => 'Add Parts to Jobs',
+        'create_repair_invoice' => 'Create Repair Invoice',
     ];
 
     /**
@@ -67,6 +76,7 @@ class Staff extends Model
             'use_pos',
             'process_payments',
             'view_customers',
+            'view_repair_jobs',
         ],
         'inventory_manager' => [
             'view_dashboard',
@@ -75,6 +85,24 @@ class Staff extends Model
             'manage_inventory',
             'view_orders',
             'view_reports',
+            'view_repair_jobs',
+        ],
+        'technician' => [
+            'view_dashboard',
+            'view_assigned_jobs',
+            'update_job_status',
+            'add_repair_parts',
+            'view_customers',
+        ],
+        'senior_technician' => [
+            'view_dashboard',
+            'view_repair_jobs',
+            'manage_repair_jobs',
+            'view_assigned_jobs',
+            'update_job_status',
+            'add_repair_parts',
+            'view_customers',
+            'manage_inventory',
         ],
         'supervisor' => [
             'view_dashboard',
@@ -88,6 +116,9 @@ class Staff extends Model
             'view_customers',
             'manage_customers',
             'view_reports',
+            'view_repair_jobs',
+            'manage_repair_jobs',
+            'create_repair_invoice',
         ],
         'manager' => [
             'view_dashboard',
@@ -103,6 +134,9 @@ class Staff extends Model
             'view_reports',
             'manage_staff',
             'manage_settings',
+            'view_repair_jobs',
+            'manage_repair_jobs',
+            'create_repair_invoice',
         ],
     ];
 
@@ -171,5 +205,40 @@ class Staff extends Model
     public function getRoleNameAttribute(): string
     {
         return self::ROLES[$this->role] ?? ucfirst($this->role);
+    }
+
+    /**
+     * Check if staff is a technician
+     */
+    public function isTechnician(): bool
+    {
+        return in_array($this->role, ['technician', 'senior_technician']);
+    }
+
+    /**
+     * Get assigned repair jobs
+     */
+    public function assignedRepairJobs(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(\App\Models\RepairJob::class, 'assigned_technician_id');
+    }
+
+    /**
+     * Get open assigned repair jobs
+     */
+    public function openRepairJobs(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->assignedRepairJobs()
+            ->whereNotIn('status', ['delivered', 'cancelled', 'unrepairable']);
+    }
+
+    /**
+     * Get completed repair jobs count
+     */
+    public function completedJobsCount(): int
+    {
+        return $this->assignedRepairJobs()
+            ->where('status', 'delivered')
+            ->count();
     }
 }

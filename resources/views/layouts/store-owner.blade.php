@@ -265,6 +265,23 @@
             </a>
             @endif
 
+            <div class="nav-section">Repair Management</div>
+            @if(auth()->user()->isStoreOwner() || auth()->user()->hasAnyStaffPermission(['view_repair_jobs', 'manage_repair_jobs']))
+            <a href="{{ route('store-owner.repair-jobs.index') }}" class="nav-link {{ request()->routeIs('store-owner.repair-jobs.*') ? 'active' : '' }}">
+                <i class="bi bi-tools"></i> Repair Jobs
+            </a>
+            @endif
+            @if(auth()->user()->role === 'staff' && auth()->user()->staffProfile && auth()->user()->staffProfile->role === 'technician')
+            <a href="{{ route('store-owner.technician-dashboard') }}" class="nav-link {{ request()->routeIs('store-owner.technician-dashboard') ? 'active' : '' }}">
+                <i class="bi bi-wrench-adjustable"></i> Technician Dashboard
+            </a>
+            @endif
+            @if(auth()->user()->isStoreOwner() || auth()->user()->hasAnyStaffPermission(['manage_products', 'manage_inventory']))
+            <a href="{{ route('store-owner.products.index') }}?type=parts" class="nav-link">
+                <i class="bi bi-cpu"></i> Spare Parts
+            </a>
+            @endif
+
             <div class="nav-section">People</div>
             @if(auth()->user()->isStoreOwner() || auth()->user()->hasAnyStaffPermission(['view_customers', 'manage_customers']))
             <a href="{{ route('store-owner.customers.index') }}" class="nav-link {{ request()->routeIs('store-owner.customers.*') ? 'active' : '' }}">

@@ -228,9 +228,9 @@
                 @if(!empty($appSettings['app_logo']))
                     <img src="{{ asset('storage/' . $appSettings['app_logo']) }}" alt="" style="height: 28px;" class="me-2">
                 @else
-                    <i class="bi bi-qr-code-scan"></i>
+                    <i class="bi bi-tools"></i>
                 @endif
-                <span>{{ $appSettings['app_name'] ?? 'POS' }} Admin</span>
+                <span>{{ $appSettings['app_name'] ?? 'RepairDesk' }} Admin</span>
             </a>
         </div>
 

@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
-    <title>@yield('title', $appSettings['app_name'] ?? 'POS System') - {{ $appSettings['app_name'] ?? 'POS System' }}</title>
+    <title>@yield('title', $appSettings['app_name'] ?? 'RepairDesk Pro') - {{ $appSettings['app_name'] ?? 'RepairDesk Pro' }}</title>
 
     @if(!empty($appSettings['app_favicon']))
     <link rel="icon" type="image/png" href="{{ asset('storage/' . $appSettings['app_favicon']) }}">
@@ -513,11 +513,11 @@
         <div class="container">
             <a class="navbar-brand d-flex align-items-center" href="{{ route('home') }}">
                 @if(!empty($appSettings['app_logo']))
-                    <img src="{{ asset('storage/' . $appSettings['app_logo']) }}" alt="{{ $appSettings['app_name'] ?? 'POS System' }}" style="height: 35px;" class="me-2">
+                    <img src="{{ asset('storage/' . $appSettings['app_logo']) }}" alt="{{ $appSettings['app_name'] ?? 'RepairDesk Pro' }}" style="height: 35px;" class="me-2">
                 @else
-                    <i class="bi bi-qr-code-scan me-2"></i>
+                    <i class="bi bi-tools me-2"></i>
                 @endif
-                {{ $appSettings['app_name'] ?? 'POS System' }}
+                {{ $appSettings['app_name'] ?? 'RepairDesk Pro' }}
             </a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
                 <span class="navbar-toggler-icon"></span>

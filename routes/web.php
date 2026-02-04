@@ -61,6 +61,11 @@ Route::get('/test-session', function() {
 // Pricing page
 Route::get('/pricing', [PricingController::class, 'index'])->name('pricing');
 
+// Repair Job Tracking (Public)
+Route::get('/track', [App\Http\Controllers\TrackRepairController::class, 'index'])->name('track.index');
+Route::post('/track', [App\Http\Controllers\TrackRepairController::class, 'search'])->name('track.search');
+Route::get('/track/{ticketNumber}', [App\Http\Controllers\TrackRepairController::class, 'show'])->name('track.show');
+
 // Store public pages
 Route::get('/store/{slug}', [StoreController::class, 'show'])->name('store.show');
 Route::get('/store/{slug}/category/{categorySlug}', [StoreController::class, 'category'])->name('store.category');
@@ -197,6 +202,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin'])->grou
 
 Route::prefix('store-owner')->name('store-owner.')->middleware(['auth', 'role:store_owner,staff'])->group(function () {
     Route::get('/dashboard', [StoreOwner\DashboardController::class, 'index'])->name('dashboard');
+    Route::get('/technician-dashboard', [StoreOwner\TechnicianDashboardController::class, 'index'])->name('technician-dashboard');
 
     // Store creation for new store owners
     Route::get('/stores/create', [StoreOwner\StoreCreateController::class, 'create'])->name('stores.create');
@@ -228,6 +234,36 @@ Route::prefix('store-owner')->name('store-owner.')->middleware(['auth', 'role:st
 
     // Customer management
     Route::resource('customers', StoreOwner\CustomerController::class)->middleware(['permission:manage_customers', 'plan.feature:customer_database']);
+
+    // Repair Job Management
+    // Static routes first (must come before parameterized routes)
+    Route::middleware('permission:manage_repair_jobs')->group(function() {
+        Route::get('/repair-jobs/create', [StoreOwner\RepairJobController::class, 'create'])->name('repair-jobs.create');
+        Route::post('/repair-jobs', [StoreOwner\RepairJobController::class, 'store'])->name('repair-jobs.store');
+    });
+    // Index route (no parameter)
+    Route::middleware('permission:view_repair_jobs')->group(function() {
+        Route::get('/repair-jobs', [StoreOwner\RepairJobController::class, 'index'])->name('repair-jobs.index');
+    });
+    // Parameterized routes come after static routes
+    Route::middleware('permission:view_repair_jobs')->group(function() {
+        Route::get('/repair-jobs/{repairJob}', [StoreOwner\RepairJobController::class, 'show'])->name('repair-jobs.show');
+        Route::get('/repair-jobs/{repairJob}/print', [StoreOwner\RepairJobController::class, 'printJobCard'])->name('repair-jobs.print');
+        Route::get('/repair-jobs/{repairJob}/invoice', [StoreOwner\RepairJobController::class, 'invoice'])->name('repair-jobs.invoice');
+    });
+    Route::middleware('permission:manage_repair_jobs')->group(function() {
+        Route::get('/repair-jobs/{repairJob}/edit', [StoreOwner\RepairJobController::class, 'edit'])->name('repair-jobs.edit');
+        Route::put('/repair-jobs/{repairJob}', [StoreOwner\RepairJobController::class, 'update'])->name('repair-jobs.update');
+        Route::delete('/repair-jobs/{repairJob}', [StoreOwner\RepairJobController::class, 'destroy'])->name('repair-jobs.destroy');
+        Route::patch('/repair-jobs/{repairJob}/assign', [StoreOwner\RepairJobController::class, 'assignTechnician'])->name('repair-jobs.assign');
+    });
+    Route::middleware('permission:update_job_status')->group(function() {
+        Route::patch('/repair-jobs/{repairJob}/status', [StoreOwner\RepairJobController::class, 'updateStatus'])->name('repair-jobs.update-status');
+    });
+    Route::middleware('permission:add_repair_parts')->group(function() {
+        Route::post('/repair-jobs/{repairJob}/parts', [StoreOwner\RepairJobController::class, 'addPart'])->name('repair-jobs.add-part');
+        Route::delete('/repair-jobs/{repairJob}/parts/{part}', [StoreOwner\RepairJobController::class, 'removePart'])->name('repair-jobs.remove-part');
+    });
 
     // Staff management
     Route::resource('staff', StoreOwner\StaffController::class)->middleware(['permission:manage_staff', 'plan.feature:staff_accounts']);
